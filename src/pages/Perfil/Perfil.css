@@ -1,0 +1,247 @@
+/* --- GALACTIC THEME PROFILE REFINED --- */
+.perfil-container {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2.5rem 0 2.5rem 0;
+  background: linear-gradient(135deg, #1a102b 0%, #2d1846 60%, #4f46e5 100%) fixed;
+  position: relative;
+  z-index: 1;
+  overflow-x: hidden;
+}
+.perfil-container::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at 70% 20%, #a084e822 0%, #4f46e511 60%, transparent 100%),
+              radial-gradient(circle at 20% 80%, #7c3aed33 0%, transparent 80%);
+  z-index: 0;
+}
+
+.perfil-card {
+  background: rgba(34, 24, 60, 0.92);
+  border-radius: 22px;
+  box-shadow: 0 8px 32px #7c3aed44, 0 1.5px 0 #a084e8;
+  padding: 2.5rem 2rem 2rem 2rem;
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+  border: 2.5px solid #a084e8;
+  backdrop-filter: blur(12px) saturate(1.3);
+  position: relative;
+  z-index: 2;
+  margin: 0 auto;
+}
+
+.perfil-avatar {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+.perfil-avatar img {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3.5px solid #a084e8;
+  box-shadow: 0 2px 16px #7c3aed55, 0 0 0 6px #2d1846;
+  background: #fff;
+  transition: border 0.3s, box-shadow 0.3s;
+  animation: perfil-avatar-glow 2.5s infinite alternate;
+}
+@keyframes perfil-avatar-glow {
+  0% { box-shadow: 0 2px 16px #7c3aed55, 0 0 0 6px #2d1846; }
+  100% { box-shadow: 0 4px 32px #a084e8cc, 0 0 0 10px #4f46e555; }
+}
+
+.perfil-info {
+  text-align: left;
+  margin-bottom: 2rem;
+  background: rgba(60,40,100,0.55);
+  border-radius: 14px;
+  padding: 18px 18px 14px 18px;
+  box-shadow: 0 1px 8px #7b2ff211;
+  font-size: 1.08rem;
+  border: 1.5px solid #4f46e5;
+  color: #e0e0ff;
+}
+.perfil-info p {
+  margin: 0.7em 0 0.7em 0;
+  font-size: 1.08rem;
+  color: #e0e0ff;
+  letter-spacing: 0.01em;
+}
+.perfil-info strong {
+  color: #FFD600;
+  font-weight: 700;
+  min-width: 90px;
+  display: inline-block;
+}
+
+.title {
+  font-size: 1.6rem;
+  color: #FFD600;
+  margin-bottom: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-shadow: 0 2px 12px #7b2ff244, 0 1px 0 #18122B;
+  border-bottom: 2px solid #a084e8;
+  padding-bottom: 0.5rem;
+}
+
+.editar-perfil {
+  margin-top: 1.5rem;
+}
+
+/* Inputs y botones del editor */
+.perfil-card input[type="text"],
+.perfil-card input[type="email"],
+.perfil-card input[type="tel"] {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: 1.5px solid #a084e8;
+  border-radius: 7px;
+  font-size: 1rem;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  margin-bottom: 1rem;
+  transition: border 0.2s, background 0.2s;
+}
+.perfil-card input:focus {
+  outline: none;
+  border-color: #FFD600;
+  background: rgba(76, 29, 149, 0.13);
+}
+.perfil-card input[disabled] {
+  background-color: #2d1846;
+  color: #aaa;
+  cursor: not-allowed;
+}
+.perfil-card button, .perfil-card .btn-guardar {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(90deg, #4f46e5 60%, #a084e8 100%);
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 1.08rem;
+  font-weight: bold;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 2px 8px #7c3aed33;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.perfil-card button:disabled, .perfil-card .btn-guardar:disabled {
+  background: #393053;
+  color: #bbb;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.perfil-card button:hover:not(:disabled), .perfil-card .btn-guardar:hover:not(:disabled) {
+  background: linear-gradient(90deg, #a084e8 0%, #4f46e5 100%);
+  box-shadow: 0 4px 16px #7c3aed55;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .perfil-container {
+    max-width: 99vw !important;
+    padding: 12px 0 !important;
+    margin: 18px auto !important;
+    border-radius: 10px !important;
+  }
+  .perfil-card {
+    padding: 12px 2vw 10px 2vw !important;
+    max-width: 99vw !important;
+  }
+  .perfil-avatar img {
+    width: 80px !important;
+    height: 80px !important;
+  }
+  .perfil-info {
+    padding: 8px 2px !important;
+    font-size: 14px !important;
+  }
+  .perfil-card form,
+  .perfil-card form > * {
+    max-width: 96vw !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+  .perfil-card input,
+  .perfil-card select,
+  .perfil-card button {
+    font-size: 0.97rem !important;
+    padding: 7px 8px !important;
+  }
+}
+
+/* --- END GALACTIC THEME PROFILE REFINED --- */
+
+/* Estilos para el modal de recorte */
+.cropper-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.cropper-container {
+  width: 100%;
+  max-width: 400px;
+  height: 400px;
+  position: relative;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cropper-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.cropper-actions button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cropper-actions button:first-child {
+  background-color: #dc3545;
+  color: white;
+}
+
+.cropper-actions button:last-child {
+  background-color: #28a745;
+  color: white;
+}
+
+.image-upload-label {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background-color: #007bff;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.image-upload-label:hover {
+  background-color: #0056b3;
+}

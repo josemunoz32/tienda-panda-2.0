@@ -1,0 +1,126 @@
+/* SobreNosotros.css - Estilos profesionales y temáticos para la sección Sobre Nosotros */
+
+.sobre-root {
+  max-width: 800px;
+  margin: 48px auto 64px auto;
+  padding: 36px 28px 44px 28px;
+  /* Fondo oscuro con toque morado, similar a un tema "gamer" */
+  background: rgba(40,18,60,0.97); 
+  border-radius: 18px;
+  /* Efecto de cristal esmerilado con morado vibrante */
+  box-shadow: 0 8px 32px 0 rgba(124,58,237,0.18); 
+  color: #f3e8ff; /* Texto principal claro */
+  position: relative;
+  z-index: 2;
+}
+
+.sobre-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #a084e8; /* Título morado vibrante */
+  text-align: center;
+  margin-bottom: 36px;
+  /* Sombra de texto para destacar */
+  text-shadow: 0 2px 16px #7c3aed; 
+}
+
+/* --- ESTILO DE FRASE DESTACADA AÑADIDO --- */
+.sobre-frase {
+  text-align: center;
+  font-style: italic;
+  font-size: 1.15rem;
+  color: #7c3aed; /* Color de acento */
+  margin-bottom: 40px;
+  padding: 10px 15px;
+  border-left: 5px solid #a084e8;
+  background: rgba(160, 132, 232, 0.05); /* Fondo muy sutil */
+}
+
+.sobre-section {
+  margin-bottom: 36px;
+  /* Fondo sutil para las secciones, resaltando el contenido */
+  background: rgba(124,58,237,0.10); 
+  border-radius: 12px;
+  padding: 24px 22px 18px 22px;
+  box-shadow: 0 2px 8px 0 rgba(124,58,237,0.08);
+}
+
+.sobre-section h2 {
+  color: #a084e8;
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+.sobre-section p, .sobre-section ul {
+  color: #e0d7ff;
+  font-size: 1.08rem;
+  line-height: 1.7;
+}
+
+.sobre-section ul {
+  padding-left: 20px;
+  margin-bottom: 10px;
+}
+
+.sobre-section li {
+  margin-bottom: 6px;
+}
+
+/* --- ESTILOS DE CONTACTO AÑADIDOS --- */
+.sobre-contacto-list {
+  list-style: none; /* Quitamos los puntos de la lista */
+  padding-left: 0;
+  margin-top: 15px;
+}
+
+.sobre-contacto-list li {
+  display: flex; /* Para alinear el ícono con el texto */
+  align-items: center;
+  margin-bottom: 10px;
+  font-weight: 500;
+  font-size: 1.05rem;
+}
+
+.sobre-contacto-list li svg {
+  margin-right: 10px;
+  min-width: 20px; /* Asegura el espacio para el ícono */
+}
+
+.sobre-contacto-list li span {
+  font-weight: 700;
+  margin-right: 5px;
+  color: #a084e8; /* Color para el tipo de contacto (Email, WhatsApp) */
+}
+/* --- FIN ESTILOS DE CONTACTO AÑADIDOS --- */
+
+
+/* Estilos para dispositivos móviles */
+@media (max-width: 600px) {
+  .sobre-root {
+    padding: 24px 15px 30px 15px; /* Ajuste para un padding más cómodo en móvil */
+    margin: 30px auto;
+  }
+  .sobre-title {
+    font-size: 2rem;
+    margin-bottom: 25px;
+  }
+  .sobre-frase {
+    font-size: 1rem;
+    margin-bottom: 30px;
+  }
+  .sobre-section {
+    padding: 18px 15px 14px 15px;
+  }
+  .sobre-section h2 {
+    font-size: 1.2rem;
+  }
+  .sobre-section p, .sobre-section ul {
+    font-size: 1rem;
+  }
+  .sobre-contacto-list li {
+    font-size: 1rem;
+  }
+}

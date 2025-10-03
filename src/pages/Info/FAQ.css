@@ -1,0 +1,188 @@
+/* FAQ.css - Estilos para la página de Preguntas Frecuentes con temática galáctica/profesional */
+
+.faq-root {
+    max-width: 800px;
+    margin: 48px auto 64px auto;
+    padding: 32px 24px 40px 24px;
+    /* Fondo oscuro semitransparente que simula el espacio profundo */
+    background: rgba(20, 24, 38, 0.92);
+    border-radius: 18px;
+    /* Sombra exterior sutil */
+    box-shadow: 0 8px 32px 0 rgba(0,0,0,0.4); 
+    color: #f3f6fa;
+    position: relative;
+    z-index: 2;
+    border: 1px solid #3d2c5e; /* Borde sutil */
+}
+
+.faq-title {
+    font-size: 2.6rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    /* Título en color Morado/Púrpura Principal */
+    color: #7c3aed; 
+    text-align: center;
+    margin-bottom: 36px;
+    /* Resplandor Neon Sutil */
+    text-shadow: 0 0 10px rgba(124, 58, 237, 0.6);
+}
+
+.faq-category {
+    margin-bottom: 22px;
+    border-radius: 14px;
+    overflow: hidden;
+    /* Fondo de categoría sutilmente degradado */
+    background: #252a3b; 
+    border: 1.5px solid #3d2c5e; 
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.3);
+}
+
+.faq-category-btn {
+    width: 100%;
+    text-align: left;
+    /* Degradado de Púrpura/Azul neón para el botón de categoría */
+    background: linear-gradient(90deg, #4c2f8f 0%, #7c3aed 100%);
+    border: none;
+    outline: none;
+    padding: 18px 24px;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #ffffff;
+    cursor: pointer;
+    border-bottom: 1.5px solid #233a5a;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.15);
+    letter-spacing: 0.5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.faq-category-btn:hover, .faq-category-btn[aria-expanded="true"] {
+    /* Efecto de hover/abierto: más claro y con más sombra */
+    background: linear-gradient(90deg, #7c3aed 0%, #9f52f4 100%);
+    color: #fff;
+    box-shadow: 0 6px 20px 0 rgba(124, 58, 237, 0.3);
+}
+
+.faq-category-content {
+    /* Fondo de contenido más oscuro para contraste */
+    background: rgba(14, 18, 29, 0.98);
+    padding: 18px 32px 24px 32px;
+}
+
+/* Estilos para el Título de Subcategoría (e.g., "Códigos y Entrega") */
+.faq-subcategory-title {
+    font-weight: 700;
+    /* Color Neón (fucsia/rosa) para destacar */
+    color: #f357a8;
+    font-size: 1.15rem;
+    margin: 18px 0 10px 0; /* Ajuste de margen para desktop */
+    padding-bottom: 5px;
+    border-bottom: 2px solid #33394a;
+    display: inline-block;
+}
+
+.faq-questions-grid {
+    display: grid;
+    /* Diseño de 2 columnas para desktop */
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 24px;
+    margin-top: 10px;
+}
+
+.faq-question-item {
+    width: 100%;
+}
+
+.faq-question {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+    /* Degradado sutil para la pregunta */
+    background: linear-gradient(90deg, #2b324d 0%, #3a4263 100%);
+    border: 1px solid #3d2c5e;
+    outline: none;
+    padding: 13px 20px;
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: #f3f6fa;
+    cursor: pointer;
+    border-radius: 8px;
+    margin-bottom: 0;
+    letter-spacing: 0.2px;
+    transition: all 0.2s;
+}
+
+.faq-question:hover, .faq-question[aria-expanded="true"] {
+    /* Efecto de hover/abierto: más claro y con borde de color */
+    background: #3a4263;
+    color: #fff;
+    border-color: #f357a8; /* Borde neón */
+    box-shadow: 0 0 8px 0 rgba(243, 87, 168, 0.3);
+}
+
+.faq-arrow svg {
+    display: block;
+}
+.faq-arrow path {
+    /* Flecha en color Neón/Morado */
+    stroke: #f357a8;
+    transition: stroke 0.2s;
+}
+.faq-question[aria-expanded="true"] .faq-arrow path {
+    stroke: #ffffff; /* Flecha blanca cuando está abierto */
+}
+
+.faq-answer {
+    color: #e0e6f7;
+    font-size: 1rem;
+    line-height: 1.5;
+    padding: 12px 18px 15px 18px;
+    /* Fondo del contenido de respuesta */
+    background: rgba(35, 40, 56, 0.9);
+    border-radius: 0 0 8px 8px;
+    margin-top: -1px; /* Para que quede pegado al botón */
+}
+
+/* --- MEDIA QUERIES (RESPONSIVE) --- */
+@media (max-width: 900px) {
+    .faq-questions-grid {
+        /* Una sola columna para móvil */
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 600px) {
+    .faq-root {
+        padding: 16px 4px 24px 4px;
+        margin: 24px auto 40px auto;
+        border-radius: 12px;
+    }
+    .faq-category-content {
+        padding: 12px 10px 16px 10px;
+    }
+    .faq-title {
+        font-size: 2.2rem;
+        margin-bottom: 24px;
+    }
+    .faq-category-btn {
+        font-size: 1.1rem;
+        padding: 14px 18px;
+    }
+    .faq-subcategory-title {
+        font-size: 1.05rem;
+        margin: 12px 0 8px 0;
+    }
+    .faq-question {
+        font-size: 1rem;
+        padding: 10px 15px;
+    }
+    .faq-answer {
+        font-size: 0.95rem;
+        padding: 10px 15px;
+    }
+}

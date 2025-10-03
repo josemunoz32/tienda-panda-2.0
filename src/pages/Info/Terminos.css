@@ -1,0 +1,75 @@
+/* Terminos.css - Estilos profesionales y temáticos para la sección de Términos y Condiciones */
+
+.terminos-root {
+  max-width: 900px;
+  margin: 48px auto 64px auto;
+  padding: 36px 28px 44px 28px;
+  background: rgba(40,18,60,0.97);
+  border-radius: 18px;
+  box-shadow: 0 8px 32px 0 rgba(124,58,237,0.18);
+  color: #f3e8ff;
+  position: relative;
+  z-index: 2;
+}
+
+.terminos-title {
+  font-size: 2.3rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #a084e8;
+  text-align: center;
+  margin-bottom: 36px;
+  text-shadow: 0 2px 16px #7c3aed;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.terminos-section {
+  margin-bottom: 36px;
+  background: rgba(124,58,237,0.10);
+  border-radius: 12px;
+  padding: 24px 22px 18px 22px;
+  box-shadow: 0 2px 8px 0 rgba(124,58,237,0.08);
+}
+
+.terminos-section h2 {
+  color: #a084e8;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terminos-section ul {
+  color: #e0d7ff;
+  font-size: 1.08rem;
+  line-height: 1.7;
+  padding-left: 24px;
+  margin-bottom: 10px;
+}
+
+.terminos-section li {
+  margin-bottom: 8px;
+}
+
+.terminos-icon {
+  font-size: 1.3em;
+  vertical-align: middle;
+}
+
+@media (max-width: 600px) {
+  .terminos-root {
+    padding: 16px 4px 24px 4px;
+  }
+  .terminos-title {
+    font-size: 1.5rem;
+  }
+  .terminos-section {
+    padding: 14px 6px 10px 6px;
+  }
+}
