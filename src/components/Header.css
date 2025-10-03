@@ -1,0 +1,210 @@
+/* Sidebar (menú lateral) profesional */
+.header-navbar-overlay {
+	position: fixed;
+	top: 0; left: 0; right: 0; bottom: 0;
+	background: rgba(30, 30, 40, 0.35);
+	z-index: 1000;
+	transition: background 0.2s;
+}
+
+.header-navbar-sidebar {
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: 100vh;
+	width: 80vw;
+	max-width: 300px;
+	background: rgba(255,255,255,0.75);
+	box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18), 0 2px 8px 0 rgba(0,0,0,0.08);
+	border-radius: 0 18px 18px 0;
+	z-index: 1100;
+	padding: 18px 10px 14px 10px;
+	display: flex;
+	flex-direction: column;
+	animation: sidebar-slide-in 0.25s cubic-bezier(.7,.2,.3,1);
+	font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+	overflow-y: auto;
+	backdrop-filter: blur(12px) saturate(160%);
+	border: 1.5px solid rgba(122,92,255,0.13);
+	scrollbar-width: thin;
+	scrollbar-color: #a259ff #f5f0ff;
+	transition: background 0.3s, box-shadow 0.3s;
+}
+
+@keyframes sidebar-slide-in {
+	from { transform: translateX(-100%); opacity: 0.5; }
+	to { transform: translateX(0); opacity: 1; }
+}
+
+.sidebar-logo-title {
+	margin-bottom: 10px;
+	background: rgba(255,255,255,0.7);
+	border-radius: 16px;
+	padding: 12px 10px 12px 10px;
+	box-shadow: 0 2px 16px #a259ff22;
+	backdrop-filter: blur(8px) saturate(140%);
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.header-navbar-sidebar-close {
+	position: absolute;
+	top: 18px;
+	right: 18px;
+	background: #f5f5fa;
+	border: none;
+	border-radius: 50%;
+	width: 36px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.5rem;
+	color: #a259ff;
+	cursor: pointer;
+	box-shadow: 0 2px 8px #a259ff22;
+	transition: background 0.15s;
+}
+.header-navbar-sidebar-close:hover {
+	background: #e6e0fa;
+}
+
+.header-navbar-sidebar nav ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	font-size: 0.97rem;
+}
+.header-navbar-sidebar nav ul li {
+	margin-bottom: 6px;
+}
+.header-navbar-sidebar nav ul li a,
+.header-navbar-sidebar nav ul li button {
+	display: block;
+	width: 100%;
+	padding: 8px 0 8px 12px;
+	background: none;
+	border: none;
+	color: #2d1e4d;
+	font-size: 1.01rem;
+	font-weight: 500;
+	border-radius: 8px;
+	text-align: left;
+	text-decoration: none;
+	transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
+	cursor: pointer;
+	position: relative;
+	box-shadow: none;
+	outline: none;
+}
+
+/* Estilo especial para el botón/enlace de cerrar sesión */
+.header-navbar-sidebar nav ul li.cerrar-sesion a,
+.header-navbar-sidebar nav ul li.cerrar-sesion button {
+	background: linear-gradient(90deg, #ff4d4f 60%, #ffb3b3 100%);
+	color: #fff !important;
+	font-weight: 700;
+	border-radius: 8px;
+	box-shadow: 0 2px 12px #ff4d4f33;
+	transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
+}
+.header-navbar-sidebar nav ul li.cerrar-sesion a:hover,
+.header-navbar-sidebar nav ul li.cerrar-sesion button:hover {
+	background: linear-gradient(90deg, #d32f2f 60%, #ff4d4f 100%);
+	color: #fff !important;
+	box-shadow: 0 4px 16px #ff4d4f55;
+	transform: scale(1.03);
+}
+
+.header-navbar-sidebar nav ul li a:hover,
+.header-navbar-sidebar nav ul li button:hover,
+.header-navbar-sidebar nav ul li a:focus,
+.header-navbar-sidebar nav ul li button:focus {
+	background: linear-gradient(90deg, #f5f0ff 60%, #e6d6ff 100%);
+	color: #7a5cff;
+	box-shadow: 0 2px 12px #a259ff22;
+	transform: translateX(2px) scale(1.03);
+}
+
+/* Ejemplo de ítem activo, puedes agregar la clase .active desde React si lo deseas */
+.header-navbar-sidebar nav ul li a.active,
+.header-navbar-sidebar nav ul li button.active {
+	background: linear-gradient(90deg, #e6d6ff 60%, #a259ff33 100%);
+	color: #7a5cff;
+	font-weight: 700;
+	box-shadow: 0 2px 16px #a259ff33;
+	border-left: 4px solid #a259ff;
+}
+
+.header-navbar-sidebar nav ul li a:hover,
+.header-navbar-sidebar nav ul li button:hover {
+	background: #f5f0ff;
+	color: #a259ff;
+}
+
+.header-navbar-sidebar nav ul li details {
+	margin-bottom: 0;
+}
+.header-navbar-sidebar nav ul li details summary {
+	cursor: pointer;
+	font-weight: 600;
+	color: #7a5cff;
+	background: linear-gradient(90deg, #f5f0ff 60%, #e6d6ff 100%);
+	border-radius: 7px;
+	padding: 7px 0 7px 12px;
+	outline: none;
+	margin-bottom: 3px;
+	font-size: 1.01rem;
+	transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
+}
+.header-navbar-sidebar nav ul li details[open] > summary {
+	background: linear-gradient(90deg, #e6d6ff 60%, #a259ff22 100%);
+	color: #7a5cff;
+	font-weight: 700;
+	box-shadow: 0 2px 12px #a259ff22;
+}
+	/* Scrollbar personalizada */
+	/* Las reglas de scrollbar-width y scrollbar-color ya están arriba, no repetir aquí */
+
+.header-navbar-sidebar::-webkit-scrollbar {
+	width: 8px;
+}
+.header-navbar-sidebar::-webkit-scrollbar-thumb {
+	background: linear-gradient(180deg, #a259ff 0%, #f357a8 100%);
+	border-radius: 6px;
+}
+.header-navbar-sidebar::-webkit-scrollbar-track {
+	background: #f5f0ff;
+	border-radius: 6px;
+}
+ 
+.header-navbar-sidebar nav ul li details[open] summary {
+	color: #3a2d5d;
+	background: #ece6fa;
+
+.header-navbar-sidebar nav ul li details ul {
+	margin-top: 2px;
+	margin-left: 8px;
+	padding-left: 0;
+}
+.header-navbar-sidebar nav ul li details ul li {
+	margin-bottom: 3px;
+	font-size: 0.95rem;
+}
+
+@media (max-width: 600px) {
+	.header-navbar-sidebar {
+		width: 99vw;
+		max-width: 99vw;
+		padding: 10px 2px 8px 2px;
+		border-radius: 0 18px 18px 0;
+		background: rgba(255,255,255,0.85);
+		backdrop-filter: blur(16px) saturate(180%);
+	}
+	.header-navbar-sidebar-close {
+		top: 6px;
+		right: 6px;
+	}
+}
+}

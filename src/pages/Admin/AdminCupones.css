@@ -1,0 +1,136 @@
+.cupones-admin-container {
+  max-width: 800px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px #0002;
+  padding: 32px 24px;
+  position: relative;
+  z-index: 10;
+}
+.cupones-title {
+  text-align: center;
+  margin-bottom: 24px;
+  color: #1976d2;
+}
+.cupones-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+  margin-bottom: 32px;
+  justify-content: center;
+}
+.cupones-form input[type="text"],
+.cupones-form input[type="number"],
+.cupones-form input[type="date"] {
+  padding: 8px 12px;
+  border: 1px solid #bdbdbd;
+  border-radius: 6px;
+  font-size: 16px;
+  min-width: 160px;
+}
+.cupones-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+}
+.cupones-btn {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.cupones-btn:disabled {
+  background: #bdbdbd;
+  cursor: not-allowed;
+}
+.cupones-btn-edit {
+  background: #43a047;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  margin-right: 6px;
+  cursor: pointer;
+  font-size: 15px;
+}
+.cupones-btn-delete {
+  background: #e53935;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-size: 15px;
+}
+.cupones-error {
+  color: #e53935;
+  margin-top: 8px;
+  width: 100%;
+  text-align: center;
+}
+.cupones-success {
+  color: #43a047;
+  margin-top: 8px;
+  width: 100%;
+  text-align: center;
+}
+.cupones-table-container {
+  overflow-x: auto;
+}
+.cupones-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 12px;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px #0001;
+}
+.cupones-table th, .cupones-table td {
+  padding: 10px 8px;
+  text-align: left;
+  color: #222;
+  background: #fff;
+}
+.cupones-table th {
+  background: #1976d2;
+  color: #fff;
+  font-weight: 700;
+}
+.cupones-table tr:nth-child(even) td {
+  background: #f4f8fb;
+}
+.cupones-table tr:nth-child(odd) td {
+  background: #fff;
+}
+.cupones-btn-edit {
+  background: #43a047;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  margin-right: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 1px 3px #0002;
+}
+.cupones-btn-delete {
+  background: #e53935;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 1px 3px #0002;
+}

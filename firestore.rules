@@ -1,0 +1,125 @@
+    // Cupones: solo admin puede crear, leer, actualizar y borrar
+    match /cupones/{cuponId} {
+      allow read, create, update, delete: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Permitir lectura global de reseñas (collectionGroup) solo a admin autenticados
+    match /{document=**}/reviews/{reviewId} {
+      allow read: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    // Cualquier usuario autenticado puede leer perfiles, solo el usuario puede escribir su propio perfil
+    // Solo admin puede eliminar cualquier usuario
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    // Cualquier usuario autenticado puede crear categorías, solo admin puede editar/borrar
+    match /categories/{categoryId} {
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      allow read: if true;
+    }
+
+    // Cualquier usuario autenticado puede crear productos, solo admin puede editar/borrar
+    match /products/{productId} {
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      allow read: if true;
+
+      // Subcolección de reseñas
+      match /reviews/{reviewId} {
+        // Permitir leer todas las reseñas
+        allow read: if true;
+        // Solo admin puede eliminar o actualizar cualquier reseña (ocultar/mostrar)
+        allow update, delete: if request.auth != null &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+        // El usuario dueño puede crear su reseña
+        allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      }
+
+      // Subcolección de preguntas y respuestas
+      match /questions/{questionId} {
+        // Permitir leer todas las preguntas
+        allow read: if true;
+        // Permitir crear pregunta solo a usuarios autenticados
+        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+        // Permitir editar/borrar solo al autor de la pregunta
+        allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+        // Permitir responder (escribir answer) solo a admin
+        allow update: if request.auth != null &&
+          (request.auth.uid == resource.data.userId ||
+          (request.resource.data.answer != null &&
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"));
+      }
+    }
+
+    // Permitir que cada usuario lea y escriba sus propios pedidos
+    match /users/{userId}/orders/{orderId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin");
+      allow update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Permitir que cada usuario lea y escriba su propio carrito y favoritos
+    match /users/{userId}/cart/{cartId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /users/{userId}/favorites/{favId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    // Colección global de pedidos: solo admin puede leer y actualizar todos
+    match /orders/{orderId} {
+      allow read: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    // Testimonios: solo admin puede crear, editar y borrar; todos pueden leer
+    match /testimonios/{testimonioId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    // Soporte: cualquier usuario autenticado puede crear ticket
+    match /soporte/{ticketId} {
+      // Crear ticket (POST desde frontend): cualquier usuario autenticado
+      allow create: if request.auth != null;
+      // Leer ticket: admin puede leer todos, cliente solo su propio ticket (por email)
+      allow read: if request.auth != null && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin" ||
+        resource.data.email == request.auth.token.email
+      );
+      // Actualizar/finalizar ticket: solo admin
+      allow update, delete: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+
+      // Subcolección de mensajes del ticket
+      match /mensajes/{mensajeId} {
+        // Leer mensajes: admin puede leer todos, cliente solo si el ticket es suyo
+        allow read: if request.auth != null && (
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin" ||
+          get(/databases/$(database)/documents/soporte/$(ticketId)).data.email == request.auth.token.email
+        );
+        // Crear mensaje: admin o dueño del ticket
+        allow create: if request.auth != null && (
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin" ||
+          get(/databases/$(database)/documents/soporte/$(ticketId)).data.email == request.auth.token.email
+        );
+        // Actualizar/borrar mensaje: solo admin
+        allow update, delete: if request.auth != null &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      }
+    }
+  }
+}

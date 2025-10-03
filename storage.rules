@@ -1,0 +1,20 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Imágenes de productos: cualquier usuario autenticado puede escribir, todos pueden leer
+    match /products/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    // Imágenes de perfil: solo el usuario puede leer/escribir
+    match /user_uploads/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    // Imágenes de testimonios: solo admin puede escribir, todos pueden leer
+    match /testimonios/{allPaths=**} {
+      allow read: if true;
+      // El rol debe estar en el token de autenticación como custom claim
+      allow write: if request.auth != null && request.auth.token.role == "admin";
+    }
+  }
+}
