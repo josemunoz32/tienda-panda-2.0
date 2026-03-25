@@ -154,7 +154,7 @@ export default function CheckoutCompraDirecta() {
           variante: producto.variante || null,
           meses: producto.meses || null
         }],
-            total: totalConDescuento,
+        total: totalConDescuento,
         moneda,
         metodoPago,
         email: user?.email || '',
@@ -181,7 +181,24 @@ export default function CheckoutCompraDirecta() {
       if (cuponInfo && descuento > 0) {
         await marcarCuponUsado();
       }
-      pedidoGuardado = true;
+      // Enviar correo al admin SIEMPRE que se finaliza la compra
+      try {
+        await fetch('https://us-central1-pandastoreupdate.cloudfunctions.net/sendConfirmationEmail', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: orderRef.id,
+            globalOrderId: orderRef.id,
+            docId: orderRef.id,
+            clienteEmail: user?.email || ''
+          })
+        });
+      } catch (err) { /* opcional: puedes mostrar un mensaje de error si quieres */ }
+      if (metodoPago === 'transferencia' || metodoPago === 'crypto') {
+        navigate('/confirmacion-pendiente');
+      } else {
+        navigate('/confirmacion-exitosa');
+      }
     } catch (e) {
       console.error("Error al guardar pedido:", e);
       if (e && e.message) {
@@ -190,15 +207,6 @@ export default function CheckoutCompraDirecta() {
         alert("Ocurrió un error al guardar tu pedido. Intenta nuevamente.");
       }
       return;
-    }
-
-    // NO borrar el carrito aquí
-    if (pedidoGuardado) {
-      if (metodoPago === 'transferencia' || metodoPago === 'crypto') {
-        navigate('/confirmacion-pendiente');
-      } else {
-        navigate('/confirmacion-exitosa');
-      }
     }
   };
 

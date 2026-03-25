@@ -4,6 +4,7 @@ import { auth, googleProvider } from "../../firebase";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { db } from "../../firebase";
 import { doc, setDoc } from "firebase/firestore";
+import { getDoc } from "firebase/firestore";
 import "./IniciarSesion.css";
 import logo from "../../assets/logos/miicono.png";
 
@@ -67,15 +68,21 @@ export default function IniciarSesion() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      // Siempre registrar/actualizar el usuario con role 'user' en Firestore
+      // Leer el rol actual si existe
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      let role = "user";
+      if (userDocSnap.exists() && userDocSnap.data().role) {
+        role = userDocSnap.data().role;
+      }
       await setDoc(
-        doc(db, "users", user.uid),
+        userDocRef,
         {
           email: user.email || "",
           displayName: user.displayName || "",
           photoURL: user.photoURL || "",
           phoneNumber: user.phoneNumber || "",
-          role: "user" // Siempre forzar role user
+          role
         },
         { merge: true }
       );

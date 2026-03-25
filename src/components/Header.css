@@ -2,9 +2,17 @@
 .header-navbar-overlay {
 	position: fixed;
 	top: 0; left: 0; right: 0; bottom: 0;
-	background: rgba(30, 30, 40, 0.35);
+	background: transparent;
+	opacity: 1;
 	z-index: 1000;
-	transition: background 0.2s;
+}
+
+/* Solo en móvil: overlay oscuro */
+@media (max-width: 900px) {
+	.header-navbar-overlay {
+		background: #18181c !important;
+		opacity: 1 !important;
+	}
 }
 
 .header-navbar-sidebar {
@@ -14,11 +22,11 @@
 	height: 100vh;
 	width: 80vw;
 	max-width: 300px;
-	background: rgba(255,255,255,0.75);
-	box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18), 0 2px 8px 0 rgba(0,0,0,0.08);
-	border-radius: 0 18px 18px 0;
+	background: linear-gradient(135deg, #18122B 0%, #2D1950 60%, #1B183A 100%);
+	box-shadow: 0 12px 36px #000a, 0 1.5px 12px #2d195055;
+	border-radius: 0 28px 28px 0;
 	z-index: 1100;
-	padding: 18px 10px 14px 10px;
+	padding: 28px 22px 28px 16px;
 	display: flex;
 	flex-direction: column;
 	animation: sidebar-slide-in 0.25s cubic-bezier(.7,.2,.3,1);
@@ -37,59 +45,56 @@
 }
 
 .sidebar-logo-title {
-	margin-bottom: 10px;
-	background: rgba(255,255,255,0.7);
-	border-radius: 16px;
-	padding: 12px 10px 12px 10px;
-	box-shadow: 0 2px 16px #a259ff22;
-	backdrop-filter: blur(8px) saturate(140%);
+	margin-bottom: 28px;
+	background: rgba(32,24,60,0.93);
+	border-radius: 22px;
+	padding: 12px 20px 12px 12px;
+	box-shadow: 0 2px 18px #7b2ff244, 0 1px 4px #0004;
+	backdrop-filter: blur(10px) saturate(150%);
 	display: flex;
 	align-items: center;
-	gap: 10px;
+	gap: 12px;
 }
 
 .header-navbar-sidebar-close {
-	position: absolute;
-	top: 18px;
-	right: 18px;
-	background: #f5f5fa;
+	position: static;
+	background: #221a36;
 	border: none;
 	border-radius: 50%;
-	width: 36px;
-	height: 36px;
+	width: 40px;
+	height: 40px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 1.5rem;
+	font-size: 2rem;
 	color: #a259ff;
 	cursor: pointer;
 	box-shadow: 0 2px 8px #a259ff22;
 	transition: background 0.15s;
 }
 .header-navbar-sidebar-close:hover {
-	background: #e6e0fa;
+	background: #2d1950;
 }
 
 .header-navbar-sidebar nav ul {
 	list-style: none;
 	padding: 0;
 	margin: 0;
-	font-size: 0.97rem;
+	font-size: 1.04rem;
 }
 .header-navbar-sidebar nav ul li {
-	margin-bottom: 6px;
+	margin-bottom: 8px;
 }
 .header-navbar-sidebar nav ul li a,
 .header-navbar-sidebar nav ul li button {
 	display: block;
 	width: 100%;
-	padding: 8px 0 8px 12px;
+	padding: 12px 14px;
 	background: none;
-	border: none;
-	color: #2d1e4d;
-	font-size: 1.01rem;
-	font-weight: 500;
-	border-radius: 8px;
+	color: #e0d7ff;
+	font-size: 1.04rem;
+	font-weight: 600;
+	border-radius: 12px;
 	text-align: left;
 	text-decoration: none;
 	transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
@@ -98,49 +103,43 @@
 	box-shadow: none;
 	outline: none;
 }
-
-/* Estilo especial para el botón/enlace de cerrar sesión */
-.header-navbar-sidebar nav ul li.cerrar-sesion a,
-.header-navbar-sidebar nav ul li.cerrar-sesion button {
-	background: linear-gradient(90deg, #ff4d4f 60%, #ffb3b3 100%);
-	color: #fff !important;
-	font-weight: 700;
-	border-radius: 8px;
-	box-shadow: 0 2px 12px #ff4d4f33;
-	transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
-}
-.header-navbar-sidebar nav ul li.cerrar-sesion a:hover,
-.header-navbar-sidebar nav ul li.cerrar-sesion button:hover {
-	background: linear-gradient(90deg, #d32f2f 60%, #ff4d4f 100%);
-	color: #fff !important;
-	box-shadow: 0 4px 16px #ff4d4f55;
-	transform: scale(1.03);
-}
-
 .header-navbar-sidebar nav ul li a:hover,
 .header-navbar-sidebar nav ul li button:hover,
 .header-navbar-sidebar nav ul li a:focus,
 .header-navbar-sidebar nav ul li button:focus {
-	background: linear-gradient(90deg, #f5f0ff 60%, #e6d6ff 100%);
-	color: #7a5cff;
-	box-shadow: 0 2px 12px #a259ff22;
+	background: linear-gradient(90deg, #2d1950 60%, #18122b 100%);
+	color: #a259ff;
+	box-shadow: 0 2px 12px #7b2ff244;
 	transform: translateX(2px) scale(1.03);
 }
 
-/* Ejemplo de ítem activo, puedes agregar la clase .active desde React si lo deseas */
-.header-navbar-sidebar nav ul li a.active,
-.header-navbar-sidebar nav ul li button.active {
-	background: linear-gradient(90deg, #e6d6ff 60%, #a259ff33 100%);
-	color: #7a5cff;
+/* Botón/enlace de cerrar sesión */
+.header-navbar-sidebar nav ul li.cerrar-sesion a,
+.header-navbar-sidebar nav ul li.cerrar-sesion button {
+	background: linear-gradient(90deg, #ff2d2d 0%, #ff5a36 100%);
+	color: #fff !important;
 	font-weight: 700;
-	box-shadow: 0 2px 16px #a259ff33;
-	border-left: 4px solid #a259ff;
+	border-radius: 12px;
+	box-shadow: 0 2px 12px #ff2d2d44, 0 1px 4px #0004;
+	font-size: 1.07rem;
+	border: none;
+	transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
+}
+.header-navbar-sidebar nav ul li.cerrar-sesion a:hover,
+.header-navbar-sidebar nav ul li.cerrar-sesion button:hover {
+	background: linear-gradient(90deg, #ff0000 0%, #ff5a36 100%);
+	color: #fff !important;
+	box-shadow: 0 4px 16px #ff2d2d77;
+	transform: scale(1.06);
 }
 
-.header-navbar-sidebar nav ul li a:hover,
-.header-navbar-sidebar nav ul li button:hover {
-	background: #f5f0ff;
+.header-navbar-sidebar nav ul li a.active,
+.header-navbar-sidebar nav ul li button.active {
+	background: linear-gradient(90deg, #2d1950 60%, #a259ff33 100%);
 	color: #a259ff;
+	font-weight: 700;
+	box-shadow: 0 2px 16px #7b2ff244;
+	border-left: 4px solid #a259ff;
 }
 
 .header-navbar-sidebar nav ul li details {
@@ -149,39 +148,21 @@
 .header-navbar-sidebar nav ul li details summary {
 	cursor: pointer;
 	font-weight: 600;
-	color: #7a5cff;
-	background: linear-gradient(90deg, #f5f0ff 60%, #e6d6ff 100%);
-	border-radius: 7px;
-	padding: 7px 0 7px 12px;
+	color: #a259ff;
+	background: linear-gradient(90deg, #221a36 60%, #2d1950 100%);
+	border-radius: 10px;
+	padding: 10px 12px;
 	outline: none;
 	margin-bottom: 3px;
-	font-size: 1.01rem;
+	font-size: 1.04rem;
 	transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
 }
 .header-navbar-sidebar nav ul li details[open] > summary {
-	background: linear-gradient(90deg, #e6d6ff 60%, #a259ff22 100%);
-	color: #7a5cff;
+	background: linear-gradient(90deg, #2d1950 60%, #a259ff22 100%);
+	color: #a259ff;
 	font-weight: 700;
-	box-shadow: 0 2px 12px #a259ff22;
+	box-shadow: 0 2px 12px #7b2ff244;
 }
-	/* Scrollbar personalizada */
-	/* Las reglas de scrollbar-width y scrollbar-color ya están arriba, no repetir aquí */
-
-.header-navbar-sidebar::-webkit-scrollbar {
-	width: 8px;
-}
-.header-navbar-sidebar::-webkit-scrollbar-thumb {
-	background: linear-gradient(180deg, #a259ff 0%, #f357a8 100%);
-	border-radius: 6px;
-}
-.header-navbar-sidebar::-webkit-scrollbar-track {
-	background: #f5f0ff;
-	border-radius: 6px;
-}
- 
-.header-navbar-sidebar nav ul li details[open] summary {
-	color: #3a2d5d;
-	background: #ece6fa;
 
 .header-navbar-sidebar nav ul li details ul {
 	margin-top: 2px;
@@ -190,7 +171,19 @@
 }
 .header-navbar-sidebar nav ul li details ul li {
 	margin-bottom: 3px;
-	font-size: 0.95rem;
+	font-size: 0.98rem;
+}
+
+.header-navbar-sidebar::-webkit-scrollbar {
+	width: 8px;
+}
+.header-navbar-sidebar::-webkit-scrollbar-thumb {
+	background: linear-gradient(180deg, #7b2ff2 0%, #1b183a 100%);
+	border-radius: 6px;
+}
+.header-navbar-sidebar::-webkit-scrollbar-track {
+	background: #f5f0ff;
+	border-radius: 6px;
 }
 
 @media (max-width: 600px) {
@@ -207,4 +200,277 @@
 		right: 6px;
 	}
 }
+
+/* Dropdowns de favoritos y carrito - estilo profesional */
+.header-navbar-dropdown {
+	background: linear-gradient(120deg, #221a36 0%, #2d1950 100%);
+	border-radius: 18px;
+	box-shadow: 0 12px 36px #000b, 0 2px 8px #7b2ff244;
+	padding: 22px 18px 18px 18px;
+	min-width: 320px;
+	max-width: 95vw;
+	color: #fff;
+	border: 1.5px solid #a259ff55;
+	margin-top: 18px;
+	backdrop-filter: blur(8px) saturate(120%);
+	font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+	overflow: hidden;
+	box-sizing: border-box;
+	transition: box-shadow 0.18s, background 0.18s;
+	position: absolute;
+	right: 32px;
+	top: 70px;
+	z-index: 1002;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.header-navbar-dropdown > div {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 16px;
+}
+
+.header-navbar-dropdown ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.header-navbar-dropdown li {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 0;
+	background: rgba(255,255,255,0.04);
+	border-radius: 12px;
+	padding: 8px 10px;
+	box-shadow: 0 1px 8px #0001;
+	transition: background 0.18s, box-shadow 0.18s;
+}
+
+.header-navbar-dropdown li:hover {
+	background: rgba(162,89,255,0.10);
+	box-shadow: 0 2px 12px #a259ff22;
+}
+
+.header-navbar-dropdown img {
+	width: 44px;
+	height: 44px;
+	border-radius: 10px;
+	object-fit: cover;
+	border: 2px solid #a259ff;
+	background: #18122b;
+	box-shadow: 0 1px 6px #a259ff22;
+}
+
+.header-navbar-dropdown button {
+	background: none;
+	border: none;
+	font-size: 22px;
+	cursor: pointer;
+	color: #ff5a5a;
+	font-weight: 700;
+	border-radius: 50%;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background 0.18s, color 0.18s;
+}
+.header-navbar-dropdown button:hover {
+	background: #ff5a5a22;
+	color: #fff;
+}
+
+.header-navbar-cart-total {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-top: 14px;
+	padding-top: 10px;
+	border-top: 1.5px solid #a259ff33;
+	font-weight: 700;
+	font-size: 18px;
+	color: #fff;
+	gap: 10px;
+	width: 100%;
+}
+
+.header-navbar-cart-buy-btn {
+	position: relative;
+	background: transparent;
+	border: none;
+	width: 100% !important;
+	max-width: 340px;
+	margin: 24px auto 0 auto !important;
+	padding: 0;
+	cursor: pointer;
+	outline: none;
+	display: block;
+	font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+
+
+
+.header-navbar-cart-buy-btn .front {
+	position: relative;
+	display: block;
+	width: 100%;
+	border-radius: 14px;
+	background: linear-gradient(90deg, #a259ff 0%, #7b2ff2 100%);
+	color: #fff;
+	font-weight: 800;
+	font-size: 1.22rem;
+	letter-spacing: 1.5px;
+	padding: 18px 0 16px 0;
+	text-align: center;
+	z-index: 3;
+	box-shadow: 0 2px 8px #0003;
+	text-shadow: 0 2px 8px #0005;
+	transform: translateY(-4px);
+	transition: transform 0.3s cubic-bezier(0.3,0.7,0.4,1);
+}
+
+.header-navbar-cart-buy-btn:hover .front {
+	transform: translateY(-8px);
+	filter: brightness(1.08);
+}
+
+.header-navbar-cart-buy-btn:active .front {
+	transform: translateY(-2px);
+	filter: brightness(0.98);
+}
+
+.header-navbar-cart-buy-btn:hover .shadow {
+	transform: translateY(6px);
+}
+
+.header-navbar-cart-buy-btn:active .shadow {
+	transform: translateY(2px);
+}
+
+.header-navbar-cart-buy-btn:focus:not(:focus-visible) {
+	outline: none;
+}
+
+ .header-navbar-cart-buy-btn:hover, .header-navbar-cart-buy-btn:focus {
+	background: linear-gradient(90deg, #7b2ff2 0%, #a259ff 100%);
+	box-shadow: 0 10px 32px #7b2ff244, 0 2px 12px #000a;
+	transform: translateY(-2px) scale(1.04);
+	color: #fff !important;
+	border-color: #a259ff;
+	filter: none;
+}
+
+.header-navbar-cart-total > div {
+	flex: 1 1 auto;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+@media (max-width: 700px) {
+	.header-navbar-dropdown {
+		right: 4vw;
+		left: 4vw;
+		min-width: unset;
+		max-width: 96vw;
+		width: auto;
+		padding: 14px 8px 10px 8px;
+		font-size: 1rem;
+		border-radius: 16px;
+		top: 70px;
+	}
+	.header-navbar-dropdown ul {
+		gap: 8px;
+	}
+	.header-navbar-dropdown li {
+		gap: 8px;
+		padding: 7px 6px;
+	}
+	.header-navbar-dropdown img {
+		width: 36px;
+		height: 36px;
+		border-radius: 8px;
+	}
+	.header-navbar-dropdown button {
+		font-size: 1.1rem;
+		width: 28px;
+		height: 28px;
+	}
+	.header-navbar-cart-total {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 8px;
+	}
+}
+
+/* Botón quitar del carrito estilo profesional */
+.btn-remove-cart,
+button.btn-remove-cart {
+	background: linear-gradient(90deg, #ff2d2d 0%, #ff5a36 100%);
+	color: #fff;
+	font-weight: 700;
+	border-radius: 10px;
+	border: 2px solid #ff2d2d;
+	padding: 10px 0;
+	width: 100%;
+	font-size: 1.08rem;
+	box-shadow: 0 2px 12px #ff2d2d22;
+	margin-bottom: 10px;
+	cursor: pointer;
+	transition: background 0.18s, box-shadow 0.18s, color 0.18s, border 0.18s;
+}
+.btn-remove-cart:hover,
+button.btn-remove-cart:hover {
+	background: linear-gradient(90deg, #ff0000 0%, #ff5a36 100%);
+	color: #fff;
+	border-color: #ff0000;
+	box-shadow: 0 4px 16px #ff2d2d44;
+}
+.btn-remove-cart:disabled,
+button.btn-remove-cart:disabled {
+	background: #444;
+	color: #bbb;
+	border-color: #888;
+	cursor: not-allowed;
+	box-shadow: none;
+}
+
+.sidebar-dark-bg {
+  background: #18181c !important;
+  transition: background 0.2s;
+}
+
+/* Overlay oscuro para cubrir el fondo cuando el sidebar está abierto */
+.header-navbar-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: transparent;
+  opacity: 1;
+  z-index: 1000;
+}
+
+/* Sidebar: fondo completamente oscuro y por encima del overlay */
+.header-navbar-sidebar.dark-sidebar {
+  background: #18181c !important;
+  color: #fff !important;
+  z-index: 1001 !important;
+  /* Elimina cualquier transparencia aquí */
+  /* ...otros estilos existentes... */
+  box-shadow: 0 4px 32px #000a;
+  border-top-right-radius: 22px;
+  border-bottom-right-radius: 22px;
+  border-left: 2px solid #222b;
+}
+
+/* Opcional: fuerza el color de fondo del body cuando el sidebar está abierto */
+.sidebar-dark-bg {
+  background: #18181c !important;
 }

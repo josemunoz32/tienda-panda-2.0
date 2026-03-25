@@ -1,4 +1,4 @@
-      // ...existing code...
+// ...existing code...
 // ...existing code...
     // ...existing code...
 // ...existing code...
@@ -169,13 +169,12 @@ function StarRating({ rating }) {
 }
 
 export default function ProductDetail() {
-
   // Estado para la variante/meses seleccionados
   const [selectedOption, setSelectedOption] = useState("");
-  // ...existing code...
   const [fav, setFav] = useState(false);
   const [inCart, setInCart] = useState(false);
-  // ...existing code...
+  const [showSelectMsg, setShowSelectMsg] = useState(false);
+  const [copyMsg, setCopyMsg] = useState(false); // Para mensaje de copiado
 
   // Limpia la selección si el producto ya no está en el carrito
   useEffect(() => {
@@ -184,9 +183,28 @@ export default function ProductDetail() {
     }
   }, [inCart]);
 
+  // Oculta el mensaje cuando el usuario selecciona una opción
+  useEffect(() => {
+    if (selectedOption && showSelectMsg) setShowSelectMsg(false);
+  }, [selectedOption, showSelectMsg]);
+
   // Handler para el selector de precio/variante
   function handleOptionChange(e) {
     setSelectedOption(e.target.value);
+  }
+
+  // Handler para copiar el link del producto
+  function handleCopyLink() {
+    const url = typeof window !== 'undefined' ? window.location.href : productUrl;
+    navigator.clipboard.writeText(url)
+      .then(() => {
+        setCopyMsg('¡Link copiado!');
+        setTimeout(() => setCopyMsg(false), 1800);
+      })
+      .catch(() => {
+        setCopyMsg('Error al copiar');
+        setTimeout(() => setCopyMsg(false), 1800);
+      });
   }
 
   // Extrae info de variante/meses según opción seleccionada
@@ -315,6 +333,7 @@ export default function ProductDetail() {
   const { moneda } = useMoneda();
   // id ya declarado arriba
   const [loading, setLoading] = useState(true);
+  const [networkError, setNetworkError] = useState(false);
   // ...existing code...
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   // user ya declarado arriba (no volver a declarar)
@@ -354,16 +373,20 @@ export default function ProductDetail() {
     const fetchProduct = async () => {
       if (!id) return;
       setLoading(true);
-      const docRef = doc(db, "products", id);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-  setProducto({ id: docSnap.id, ...docSnap.data() });
-      } else {
-        console.log("No such document!");
+      setNetworkError(false);
+      try {
+        const docRef = doc(db, "products", id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setProducto({ id: docSnap.id, ...docSnap.data() });
+        } else {
+          console.log("No such document!");
+        }
+      } catch (err) {
+        if (err && err.code === "unavailable") setNetworkError(true);
       }
       setLoading(false);
     };
-
     fetchProduct();
   }, [id]);
 
@@ -490,7 +513,6 @@ export default function ProductDetail() {
       alert("Debes iniciar sesión para agregar al carrito.");
       return;
     }
-    // Siempre usar el id base del producto para el documento del carrito
     const baseId = producto.id || id;
     const cartRef = doc(db, `users/${user.uid}/cart`, baseId);
     if (inCart) {
@@ -498,7 +520,13 @@ export default function ProductDetail() {
       setInCart(false);
       setSelectedOption("");
     } else {
-      // Usar la variante seleccionada como campo adicional
+      if (!selectedOption) {
+        setShowSelectMsg(true);
+        // Limpia el timeout anterior si existe
+        if (window._selectMsgTimeout) clearTimeout(window._selectMsgTimeout);
+        window._selectMsgTimeout = setTimeout(() => setShowSelectMsg(false), 1500);
+        return;
+      }
       const detalles = getSelectedDetails();
       await setDoc(cartRef, {
         productId: baseId,
@@ -511,11 +539,8 @@ export default function ProductDetail() {
     }
   };
 
-  // Cambia la lógica de showArrows para que las flechas aparezcan si hay más de 1 producto (no solo si hay más que slidesToShow)
   const showArrows = relacionados && relacionados.length > 1;
 
-  // Cambia la lógica para obtener relacionados: 
-  // Si no hay relacionados, pero hay productos en la base de datos (aparte del actual), igual muestra esos productos.
   useEffect(() => {
     if (!producto || !id) return;
     const fetchRelacionados = async () => {
@@ -557,10 +582,10 @@ export default function ProductDetail() {
 
   // Asegura que no se renderice nada del producto si producto es null
   if (loading) return <div>Cargando...</div>;
+  if (networkError) return <div style={{color:'#b71c1c',fontWeight:700,padding:24}}>No se pudo conectar con el servidor. Verifica tu conexión a internet.</div>;
   if (!producto) return <div>Producto no encontrado.</div>;
 
   return (
-
     <div className="producto-container">
       {/* ORDEN: TITULO - IMAGEN - DETALLES */}
       <div className="producto-header">
@@ -611,6 +636,38 @@ export default function ProductDetail() {
             }}
           />
         </div>
+        {/* Mensaje profesional si no selecciona opción */}
+        {showSelectMsg && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0,0,0,0.25)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <div style={{
+              background: 'linear-gradient(90deg,#7b2ff2 0%,#f357a8 100%)',
+              color: '#fff',
+              padding: '18px 28px',
+              borderRadius: 14,
+              fontWeight: 700,
+              fontSize: '1.08rem',
+              maxWidth: '90vw',
+              width: 'fit-content',
+              textAlign: 'center',
+              whiteSpace: 'pre-line',
+              wordBreak: 'break-word',
+              boxShadow: '0 4px 32px #0008',
+            }}>
+              Por favor, selecciona una opción antes de agregar el producto al carrito.
+            </div>
+          </div>
+        )}
         {typeof producto.stock === 'number' && !isNaN(producto.stock) && (
           <div className="stock">
             <b>Stock:</b>{" "}
@@ -630,6 +687,7 @@ export default function ProductDetail() {
           <button
             className="btn-carrito"
             onClick={handleCart}
+            // El botón siempre habilitado, pero muestra mensaje si no hay opción
             style={
               inCart
                 ? {
@@ -656,7 +714,7 @@ export default function ProductDetail() {
           </button>
         </div>
         {/* Compartir */}
-        <div style={{marginTop: 18, display: 'flex', gap: 10, alignItems: 'center'}}>
+        <div style={{marginTop: 18, display: 'flex', gap: 10, alignItems: 'center', position: 'relative'}}>
           <span style={{fontWeight: 500}}>Compartir:</span>
           <a
             href="#"
@@ -667,7 +725,7 @@ export default function ProductDetail() {
             🟢 WhatsApp
           </a>
           <button
-            onClick={() => {navigator.clipboard.writeText(window.location.href); alert('¡Link copiado! Ahora pégalo en el chat privado de la red social que prefieras.');}}
+            onClick={handleCopyLink}
             style={{
               fontSize: 18,
               padding: '6px 16px',
@@ -686,6 +744,31 @@ export default function ProductDetail() {
           >
             📋 Copiar link
           </button>
+          {copyMsg && (
+            <span
+              style={{
+                position: 'absolute',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                bottom: '-38px',
+                background: 'linear-gradient(90deg,#7b2ff2 0%,#f357a8 100%)',
+                color: '#fff',
+                padding: '8px 18px',
+                borderRadius: 8,
+                fontWeight: 700,
+                fontSize: '1.01rem',
+                boxShadow: '0 2px 12px #7b2ff244',
+                zIndex: 20,
+                maxWidth: '90vw',
+                width: 'max-content',
+                textAlign: 'center',
+                whiteSpace: 'pre-line',
+                wordBreak: 'break-word',
+              }}
+            >
+              {copyMsg}
+            </span>
+          )}
         </div>
       </div>
 

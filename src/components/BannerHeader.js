@@ -39,7 +39,19 @@ export default function BannerHeader({
   const isFavOpen = !!favOpen;
   const isCartOpen = !!cartOpen;
   return (
-    <header className="banner-header" style={{position:'relative',overflow:'hidden', minHeight: 320}}>
+    <header className="banner-header" style={{
+      position: 'sticky',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      zIndex: 100,
+      overflow: 'hidden',
+      minHeight: 320,
+      boxShadow: '0 2px 16px #0002',
+      background: 'rgba(30,0,50,0.98)',
+      backdropFilter: 'blur(2px)',
+      transition: 'box-shadow .2s',
+    }}>
       <style>{`
         @media (max-width: 700px) {
           .banner-header {

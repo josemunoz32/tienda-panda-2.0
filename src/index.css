@@ -1,3 +1,11 @@
+@media (max-width: 700px) {
+  body {
+    background-size: cover !important;
+    background-position: top center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: scroll !important;
+  }
+}
 
 /* Asegura que el contenido principal siempre esté sobre el fondo galaxia */
 #root, .home-root, .perfil-root, .categorias-list-root, .productos-list-root, .testimonios-page-root, .sobre-nosotros-root, .faq-root, .terminos-root, .confirmacion-exitosa-root, .confirmacion-pendiente-root, .soporte-cliente-root, .checkout-carrito-root, .checkout-compra-directa-root, .mis-pedidos-root, .compra-confirmada-root {
@@ -5,7 +13,7 @@
   z-index: 1 !important;
 }
 body {
-  background: #000 !important;
+  background-color: transparent !important;
 }
 body {
   margin: 0;

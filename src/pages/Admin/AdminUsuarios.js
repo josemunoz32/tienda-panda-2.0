@@ -3,11 +3,87 @@ import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../../firebase";
 import { useNavigate } from "react-router-dom";
 
+
+const styles = {
+  container: {
+    maxWidth: 900,
+    margin: "40px auto",
+    padding: 24,
+    background: "rgba(255,255,255,0.85)", // semitransparente
+    borderRadius: 16,
+    boxShadow: "0 4px 24px 0 rgba(0,0,0,0.10)",
+    border: "2px solid #e0e0e0",
+    backdropFilter: 'blur(2px)',
+  },
+  title: {
+    fontFamily: 'Montserrat, sans-serif',
+    fontWeight: 700,
+    fontSize: 32,
+    color: '#1e293b',
+    marginBottom: 24,
+    letterSpacing: 1,
+    textAlign: 'center',
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    background: "#f8fafc",
+    borderRadius: 12,
+    overflow: 'hidden',
+    boxShadow: "0 2px 8px 0 rgba(0,0,0,0.04)",
+  },
+  th: {
+    background: "#38bdf8",
+    color: "#fff",
+    fontWeight: 600,
+    padding: "14px 8px",
+    fontSize: 16,
+    borderBottom: "2px solid #bae6fd",
+    fontFamily: 'Montserrat, sans-serif',
+  },
+  td: {
+    padding: "12px 8px",
+    fontSize: 15,
+    color: "#334155",
+    borderBottom: "1px solid #e0e0e0",
+    fontFamily: 'Montserrat, sans-serif',
+    textAlign: 'center',
+  },
+  button: {
+    background: "#ef4444",
+    color: "#fff",
+    border: "none",
+    borderRadius: 6,
+    padding: "7px 18px",
+    fontWeight: 600,
+    fontFamily: 'Montserrat, sans-serif',
+    cursor: "pointer",
+    transition: "background 0.2s",
+    boxShadow: "0 1px 4px 0 rgba(239,68,68,0.10)",
+  },
+  buttonHover: {
+    background: "#b91c1c",
+  },
+  error: {
+    color: '#ef4444',
+    fontWeight: 600,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  loading: {
+    color: '#0ea5e9',
+    fontWeight: 500,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+};
+
 export default function AdminUsuarios({ user, role }) {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [error, setError] = useState("");
+  const [hovered, setHovered] = useState(null);
 
   useEffect(() => {
     if (!user || role !== "admin") {
@@ -40,32 +116,45 @@ export default function AdminUsuarios({ user, role }) {
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: "40px auto", padding: 24 }}>
-      <h1>Gestión de Usuarios</h1>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {loading ? <p>Cargando...</p> : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Nombre</th>
-              <th>UID</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {usuarios.map(u => (
-              <tr key={u.id}>
-                <td>{u.email || "Sin campo"}</td>
-                <td>{(u.firstName || u.lastName) ? `${u.firstName || ""} ${u.lastName || ""}`.trim() : "Sin campo"}</td>
-                <td>{u.id}</td>
-                <td>
-                  <button onClick={() => eliminarUsuario(u.id)} style={{ color: 'red' }}>Eliminar</button>
-                </td>
+    <div style={styles.container}>
+      <h1 style={styles.title}>Gestión de Usuarios</h1>
+      {error && <p style={styles.error}>{error}</p>}
+      {loading ? (
+        <p style={styles.loading}>Cargando...</p>
+      ) : (
+        <div style={{overflowX: 'auto'}}>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                  <th style={styles.th}>Email</th>
+                  <th style={styles.th}>Nombre</th>
+                  <th style={styles.th}>Rol</th>
+                  <th style={styles.th}>UID</th>
+                  <th style={styles.th}>Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {usuarios.map(u => (
+                <tr key={u.id} style={{ background: '#fff', transition: 'background 0.2s' }}>
+                  <td style={styles.td}>{u.email || "Sin campo"}</td>
+                  <td style={styles.td}>{u.displayName ? u.displayName : ((u.firstName || u.lastName) ? `${u.firstName || ""} ${u.lastName || ""}`.trim() : "Sin campo")}</td>
+                  <td style={styles.td}>{u.role || "usuario"}</td>
+                  <td style={styles.td}>{u.id}</td>
+                  <td style={styles.td}>
+                    <button
+                      style={hovered === u.id ? { ...styles.button, ...styles.buttonHover } : styles.button}
+                      onMouseEnter={() => setHovered(u.id)}
+                      onMouseLeave={() => setHovered(null)}
+                      onClick={() => eliminarUsuario(u.id)}
+                    >
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

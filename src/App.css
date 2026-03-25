@@ -1,0 +1,48 @@
+/* Mobile fixed background overlay */
+.mobile-fixed-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100svh;
+  /* background-image moved to inline style to avoid build error */
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  z-index: 0;
+  pointer-events: none;
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .mobile-fixed-bg {
+    display: block;
+  }
+}
+
+/* Ensure content sits above the background */
+.main-bg-container {
+  position: relative;
+  z-index: 1;
+}
+/* Main background container for Christmas background */
+.main-bg-container {
+  min-height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 100%;
+  background-attachment: fixed;
+  background-color: transparent; /* remove green fallback */
+}
+
+@media (max-width: 700px) {
+  .main-bg-container {
+    min-height: 100svh;
+    background-size: cover;
+    background-position: top center;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    background-color: transparent;
+  }
+}

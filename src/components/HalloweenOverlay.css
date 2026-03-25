@@ -1,0 +1,44 @@
+/* --- CONFIGURACIÓN BASE DEL OVERLAY --- */
+
+.halloween-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1; 
+  pointer-events: none;
+  overflow: hidden;
+  /* Fondo Morado Oscuro intenso (similar al banner) */
+  background: radial-gradient(ellipse at center, #1b0038 0%, #080010 100%);
+  /* Asegurar que el contenido de la tienda siempre esté encima */
+}
+
+body {
+  position: relative;
+  z-index: 10; 
+  background-color: transparent; 
+}
+
+
+/* --- AMBIENTE: NIEBLA / HUMO FLOTANTE --- */
+
+.fog-ambient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  /* Múltiples degradados para simular una neblina morada muy oscura */
+  background: 
+    radial-gradient(ellipse at 70% 20%, rgba(50, 0, 80, 0.08) 0%, transparent 40%),
+    radial-gradient(ellipse at 30% 90%, rgba(60, 0, 90, 0.1) 0%, transparent 50%); 
+  animation: fog-drift 100s linear infinite alternate;
+}
+
+@keyframes fog-drift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(40px, 20px); }
+}
+

@@ -324,7 +324,7 @@ exports.createPayPalOrder = functions.https.onRequest(async (req, res) => {
         }],
         application_context: {
           return_url:
-            "https://pandastoreupdate.web.app/compra-confirmada",
+            "https://pandastoreupdate.web.app/confirmacion-exitosa",
           cancel_url: "https://pandastoreupdate.web.app/failure",
         },
       });
@@ -506,7 +506,7 @@ async function processApprovedOrder(pendingOrder, orderId) {
       `<p>Hola,</p>
       <p>¡Gracias por tu compra! Tu pago ha sido aprobado y tu pedido 
       #${confirmedOrderRef.id} está en preparación.</p>
-      <p>Te enviamos los detalles del pedido a continuación.</p>
+      <p>Te enviaremos los detalles de instalación.</p>
       <p><strong>Total:</strong> CLP ${total.toFixed(0)}</p>
       <p>Si tienes alguna duda, contáctanos.</p>
       `,
@@ -581,7 +581,7 @@ exports.createMercadoPagoPreference = functions.https.onRequest((req, res) => {
             last_name: lastName || "",
           },
           back_urls: {
-            success: "https://pandastoreupdate.web.app/compra-confirmada",
+            success: "https://pandastoreupdate.web.app/confirmacion-exitosa",
             failure: "https://pandastoreupdate.web.app/failure",
             pending: "https://pandastoreupdate.web.app/pending",
           },
@@ -702,77 +702,45 @@ exports.sendConfirmationEmail = functions.https.onRequest(async (req, res) => {
         return res.status(404).json({error: "Pedido no encontrado."});
       }
       const pedido = orderDoc.data();
+      console.log("[sendConfirmationEmail] metodoPago:", pedido.metodoPago);
 
 
-      // Personalizar asunto y mensaje según método de pago
-      const isCrypto = pedido.metodoPago === "crypto";
-      let asunto = "";
-      let mensaje = "";
-      if (isCrypto) {
-        asunto =
-          `¡Tu pago por criptomoneda ha sido confirmado! #${orderId}`;
-        mensaje =
-         `<p>¡Tu pago por criptomoneda ha sido confirmado ` +
-          `y tu pedido #${orderId} está en preparación.</p>`;
-        // Split the phrase into two lines for clarity and lint compliance
-        mensaje =
-          `<p>¡Tu pago con criptomoneda ha sido confirmado ` +
-          `y tu pedido #${orderId} está en preparación.</p>`;
-      } else {
-        asunto =
-          `¡Tu pago por transferencia ha sido confirmado! #${orderId}`;
-        mensaje =
-          `<p>¡Tu pago por transferencia ha sido confirmado ` +
-          `y tu pedido #${orderId} está en preparación.</p>`;
+      // Solo enviar correo al admin si es transferencia o cripto
+      if (
+        pedido.metodoPago === "transferencia" ||
+        pedido.metodoPago === "crypto"
+      ) {
+        // Construir lista de productos
+        let productosTxt = "";
+        if (Array.isArray(pedido.productos)) {
+          productosTxt = pedido.productos
+              .map((p, i) => {
+                const nombre = p.name || p.title || "Producto";
+                const cantidad = p.cantidad || p.quantity || 1;
+                const precio = p.precio || p.unit_price || "";
+                const moneda = pedido.moneda || "";
+                return (
+                  `  - ${nombre} x${cantidad} (` +
+                `${precio} ${moneda})`
+                );
+              })
+              .join("\n");
+        }
+        const adminText =
+          `Nuevo pedido pendiente:\n` +
+          `Pedido #: ${orderId}\n` +
+          `Cliente: ${pedido.email}\n` +
+          `Nombre: ${pedido.nombre || ""}\n` +
+          `Total: ${pedido.total} ${pedido.moneda || ""}\n` +
+          `Método de pago: ${pedido.metodoPago}\n` +
+          `Productos:\n${productosTxt}`;
+        await transporter.sendMail({
+          from: process.env.GMAIL_USER,
+          to: ADMIN_EMAIL,
+          subject: `NUEVO PEDIDO PENDIENTE: #${orderId}`,
+          text: adminText,
+        });
       }
-
-      const htmlCorreo =
-        `<p>Hola,</p>` +
-        mensaje +
-        `<p>Te enviamos los detalles del pedido a continuación.</p>` +
-        `<p><strong>Total:</strong> ${pedido.moneda || "CLP"} ` +
-        (pedido.total ? pedido.total.toFixed(0) : "") +
-        `</p>` +
-        `<p>Si tienes alguna duda, contáctanos.</p>`;
-
-      await transporter.sendMail({
-        from: process.env.GMAIL_USER,
-        to: clienteEmail,
-        subject: asunto,
-        html: htmlCorreo,
-      });
-
-      // Correo para el admin
-      let adminAsunto = "";
-      let adminMensaje = "";
-      if (isCrypto) {
-        adminAsunto =
-          `CRIPTO PAGO EXITOSO: #${orderId}`;
-        adminMensaje =
-          "El admin ha marcado el pago con " +
-          "criptomoneda como exitoso " +
-          "para el pedido #";
-      } else {
-        adminAsunto =
-          `TRANSFERENCIA EXITOSA: #${orderId}`;
-        adminMensaje =
-          "El admin ha marcado la transferencia " +
-          "como exitosa para el pedido #";
-      }
-
-      const adminText =
-        adminMensaje +
-        orderId +
-        " de " +
-        clienteEmail +
-        ".";
-
-      await transporter.sendMail({
-        from: process.env.GMAIL_USER,
-        to: ADMIN_EMAIL,
-        subject: adminAsunto,
-        text: adminText,
-      });
 
       res.json({success: true});
     } catch (error) {
