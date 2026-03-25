@@ -21,72 +21,124 @@ function formatPrecio(precio, moneda) {
 }
 
 export default function CategoriaPage() {
+  const { id } = useParams();
   const { moneda } = useMoneda();
   // Buscador local para la categoría
   const [productos, setProductos] = useState([]);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(""); // valor aplicado
+  const [searchInput, setSearchInput] = useState(""); // mientras escribe
+  const [filtroAplicado, setFiltroAplicado] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [order, setOrder] = useState("price-asc");
   const [page, setPage] = useState(1);
   const perPage = 30;
-  const [selectedCat, setSelectedCat] = useState(""); // <-- Agrega esto
+  // Mostrar productos aleatorios SOLO en la primera carga, si no hay filtros activos
+  const [primeraCarga, setPrimeraCarga] = useState(true);
 
   useEffect(() => {
-    let results = productos;
-    if (search.trim().length > 0) {
-      results = results.filter(p => p.name && p.name.toLowerCase().includes(search.toLowerCase()));
+    // Normalizar texto y filtrar como en Home (ignora tildes)
+    function normalize(str) {
+      return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     }
-    if (minPrice) {
-      results = results.filter(p => {
+    const texto = normalize(searchInput.trim());
+    let results = [...productos]; // ya vienen filtrados por categoría desde Firestore
+
+    // Búsqueda
+    if (texto) {
+      results = results.filter(prod => {
         const precios = [];
         if (moneda === "CLP") {
-          if (p.priceCLP) precios.push(Number(p.priceCLP));
-          if (p.pricePrimariaCLP) precios.push(Number(p.pricePrimariaCLP));
-          if (p.priceSecundariaCLP) precios.push(Number(p.priceSecundariaCLP));
-          if (Array.isArray(p.preciosPorMes)) {
-            p.preciosPorMes.forEach(val => { if (val.clp) precios.push(Number(val.clp)); });
+          if (prod.priceCLP) precios.push(String(prod.priceCLP));
+          if (prod.pricePrimariaCLP) precios.push(String(prod.pricePrimariaCLP));
+          if (prod.priceSecundariaCLP) precios.push(String(prod.priceSecundariaCLP));
+          if (Array.isArray(prod.preciosPorMes)) {
+            prod.preciosPorMes.forEach(p => { if (p.clp) precios.push(String(p.clp)); });
           }
         } else if (moneda === "USD") {
-          if (p.priceUSD) precios.push(Number(p.priceUSD));
-          if (p.pricePrimariaUSD) precios.push(Number(p.pricePrimariaUSD));
-          if (p.priceSecundariaUSD) precios.push(Number(p.priceSecundariaUSD));
-          if (Array.isArray(p.preciosPorMes)) {
-            p.preciosPorMes.forEach(val => { if (val.usd) precios.push(Number(val.usd)); });
+          if (prod.priceUSD) precios.push(String(prod.priceUSD));
+          if (prod.pricePrimariaUSD) precios.push(String(prod.pricePrimariaUSD));
+          if (prod.priceSecundariaUSD) precios.push(String(prod.priceSecundariaUSD));
+          if (Array.isArray(prod.preciosPorMes)) {
+            prod.preciosPorMes.forEach(p => { if (p.usd) precios.push(String(p.usd)); });
           }
         }
-        const min = precios.length > 0 ? Math.min(...precios.filter(x => x > 0)) : null;
-        return min !== null && min >= Number(minPrice);
+        return (
+          (prod.name && normalize(prod.name).includes(texto)) ||
+          (prod.description && normalize(prod.description).includes(texto)) ||
+          precios.some(precio => normalize(precio).includes(texto))
+        );
       });
     }
-    if (maxPrice) {
-      results = results.filter(p => {
-        const precios = [];
-        if (moneda === "CLP") {
-          if (p.priceCLP) precios.push(Number(p.priceCLP));
-          if (p.pricePrimariaCLP) precios.push(Number(p.pricePrimariaCLP));
-          if (p.priceSecundariaCLP) precios.push(Number(p.priceSecundariaCLP));
-          if (Array.isArray(p.preciosPorMes)) {
-            p.preciosPorMes.forEach(val => { if (val.clp) precios.push(Number(val.clp)); });
-          }
-        } else if (moneda === "USD") {
-          if (p.priceUSD) precios.push(Number(p.priceUSD));
-          if (p.pricePrimariaUSD) precios.push(Number(p.pricePrimariaUSD));
-          if (p.priceSecundariaUSD) precios.push(Number(p.priceSecundariaUSD));
-          if (Array.isArray(p.preciosPorMes)) {
-            p.preciosPorMes.forEach(val => { if (val.usd) precios.push(Number(val.usd)); });
-          }
+
+    // Filtros de precio
+    results = results.filter(prod => {
+      const preciosNum = [];
+      if (moneda === "CLP") {
+        if (prod.priceCLP) preciosNum.push(Number(prod.priceCLP));
+        if (prod.pricePrimariaCLP) preciosNum.push(Number(prod.pricePrimariaCLP));
+        if (prod.priceSecundariaCLP) preciosNum.push(Number(prod.priceSecundariaCLP));
+        if (Array.isArray(prod.preciosPorMes)) {
+          prod.preciosPorMes.forEach(p => { if (p.clp) preciosNum.push(Number(p.clp)); });
         }
-        const min = precios.length > 0 ? Math.min(...precios.filter(x => x > 0)) : null;
-        return min !== null && min <= Number(maxPrice);
-      });
+      } else if (moneda === "USD") {
+        if (prod.priceUSD) preciosNum.push(Number(prod.priceUSD));
+        if (prod.pricePrimariaUSD) preciosNum.push(Number(prod.pricePrimariaUSD));
+        if (prod.priceSecundariaUSD) preciosNum.push(Number(prod.priceSecundariaUSD));
+        if (Array.isArray(prod.preciosPorMes)) {
+          prod.preciosPorMes.forEach(p => { if (p.usd) preciosNum.push(Number(p.usd)); });
+        }
+      }
+      const min = preciosNum.length > 0 ? Math.min(...preciosNum.filter(x => x > 0)) : null;
+      if (minPrice && (min === null || min < Number(minPrice))) return false;
+      if (maxPrice && (min === null || min > Number(maxPrice))) return false;
+      return true;
+    });
+
+    // Orden o aleatorio similar a Home: si no hay filtros, mezclar
+    const noFiltros = !searchInput && !minPrice && !maxPrice && (!order || order === 'price-asc');
+    function getMinPrice(prod) {
+      const precios = [];
+      if (moneda === "CLP") {
+        if (prod.priceCLP) precios.push(Number(prod.priceCLP));
+        if (prod.pricePrimariaCLP) precios.push(Number(prod.pricePrimariaCLP));
+        if (prod.priceSecundariaCLP) precios.push(Number(prod.priceSecundariaCLP));
+        if (Array.isArray(prod.preciosPorMes)) {
+          prod.preciosPorMes.forEach(p => { if (p.clp) precios.push(Number(p.clp)); });
+        }
+      } else if (moneda === "USD") {
+        if (prod.priceUSD) precios.push(Number(prod.priceUSD));
+        if (prod.pricePrimariaUSD) precios.push(Number(prod.pricePrimariaUSD));
+        if (prod.priceSecundariaUSD) precios.push(Number(prod.priceSecundariaUSD));
+        if (Array.isArray(prod.preciosPorMes)) {
+          prod.preciosPorMes.forEach(p => { if (p.usd) precios.push(Number(p.usd)); });
+        }
+      }
+      return precios.length > 0 ? Math.min(...precios.filter(x => x > 0)) : 9999999;
     }
-    setSearchResults(results.slice(0, 6));
-  }, [search, productos, minPrice, maxPrice, moneda]);
+    if (noFiltros) {
+      results = [...results].sort(() => 0.5 - Math.random());
+    } else {
+      if(order==="price-asc") results.sort((a,b)=>(getMinPrice(a)-getMinPrice(b)));
+      else if(order==="price-desc") results.sort((a,b)=>(getMinPrice(b)-getMinPrice(a)));
+      else if(order==="az") results.sort((a,b)=>a.name.localeCompare(b.name));
+      else if(order==="za") results.sort((a,b)=>b.name.localeCompare(a.name));
+    }
+    setSearchResults(results);
+  }, [searchInput, productos, minPrice, maxPrice, moneda, order]);
+
+  // Cuando el usuario cambia cualquier filtro/búsqueda, desactivar primeraCarga
+  useEffect(() => {
+    if (!primeraCarga) return;
+    if (searchInput.trim() || minPrice || maxPrice || order !== "price-asc") {
+      setPrimeraCarga(false);
+    }
+  }, [searchInput, minPrice, maxPrice, order, primeraCarga]);
 
   const [modal, setModal] = useState({ open: false, prod: null, opciones: [], tipo: null });
-  const { id } = useParams();
+  // const { id } = useParams(); // Eliminado, ya está arriba
   const [categoria, setCategoria] = useState(null);
   const [categorias, setCategorias] = useState([]);
   const navigate = useNavigate();
@@ -109,13 +161,13 @@ export default function CategoriaPage() {
       const catsSnap = await getDocs(collection(db, "categories"));
       const cats = catsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setCategorias(cats);
-      setSelectedCat(id || ""); // <-- Usa el setter aquí
 
       const catDoc = await getDoc(doc(db, "categories", id));
       setCategoria(catDoc.exists() ? { id: catDoc.id, ...catDoc.data() } : null);
 
-      const q = query(collection(db, "products"), where("categoryId", "==", id));
-      const snapshot = await getDocs(q);
+      // Solo productos de la categoría de la URL
+      const productsQuery = query(collection(db, "products"), where("categoryId", "==", id));
+      const snapshot = await getDocs(productsQuery);
       setProductos(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       setLoading(false);
     };
@@ -208,7 +260,7 @@ export default function CategoriaPage() {
   // Reiniciar a la página 1 si cambian los filtros/búsqueda/categoría
   React.useEffect(() => {
     setPage(1);
-  }, [search, minPrice, maxPrice, moneda, selectedCat]);
+  }, [search, minPrice, maxPrice, moneda, id]);
 
   if (loading) return <div>Cargando...</div>;
   if (!categoria) return <div>Categoría no encontrada.</div>;
@@ -240,7 +292,7 @@ export default function CategoriaPage() {
         </div>
       )}
 
-      {/* Buscador principal */}
+      {/* Buscador principal (mismo estilo que Home) */}
       <div className="home-buscador" style={{
         maxWidth: 520,
         margin: '32px auto 24px auto',
@@ -252,53 +304,102 @@ export default function CategoriaPage() {
         position: 'relative',
         zIndex: 2
       }}>
-        <div className="home-buscar-box" style={{position:'relative',marginBottom:8}}>
-          <input
-            type="text"
-            className="home-buscar-input"
-            placeholder={`Buscar en ${categoria?.name || 'categoría'}...`}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '12px 40px 12px 16px',
-              fontSize: '1.08rem',
-              borderRadius: 10,
-              border: '1.5px solid #a084e8',
-              outline: 'none',
-              background: '#1a1a2e',
-              color: '#fff',
-              fontFamily: 'Poppins, Montserrat, Segoe UI, Arial, sans-serif',
-              fontWeight: 600,
-              boxShadow: '0 0 8px #7b2ff222',
-              transition: 'border 0.25s, box-shadow 0.25s',
-              marginRight: 0,
-              boxSizing: 'border-box'
+        <div className="home-buscar-box" style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+          <div style={{position:'relative',flex:1}}>
+            <input
+              type="text"
+              className="home-buscar-input"
+              placeholder={`Buscar en ${categoria?.name || 'categoría'}...`}
+              value={searchInput}
+              onChange={e => { setSearchInput(e.target.value); setFiltroAplicado(false); }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  const term = searchInput.trim();
+                  if (!term) return;
+                  setSearch(term);
+                  setFiltroAplicado(true);
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '12px 40px 12px 16px',
+                fontSize: '1.08rem',
+                borderRadius: 10,
+                border: '1.5px solid #a084e8',
+                outline: 'none',
+                background: '#1a1a2e',
+                color: '#fff',
+                fontFamily: 'Poppins, Montserrat, Segoe UI, Arial, sans-serif',
+                fontWeight: 600,
+                boxShadow: '0 0 8px #7b2ff222',
+                transition: 'border 0.25s, box-shadow 0.25s',
+                marginRight: 0,
+                boxSizing: 'border-box'
+              }}
+            />
+            <span className="home-buscar-icon" style={{
+              position: 'absolute',
+              right: 14,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              fontSize: 22,
+              color: '#FFD600',
+              pointerEvents: 'none',
+              textShadow: '0 1px 6px #7b2ff244',
+              zIndex: 2
+            }}>🔍</span>
+          </div>
+          <button
+            disabled={!searchInput.trim().length}
+            onClick={() => {
+              const term = searchInput.trim();
+              if (!term) return;
+              setSearch(term);
+              setFiltroAplicado(true);
             }}
-          />
-          <span className="home-buscar-icon" style={{
-            position: 'absolute',
-            right: 14,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            fontSize: 22,
-            color: '#FFD600',
-            pointerEvents: 'none',
-            textShadow: '0 1px 6px #7b2ff244',
-            zIndex: 2
-          }}>🔍</span>
+            style={{
+              background: !searchInput.trim().length ? '#9ca3af' : '#22c55e',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 10,
+              padding: '10px 16px',
+              height: 44,
+              fontWeight: 800,
+              fontSize: '1rem',
+              boxShadow: '0 2px 8px #7b2ff244',
+              cursor: !searchInput.trim().length ? 'not-allowed' : 'pointer',
+              transition: 'background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.15s',
+              outline: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 3
+            }}
+          >
+            Aplicar
+          </button>
+          {(filtroAplicado || minPrice || maxPrice || search || order !== 'price-asc') && (
+            <button onClick={() => { setSearchInput(""); setSearch(""); setMinPrice(""); setMaxPrice(""); setOrder('price-asc'); setFiltroAplicado(false); setPage(1); }} style={{
+              background:'#374151',
+              color:'#fff',
+              border:'none',
+              borderRadius:10,
+              padding:'10px 14px',
+              height:44,
+              fontWeight:700,
+              fontSize:'0.98rem',
+              boxShadow:'0 2px 8px #7b2ff244',
+              cursor:'pointer'
+            }}>Quitar filtro</button>
+          )}
           <button className="home-buscar-filtros-btn" onClick={() => setShowFilters(f => !f)} style={{
-            position: 'absolute',
-            right: 0,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            background: 'linear-gradient(90deg, #7b2ff2 0%, #f357a8 100%)',
+            background: '#f357a8',
             color: '#fff',
             border: 'none',
             borderRadius: 8,
-            padding: '8px 12px',
+            padding: '10px 14px',
             fontWeight: 700,
-            fontSize: '1rem',
+            fontSize: '1.1rem',
             boxShadow: '0 2px 8px #7b2ff244',
             cursor: 'pointer',
             transition: 'background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.15s',
@@ -306,61 +407,120 @@ export default function CategoriaPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            height: 38,
+            height: 44,
+            minWidth: 44,
             zIndex: 3
           }}>
             <span className="material-icons">tune</span>
           </button>
         </div>
-        {/* Selector de categoría igual que Home */}
-        <div style={{marginBottom: showFilters ? 8 : 0, display:'flex', justifyContent:'center'}}>
-          <select value={selectedCat} onChange={e => setSelectedCat(e.target.value)} style={{
-            padding: '8px 12px',
-            borderRadius: 8,
-            border: '1.5px solid #a084e8',
-            background: '#1a1a2e',
-            color: '#fff',
-            fontSize: '1rem',
-            fontFamily: 'Poppins, Montserrat, Segoe UI, Arial, sans-serif',
-            fontWeight: 500,
-            outline: 'none',
-            minWidth: 140
-          }}>
-            <option value="">Todas las categorías</option>
-            {categorias.map(cat => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
-            ))}
-          </select>
-        </div>
+        {/* Botones de ordenamiento visual, solo visibles si showFilters */}
         {showFilters && (
-          <div className="home-buscar-filtros" style={{display:'flex',gap:10,marginBottom:8,flexWrap:'wrap',alignItems:'center',justifyContent:'center'}}>
-            <input type="number" placeholder="Precio mín" value={minPrice} onChange={e => setMinPrice(e.target.value)} style={{
-              padding: '8px 12px',
-              borderRadius: 8,
-              border: '1.5px solid #a084e8',
-              background: '#1a1a2e',
-              color: '#fff',
-              fontSize: '1rem',
-              fontFamily: 'Poppins, Montserrat, Segoe UI, Arial, sans-serif',
-              fontWeight: 500,
-              outline: 'none',
-              minWidth: 90
-            }} />
-            <input type="number" placeholder="Precio máx" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} style={{
-              padding: '8px 12px',
-              borderRadius: 8,
-              border: '1.5px solid #a084e8',
-              background: '#1a1a2e',
-              color: '#fff',
-              fontSize: '1rem',
-              fontFamily: 'Poppins, Montserrat, Segoe UI, Arial, sans-serif',
-              fontWeight: 500,
-              outline: 'none',
-              minWidth: 90
-            }} />
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+            alignItems: 'stretch',
+            margin: '18px 0 8px 0',
+            width: '100%'
+          }}>
+            <div style={{
+              display:'flex',
+              gap:10,
+              justifyContent:'flex-start',
+              width:'100%',
+              flexWrap:'nowrap',
+              overflowX:'auto',
+              borderBottom:'1.5px solid #a084e8',
+              paddingBottom:10,
+              scrollbarWidth:'none',
+              WebkitOverflowScrolling:'touch',
+              msOverflowStyle:'none',
+              minHeight: '56px'
+            }}>
+              <button className={`btn${order==='price-asc' ? ' incart' : ''}`} style={{padding:'7px 18px',fontSize:'1rem',minWidth:120,flex:'0 0 auto'}} onClick={()=>setOrder('price-asc')}>Menor precio</button>
+              <button className={`btn${order==='price-desc' ? ' incart' : ''}`} style={{padding:'7px 18px',fontSize:'1rem',minWidth:120,flex:'0 0 auto'}} onClick={()=>setOrder('price-desc')}>Mayor precio</button>
+              <button className={`btn${order==='az' ? ' incart' : ''}`} style={{padding:'7px 18px',fontSize:'1rem',minWidth:90,flex:'0 0 auto'}} onClick={()=>setOrder('az')}>A-Z</button>
+              <button className={`btn${order==='za' ? ' incart' : ''}`} style={{padding:'7px 18px',fontSize:'1rem',minWidth:90,flex:'0 0 auto'}} onClick={()=>setOrder('za')}>Z-A</button>
+            </div>
+            <div style={{
+              display: 'flex',
+              gap: 10,
+              width: '100%',
+              maxWidth: 500,
+              margin: '4px auto 0 auto',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              <input
+                type="number"
+                placeholder="Precio mín"
+                value={minPrice}
+                min={0}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val === "" || Number(val) >= 0) setMinPrice(val);
+                }}
+                style={{
+                  width:'110px',
+                  padding:'10px 12px',
+                  borderRadius:8,
+                  border:'1.5px solid #a084e8',
+                  background:'#1a1a2e',
+                  color:'#fff',
+                  fontSize:'1rem',
+                  fontFamily:'Poppins, Montserrat, Segoe UI, Arial, sans-serif',
+                  fontWeight:500,
+                  outline:'none',
+                  marginTop:0
+                }}
+              />
+              <input
+                type="number"
+                placeholder="Precio máx"
+                value={maxPrice}
+                min={0}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val === "" || Number(val) >= 0) setMaxPrice(val);
+                }}
+                style={{
+                  width:'110px',
+                  padding:'10px 12px',
+                  borderRadius:8,
+                  border:'1.5px solid #a084e8',
+                  background:'#1a1a2e',
+                  color:'#fff',
+                  fontSize:'1rem',
+                  fontFamily:'Poppins, Montserrat, Segoe UI, Arial, sans-serif',
+                  fontWeight:500,
+                  outline:'none',
+                  marginTop:0
+                }}
+              />
+              <button
+                onClick={() => { setSearchInput(""); setSearch(""); setMinPrice(""); setMaxPrice(""); setOrder('price-asc'); setFiltroAplicado(false); setPage(1); }}
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: 8,
+                  border: '1.5px solid #a084e8',
+                  background: '#374151',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: '1rem',
+                  marginLeft: 8,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px #7b2ff244',
+                  transition: 'background 0.18s, box-shadow 0.18s, transform 0.15s',
+                  outline: 'none',
+                  marginTop: 0
+                }}
+              >Quitar filtro</button>
+            </div>
           </div>
         )}
-        {search.trim().length > 0 && searchResults.length > 0 && (
+        {!filtroAplicado && searchInput.trim().length > 0 && searchResults.length > 0 && (
           <div className="home-buscar-resultados" style={{
             background:'#fff',
             border:'1.5px solid #a084e8',
@@ -371,294 +531,336 @@ export default function CategoriaPage() {
             boxShadow:'0 2px 12px #7b2ff244',
             overflow:'hidden'
           }}>
-            {searchResults.map(prod => (
+            {searchResults.slice(0,15).map(prod => (
               <Link key={prod.id} to={`/producto/${prod.id}`} onClick={e => {
                 if (!user) {
                   e.preventDefault();
                   openAuthModal();
                 } else {
-                  setSearch("");
+                  setSearch(prod.name);
                 }
               }} style={{display:'flex', alignItems:'center', gap:8, padding:10, borderBottom:'1px solid #eee', textDecoration:'none', color:'#222', fontFamily:'Poppins, Montserrat, Segoe UI, Arial, sans-serif', fontWeight:600, fontSize:'1.01rem'}}>
                 {prod.imageUrl && <img src={prod.imageUrl} alt={prod.name} style={{width:32, height:32, objectFit:'cover', borderRadius:4}} />}
                 <span>{prod.name}</span>
               </Link>
             ))}
+            {searchResults.length > 15 && (
+              <div style={{padding: '8px 14px', color: '#888', fontWeight: 500, fontSize: '0.95rem', background: '#f7f7fa', borderTop: '1px solid #eee', textAlign:'center'}}>
+                Mostrando solo los primeros 15 resultados...
+              </div>
+            )}
+          </div>
+        )}
+        {!filtroAplicado && searchInput.trim().length > 0 && searchResults.length === 0 && (
+          <div style={{
+            background:'#fff',
+            border:'1.5px solid #a084e8',
+            borderRadius:8,
+            marginTop:8,
+            zIndex:10,
+            position:'relative',
+            boxShadow:'0 2px 12px #7b2ff244',
+            padding:'12px 16px',
+            textAlign:'center',
+            fontWeight:700,
+            color:'#444'
+          }}>
+            Productos no encontrados
           </div>
         )}
       </div>
       {/* Lista de productos */}
+      {/* Contador de productos totales filtrados */}
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 1400,
+          margin: '0 auto 10px auto',
+          textAlign: 'left',
+          fontWeight: 800,
+          fontSize: '1.18rem',
+          color: '#FFD600',
+          letterSpacing: '0.01em',
+          paddingLeft: 8,
+          paddingBottom: 4,
+          background: 'none',
+          borderRadius: 0,
+          boxShadow: 'none',
+          minHeight: 'unset',
+          padding: 0,
+          borderLeft: 'none',
+          borderBottom: 'none',
+          display: 'block'
+        }}
+      >
+  {`Productos encontrados: ${searchResults.length}`}
+      </div>
       <div className="home-productos-list" style={{display:'flex', flexDirection:'column', alignItems:'center', width:'100%'}}>
-        {
-          (() => {
-            const filtrados = productos.filter(prod => {
-              // ...existing code...
-              const texto = search.trim().toLowerCase();
-              let match = true;
-              if (texto) {
-                const precios = [];
-                if (moneda === "CLP") {
-                  if (prod.priceCLP) precios.push(String(prod.priceCLP));
-                  if (prod.pricePrimariaCLP) precios.push(String(prod.pricePrimariaCLP));
-                  if (prod.priceSecundariaCLP) precios.push(String(prod.priceSecundariaCLP));
-                  if (Array.isArray(prod.preciosPorMes)) {
-                    prod.preciosPorMes.forEach(p => { if (p.clp) precios.push(String(p.clp)); });
-                  }
-                } else if (moneda === "USD") {
-                  if (prod.priceUSD) precios.push(String(prod.priceUSD));
-                  if (prod.pricePrimariaUSD) precios.push(String(prod.pricePrimariaUSD));
-                  if (prod.priceSecundariaUSD) precios.push(String(prod.priceSecundariaUSD));
-                  if (Array.isArray(prod.preciosPorMes)) {
-                    prod.preciosPorMes.forEach(p => { if (p.usd) precios.push(String(p.usd)); });
-                  }
-                }
-                match = (
-                  (prod.name && prod.name.toLowerCase().includes(texto)) ||
-                  (prod.description && prod.description.toLowerCase().includes(texto)) ||
-                  precios.some(precio => precio.includes(texto))
-                );
-              }
-              if (!match) return false;
-              const preciosNum = [];
-              if (moneda === "CLP") {
-                if (prod.priceCLP) preciosNum.push(Number(prod.priceCLP));
-                if (prod.pricePrimariaCLP) preciosNum.push(Number(prod.pricePrimariaCLP));
-                if (prod.priceSecundariaCLP) preciosNum.push(Number(prod.priceSecundariaCLP));
-                if (Array.isArray(prod.preciosPorMes)) {
-                  prod.preciosPorMes.forEach(p => { if (p.clp) preciosNum.push(Number(p.clp)); });
-                }
-              } else if (moneda === "USD") {
-                if (prod.priceUSD) preciosNum.push(Number(prod.priceUSD));
-                if (prod.pricePrimariaUSD) preciosNum.push(Number(prod.pricePrimariaUSD));
-                if (prod.priceSecundariaUSD) preciosNum.push(Number(prod.priceSecundariaUSD));
-                if (Array.isArray(prod.preciosPorMes)) {
-                  prod.preciosPorMes.forEach(p => { if (p.usd) preciosNum.push(Number(p.usd)); });
-                }
-              }
-              const min = preciosNum.length > 0 ? Math.min(...preciosNum.filter(x => x > 0)) : null;
-              if (minPrice && (min === null || min < Number(minPrice))) return false;
-              if (maxPrice && (min === null || min > Number(maxPrice))) return false;
-              if (selectedCat && prod.categoryId !== selectedCat) return false; // <-- Filtrado por categoría
-              return true;
-            });
-            if (filtrados.length === 0) {
-              return <div style={{padding:32, textAlign:'center', color:'#888', fontSize:20, fontWeight:500}}>No se encontraron productos que coincidan con tu búsqueda o filtros.</div>;
-            }
-            const paginated = filtrados.slice((page-1)*perPage, page*perPage);
-            return (
-              <>
-                <div
-                  className="home-productos-grid"
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    justifyContent: 'center',
-                    gap: '28px 18px',
-                    width: '100%',
-                    maxWidth: 1400,
-                    margin: '0 auto'
-                  }}
-                >
-                  {paginated.map(prod => (
-                    <div
-                      key={prod.id}
-                      className="card1 card1-full-mobile"
+        {(() => {
+          // Paginate searchResults
+          const paginated = searchResults.slice((page-1)*perPage, page*perPage);
+          if (searchResults.length === 0) {
+            return <div style={{padding:32, textAlign:'center', color:'#888', fontSize:20, fontWeight:700}}>Productos no encontrados</div>;
+          }
+          return (
+            <>
+              <div
+                className="home-productos-grid"
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  justifyContent: 'center',
+                  gap: '28px 18px',
+                  width: '100%',
+                  maxWidth: 1400,
+                  margin: '0 auto'
+                }}
+              >
+                {paginated.map(prod => (
+                  <div
+                    key={prod.id}
+                    className="card1 card1-full-mobile"
+                    style={{
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      padding: 18,
+                      boxSizing: 'border-box',
+                      position: 'relative',
+                      background: 'rgba(44,19,80,0.18)',
+                      borderRadius: 14,
+                      border: '1.5px solid #a084e8',
+                      boxShadow: '0 2px 12px #7b2ff244',
+                      minWidth: 220,
+                      maxWidth: 260,
+                      marginBottom: 10,
+                      cursor: 'pointer'
+                    }}
+                    onClick={e => {
+                      if (
+                        e.target.tagName === 'BUTTON' ||
+                        (e.target.closest && e.target.closest('button'))
+                      ) return;
+                      if (!user) {
+                        openAuthModal();
+                        return;
+                      }
+                      navigate(`/producto/${prod.id}`);
+                    }}
+                  >
+                    {/* Estrella de favoritos igual que Home */}
+                    <button
+                      onClick={e => { e.stopPropagation(); handleFav(prod); }}
+                      className={`star-fav-btn${favIds.includes(prod.id) ? ' fav' : ''}`}
+                      title={favIds.includes(prod.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
                       style={{
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'flex-start',
-                        padding: 18,
-                        boxSizing: 'border-box',
-                        position: 'relative',
-                        background: 'rgba(44,19,80,0.18)',
-                        borderRadius: 14,
-                        border: '1.5px solid #a084e8',
-                        boxShadow: '0 2px 12px #7b2ff244',
-                        minWidth: 220,
-                        maxWidth: 260,
-                        marginBottom: 10,
-                        cursor: 'pointer'
-                      }}
-                      onClick={e => {
-                        // Solo si no se hace click en botón
-                        if (
-                          e.target.tagName === 'BUTTON' ||
-                          (e.target.closest && e.target.closest('button'))
-                        ) return;
-                        if (!user) {
-                          openAuthModal();
-                          return;
-                        }
-                        navigate(`/producto/${prod.id}`);
+                        position: 'absolute',
+                        top: 12,
+                        right: 14,
+                        zIndex: 2,
+                        borderRadius: '50%',
+                        padding: 2,
+                        border: 'none',
+                        background: 'transparent',
+                        color: favIds.includes(prod.id) ? '#FFD600' : '#fff',
+                        fontSize: 22,
+                        cursor: 'pointer',
+                        boxShadow: 'none',
+                        transition: 'color 0.18s'
                       }}
                     >
-                      {/* Estrella de favoritos igual que Home */}
-                      <button
-                        onClick={e => { e.stopPropagation(); handleFav(prod); }}
-                        className={`star-fav-btn${favIds.includes(prod.id) ? ' fav' : ''}`}
-                        title={favIds.includes(prod.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                      <span
+                        role="img"
+                        aria-label="star"
                         style={{
-                          position: 'absolute',
-                          top: 12,
-                          right: 14,
-                          zIndex: 2,
-                          borderRadius: '50%',
-                          padding: 2,
-                          border: 'none',
-                          background: 'transparent', // <-- Quita el fondo cuadrado
                           color: favIds.includes(prod.id) ? '#FFD600' : '#fff',
-                          fontSize: 22,
+                          textShadow: favIds.includes(prod.id)
+                            ? '0 0 8px #FFD60099, 0 1px 0 #18122B'
+                            : '0 1px 6px #7b2ff244'
+                        }}
+                      >★</span>
+                    </button>
+                    {prod.imageUrl && (
+                      <img src={prod.imageUrl} alt={prod.name} style={{
+                        width: '98%',
+                        height: 180,
+                        maxWidth: 240,
+                        display: 'block',
+                        objectFit: 'contain',
+                        background: 'transparent',
+                        borderRadius: 12,
+                        margin: '8px auto 16px auto',
+                        padding: 0,
+                        boxShadow: 'none',
+                        border: 'none'
+                      }} />
+                    )}
+                    <div style={{
+                      marginBottom: 4,
+                      fontWeight: 700,
+                      fontSize: '1.08rem',
+                      color: '#fff',
+                      textAlign: 'center',
+                      width: '100%'
+                    }}>
+                      <Link to={`/producto/${prod.id}`} style={{ color: '#fff', textDecoration: 'none' }}>{prod.name}</Link>
+                    </div>
+                    <div style={{
+                      marginBottom: 12,
+                      fontWeight: 700,
+                      color: '#fff',
+                      fontSize: '1.08rem',
+                      textAlign: 'center',
+                      width: '100%',
+                      display: 'flex',
+                      justifyContent: 'center',
+                    }}>
+                      {(() => {
+                        const min = getMinPriceByMoneda(prod, moneda);
+                        return min ? (
+                          <span style={{
+                            background: 'linear-gradient(90deg, #7b2ff2 0%, #a084e8 100%)',
+                            color: '#fff',
+                            borderRadius: 10,
+                            padding: '7px 22px',
+                            fontWeight: 800,
+                            fontSize: '1.08rem',
+                            letterSpacing: '0.02em',
+                            boxShadow: '0 2px 8px #0002',
+                            border: 'none',
+                            display: 'inline-block',
+                            fontFamily: 'Poppins, Montserrat, Segoe UI, Arial, sans-serif',
+                            textShadow: '0 1px 6px #18122B44',
+                            marginBottom: 0
+                          }}>
+                            Desde: {formatPrecio(min, moneda)}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#888' }}>Sin precio en {moneda}</span>
+                        );
+                      })()}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, justifyContent: 'center', width: '100%', marginTop: 4 }}>
+                      <button
+                        onClick={async e => {
+                          e.stopPropagation();
+                          if (!user) { openAuthModal(); return; }
+                          await handleCart(prod);
+                        }}
+                        className={`btn${cartIds.includes(prod.id) ? ' incart' : ''}`}
+                        style={{
+                          marginTop: 8,
+                          marginBottom: 2,
+                          background: cartIds.includes(prod.id)
+                            ? 'linear-gradient(90deg, #d32f2f 0%, #a084e8 100%)'
+                            : 'linear-gradient(90deg, #7b2ff2 0%, #f357a8 100%)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: 8,
+                          padding: '8px 18px',
+                          fontWeight: 700,
+                          fontSize: '1.01rem',
+                          boxShadow: '0 2px 8px #7b2ff244',
                           cursor: 'pointer',
-                          boxShadow: 'none', // <-- Quita el box-shadow
-                          transition: 'color 0.18s'
+                          transition: 'background 0.18s, box-shadow 0.18s, transform 0.15s'
                         }}
                       >
-                        <span
-                          role="img"
-                          aria-label="star"
-                          style={{
-                            color: favIds.includes(prod.id) ? '#FFD600' : '#fff',
-                            textShadow: favIds.includes(prod.id)
-                              ? '0 0 8px #FFD60099, 0 1px 0 #18122B'
-                              : '0 1px 6px #7b2ff244'
-                          }}
-                        >★</span>
+                        {cartIds.includes(prod.id) ? 'Quitar del carrito' : 'Agregar al carrito'}
                       </button>
-                      {prod.imageUrl && (
-                        <img src={prod.imageUrl} alt={prod.name} style={{
-                          width: '98%',
-                          height: 180,
-                          maxWidth: 240,
-                          display: 'block',
-                          objectFit: 'contain',
-                          background: 'transparent',
-                          borderRadius: 12,
-                          margin: '8px auto 16px auto',
-                          padding: 0,
-                          boxShadow: 'none',
-                          border: 'none'
-                        }} />
-                      )}
-                      <div style={{
-                        marginBottom: 4,
-                        fontWeight: 700,
-                        fontSize: '1.08rem',
-                        color: '#fff',
-                        textAlign: 'center',
-                        width: '100%'
-                      }}>
-                        <Link to={`/producto/${prod.id}`} style={{ color: '#fff', textDecoration: 'none' }}>{prod.name}</Link>
-                      </div>
-                      <div style={{
-                        marginBottom: 12,
-                        fontWeight: 700,
-                        color: '#fff',
-                        fontSize: '1.08rem',
-                        textAlign: 'center',
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                      }}>
-                        {(() => {
-                          const min = getMinPriceByMoneda(prod, moneda);
-                          return min ? (
-                            <span style={{
-                              background: 'linear-gradient(90deg, #7b2ff2 0%, #a084e8 100%)',
-                              color: '#fff',
-                              borderRadius: 10,
-                              padding: '7px 22px',
-                              fontWeight: 800,
-                              fontSize: '1.08rem',
-                              letterSpacing: '0.02em',
-                              boxShadow: '0 2px 8px #0002',
-                              border: 'none',
-                              display: 'inline-block',
-                              fontFamily: 'Poppins, Montserrat, Segoe UI, Arial, sans-serif',
-                              textShadow: '0 1px 6px #18122B44',
-                              marginBottom: 0
-                            }}>
-                              Desde: {formatPrecio(min, moneda)}
-                            </span>
-                          ) : (
-                            <span style={{ color: '#888' }}>Sin precio en {moneda}</span>
-                          );
-                        })()}
-                      </div>
-                      <div style={{ display: 'flex', gap: 8, justifyContent: 'center', width: '100%', marginTop: 4 }}>
-                        <button
-                          onClick={async e => {
-                            e.stopPropagation();
-                            if (!user) { openAuthModal(); return; }
-                            await handleCart(prod);
-                          }}
-                          className={`btn${cartIds.includes(prod.id) ? ' incart' : ''}`}
-                          style={{
-                            marginTop: 8,
-                            marginBottom: 2,
-                            background: cartIds.includes(prod.id)
-                              ? 'linear-gradient(90deg, #d32f2f 0%, #a084e8 100%)'
-                              : 'linear-gradient(90deg, #7b2ff2 0%, #f357a8 100%)',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: 8,
-                            padding: '8px 18px',
-                            fontWeight: 700,
-                            fontSize: '1.01rem',
-                            boxShadow: '0 2px 8px #7b2ff244',
-                            cursor: 'pointer',
-                            transition: 'background 0.18s, box-shadow 0.18s, transform 0.15s'
-                          }}
-                        >
-                          {cartIds.includes(prod.id) ? 'Quitar del carrito' : 'Agregar al carrito'}
-                        </button>
-                      </div>
                     </div>
-                  ))}
-                </div>
-                {/* PAGINATION CONTROLS SOLO SI HAY MÁS DE UNA PÁGINA */}
-                {filtrados.length > perPage && (
-                  <div style={{
-                    display:'flex',
-                    justifyContent:'center',
-                    gap:12,
-                    margin:'32px 0 0 0',
-                    width:'100%'
-                  }}>
-                    <button
-                      onClick={() => setPage(p => Math.max(1, p-1))}
-                      disabled={page === 1}
-                      style={{
-                        padding:'10px 24px',
-                        borderRadius:8,
-                        border:'1.5px solid #a084e8',
-                        background:'#1a1a2e',
-                        color:'#fff',
-                        fontWeight:600,
-                        cursor:page===1?'not-allowed':'pointer',
-                        fontSize:'1.08rem'
-                      }}
-                    >Anterior</button>
-                    <span style={{color:'#fff',fontWeight:600,alignSelf:'center',fontSize:'1.08rem'}}>Página {page} de {Math.ceil(filtrados.length/perPage)}</span>
-                    <button
-                      onClick={() => setPage(p => Math.min(Math.ceil(filtrados.length/perPage), p+1))}
-                      disabled={page >= Math.ceil(filtrados.length/perPage)}
-                      style={{
-                        padding:'10px 24px',
-                        borderRadius:8,
-                        border:'1.5px solid #a084e8',
-                        background:'#1a1a2e',
-                        color:'#fff',
-                        fontWeight:600,
-                        cursor:page>=Math.ceil(filtrados.length/perPage)?'not-allowed':'pointer',
-                        fontSize:'1.08rem'
-                      }}
-                    >Siguiente</button>
                   </div>
-                )}
-              </>
-            );
-          })()
-        }
+                ))}
+              </div>
+              {/* PAGINATION CONTROLS SOLO SI HAY MÁS DE UNA PÁGINA */}
+              {searchResults.length > perPage && (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: 18,
+                  margin: '40px auto 0 auto',
+                  width: '100%',
+                  maxWidth: 520,
+                  flexWrap: 'wrap',
+                  padding: '0 8px',
+                }}>
+                  <button
+                    onClick={() => {
+                      setPage(p => {
+                        const newPage = Math.max(1, p-1);
+                        setTimeout(() => window.scrollTo({top:0,behavior:'smooth'}), 10);
+                        return newPage;
+                      });
+                    }}
+                    disabled={page === 1}
+                    style={{
+                      padding: '14px 24px',
+                      borderRadius: 14,
+                      border: '2px solid #a084e8',
+                      background: 'rgba(44,19,80,0.18)',
+                      color: '#fff',
+                      fontWeight: 700,
+                      cursor: page === 1 ? 'not-allowed' : 'pointer',
+                      fontSize: '1.08rem',
+                      boxShadow: '0 2px 12px #7b2ff244',
+                      transition: 'background 0.18s, box-shadow 0.18s, transform 0.15s',
+                      outline: 'none',
+                      minWidth: 110,
+                      width: '100%',
+                      maxWidth: 180,
+                      margin: '0 0.5rem',
+                    }}
+                  >Anterior</button>
+                  <span style={{
+                    color: '#fff',
+                    fontWeight: 800,
+                    alignSelf: 'center',
+                    fontSize: '1.08rem',
+                    letterSpacing: '0.02em',
+                    background: 'rgba(44,19,80,0.18)',
+                    borderRadius: 10,
+                    padding: '12px 18px',
+                    border: '2px solid #a084e8',
+                    boxShadow: '0 2px 12px #7b2ff244',
+                    margin: '0 0.5rem',
+                    textAlign: 'center',
+                    minWidth: 120,
+                    width: '100%',
+                    maxWidth: 180,
+                    wordBreak: 'break-word',
+                  }}>Página {page} de {Math.ceil(searchResults.length/perPage)}</span>
+                  <button
+                    onClick={() => {
+                      setPage(p => {
+                        const newPage = Math.min(Math.ceil(searchResults.length/perPage), p+1);
+                        setTimeout(() => window.scrollTo({top:0,behavior:'smooth'}), 10);
+                        return newPage;
+                      });
+                    }}
+                    disabled={page >= Math.ceil(searchResults.length/perPage)}
+                    style={{
+                      padding: '14px 24px',
+                      borderRadius: 14,
+                      border: '2px solid #a084e8',
+                      background: 'rgba(44,19,80,0.18)',
+                      color: '#fff',
+                      fontWeight: 700,
+                      cursor: page >= Math.ceil(searchResults.length/perPage) ? 'not-allowed' : 'pointer',
+                      fontSize: '1.08rem',
+                      boxShadow: '0 2px 12px #7b2ff244',
+                      transition: 'background 0.18s, box-shadow 0.18s, transform 0.15s',
+                      outline: 'none',
+                      minWidth: 110,
+                      width: '100%',
+                      maxWidth: 180,
+                      margin: '0 0.5rem',
+                    }}
+                  >Siguiente</button>
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
       {/* Modal para seleccionar variante/suscripción */}
       {/* El modal solo se muestra si se agrega, nunca para quitar */}

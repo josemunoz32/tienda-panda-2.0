@@ -41,7 +41,7 @@ function formatPrecio(precio, moneda) {
   return precio;
 }
 
-export default function Header({ user, onRoleChange }) {
+export default function Header({ user, onRoleChange, onSidebarChange }) {
   // Modal para variantes/suscripción (opcional, si quieres usarlo en el header)
   const [modal, setModal] = useState({ open: false, prod: null, opciones: [], tipo: null });
   // ...existing code...
@@ -60,7 +60,7 @@ export default function Header({ user, onRoleChange }) {
   };
 
 
-// ...existing code...
+  // ...existing code...
 
   // Lógica global para agregar/quitar productos al carrito
   const handleCart = async (prod, setModalOverride = null) => {
@@ -120,6 +120,23 @@ export default function Header({ user, onRoleChange }) {
     }
     if (sidebarOpen) document.addEventListener("mousedown", handleSidebarClick);
     return () => document.removeEventListener("mousedown", handleSidebarClick);
+  }, [sidebarOpen]);
+
+  // Notifica a App.js cuando cambia sidebarOpen
+  useEffect(() => {
+    if (typeof onSidebarChange === 'function') {
+      onSidebarChange(sidebarOpen);
+    }
+  }, [sidebarOpen, onSidebarChange]);
+
+  // Fondo oscuro en body cuando sidebar está abierto (móvil)
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.classList.add("sidebar-dark-bg");
+    } else {
+      document.body.classList.remove("sidebar-dark-bg");
+    }
+    return () => document.body.classList.remove("sidebar-dark-bg");
   }, [sidebarOpen]);
 
   // Actualizar precios del carrito al cambiar moneda
@@ -314,26 +331,26 @@ export default function Header({ user, onRoleChange }) {
   };
 
   return (
-  <>
+    <>
       <BannerHeader
         user={user}
         onMenuClick={() => setSidebarOpen(true)}
-  onCartClick={() => {
-    if (cartOpen) {
-      setCartOpen(false);
-    } else {
-      setFavOpen(false);
-      setCartOpen(true);
-    }
-  }}
-  onFavClick={() => {
-    if (favOpen) {
-      setFavOpen(false);
-    } else {
-      setCartOpen(false);
-      setFavOpen(true);
-    }
-  }}
+        onCartClick={() => {
+          if (cartOpen) {
+            setCartOpen(false);
+          } else {
+            setFavOpen(false);
+            setCartOpen(true);
+          }
+        }}
+        onFavClick={() => {
+          if (favOpen) {
+            setFavOpen(false);
+          } else {
+            setCartOpen(false);
+            setFavOpen(true);
+          }
+        }}
         cartCount={cart.length}
         favCount={favorites.length}
         favOpen={favOpen}
@@ -344,31 +361,21 @@ export default function Header({ user, onRoleChange }) {
       {sidebarOpen && (
         <>
           <div className="header-navbar-overlay" onClick={() => setSidebarOpen(false)} />
-          <aside className="header-navbar-sidebar" ref={sidebarRef}>
-            <div className="sidebar-logo-title" style={{
-              display:'flex',
-              alignItems:'center',
-              justifyContent:'space-between',
-              gap:10,
-              marginBottom:18,
-              background:'rgba(255,255,255,0.7)',
-              borderRadius:'16px',
-              padding:'10px 14px 10px 10px',
-              boxShadow:'0 2px 16px #a259ff22',
-              backdropFilter:'blur(8px) saturate(140%)'
-            }}>
-              <Link to="/home" onClick={() => setSidebarOpen(false)} style={{display:'flex',alignItems:'center',gap:10,textDecoration:'none'}}>
-                <img src={require('../assets/logos/miicono.png')} alt="Logo" style={{height:42,width:42,objectFit:'cover',borderRadius:'50%',background:'#fff',padding:1.5,boxShadow:'0 1px 6px #a259ff22',border:'1.5px solid #a259ff'}} />
+          <aside className="header-navbar-sidebar dark-sidebar" ref={sidebarRef}>
+            <div className="sidebar-logo-title">
+              <Link to="/home" onClick={() => setSidebarOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+                <img src={require('../assets/logos/miicono.png')} alt="Logo" style={{ height: 46, width: 46, objectFit: 'cover', borderRadius: '50%', background: '#fff', padding: 2, boxShadow: '0 1px 6px #a259ff22', border: '2px solid #a259ff' }} />
                 <span style={{
-                  fontWeight:'bold',
-                  fontSize:'1.25rem',
-                  color:'#222',
-                  letterSpacing:'-0.5px',
-                  display:'inline-block'
+                  fontWeight: 'bold',
+                  fontSize: '1.32rem',
+                  color: '#fff',
+                  letterSpacing: '-0.5px',
+                  display: 'inline-block',
+                  textShadow: '0 1px 8px #fff8',
                 }}>PandaStore</span>
               </Link>
-              <button className="header-navbar-sidebar-close" onClick={() => setSidebarOpen(false)} aria-label="Cerrar menú" style={{background:'none',border:'none',padding:0,margin:0,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                <span className="material-icons" style={{fontSize:28,color:'#a259ff'}}>close</span>
+              <button className="header-navbar-sidebar-close" onClick={() => setSidebarOpen(false)} aria-label="Cerrar menú">
+                <span className="material-icons" style={{ fontSize: 32, fontWeight: 900 }}>close</span>
               </button>
             </div>
             <nav>
@@ -376,6 +383,7 @@ export default function Header({ user, onRoleChange }) {
                 {!user && (
                   <>
                     <li><Link to="/home" onClick={() => setSidebarOpen(false)}>Home</Link></li>
+                    <li><Link to="/promos" onClick={() => setSidebarOpen(false)}>Promociones</Link></li>
                     {categorias.length > 0 && (
                       <li>
                         <details>
@@ -398,12 +406,12 @@ export default function Header({ user, onRoleChange }) {
                     <li><Link to="/soporte" onClick={() => setSidebarOpen(false)}>Soporte</Link></li>
                     <li><Link to="/iniciar-sesion" onClick={() => setSidebarOpen(false)}>Iniciar Sesión</Link></li>
                     <li><Link to="/registro" onClick={() => setSidebarOpen(false)}>Registrarse</Link></li>
-                {/* cierre correcto del fragmento JSX */}
-                </>
+                  </>
                 )}
                 {user && (
                   <>
                     <li><Link to="/home" onClick={() => setSidebarOpen(false)}>Home</Link></li>
+                    <li><Link to="/promos" onClick={() => setSidebarOpen(false)}>Promociones</Link></li>
                     <li><Link to="/perfil" onClick={() => setSidebarOpen(false)}>Perfil</Link></li>
                     <li><Link to="/mispedidos" onClick={() => setSidebarOpen(false)}>Mis Pedidos</Link></li>
                     {categorias.length > 0 && (
@@ -455,25 +463,40 @@ export default function Header({ user, onRoleChange }) {
 
       {/* Dropdowns de favoritos y carrito (flotantes) */}
       {favOpen && (
-        <div ref={favMenuRef} className="header-navbar-dropdown">
-          <b>Favoritos</b>
+        <div ref={favMenuRef} className="header-navbar-dropdown" style={{
+          background: 'linear-gradient(120deg, #2a0845 0%, #6441a5 100%)',
+          borderRadius: 18,
+          boxShadow: '0 8px 32px #0008',
+          padding: 18,
+          minWidth: 270,
+          maxWidth: 340,
+          color: '#fff',
+          border: '1.5px solid #a259ff44',
+          marginTop: 12,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <b style={{ fontSize: '1.13rem', letterSpacing: '-0.5px' }}>Favoritos</b>
+            <button onClick={() => setFavOpen(false)} aria-label="Minimizar favoritos" style={{ background: 'none', border: 'none', fontSize: 26, cursor: 'pointer', color: '#fff', fontWeight: 700, lineHeight: 1, borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .18s' }} onMouseOver={e => e.currentTarget.style.background = '#a259ff33'} onMouseOut={e => e.currentTarget.style.background = 'none'}>
+              <span style={{ fontWeight: 900, fontSize: 28, marginTop: -2 }}>×</span>
+            </button>
+          </div>
           {favorites.length === 0 ? (
-            <div>No hay productos en favoritos.</div>
+            <div style={{ textAlign: 'center', color: '#fff8', fontWeight: 500 }}>No hay productos en favoritos.</div>
           ) : (
-            <ul>
+            <ul className="panel-favoritos-lista" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {favorites.map(prod => {
                 const dbProd = favProducts[prod.id] || {};
                 const min = getMinPriceByMoneda(dbProd, moneda) ?? getMinPriceByMoneda(prod, moneda);
                 return (
-                  <li key={prod.id}>
-                    {prod.imageUrl && <img src={prod.imageUrl} alt={prod.name} />}
-                    <div>
-                      <div>{prod.name}</div>
-                      <div>
+                  <li key={prod.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, background: '#ffffff0a', borderRadius: 10, padding: '7px 8px', boxShadow: '0 1px 6px #0002' }}>
+                    {prod.imageUrl && <img src={prod.imageUrl} alt={prod.name} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', border: '2px solid #a259ff', background: '#fff' }} />}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 15 }}>{prod.name}</div>
+                      <div style={{ fontSize: 13, color: '#fff9', fontWeight: 500 }}>
                         {min ? `${moneda}: ${formatPrecio(min, moneda)}` : 'Sin precio'}
                       </div>
                     </div>
-                    <button onClick={() => handleRemoveFromFav(prod.id)}>✕</button>
+                    <button onClick={() => handleRemoveFromFav(prod.id)} aria-label="Eliminar favorito" style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#ff5a5a', fontWeight: 700, borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .18s' }} onMouseOver={e => e.currentTarget.style.background = '#ff5a5a22'} onMouseOut={e => e.currentTarget.style.background = 'none'}>✕</button>
                   </li>
                 );
               })}
@@ -482,13 +505,28 @@ export default function Header({ user, onRoleChange }) {
         </div>
       )}
       {cartOpen && (
-        <div ref={cartMenuRef} className="header-navbar-dropdown">
-          <b>Carrito</b>
+        <div ref={cartMenuRef} className="header-navbar-dropdown" style={{
+          background: 'linear-gradient(120deg, #2a0845 0%, #6441a5 100%)',
+          borderRadius: 18,
+          boxShadow: '0 8px 32px #0008',
+          padding: 18,
+          minWidth: 270,
+          maxWidth: 340,
+          color: '#fff',
+          border: '1.5px solid #a259ff44',
+          marginTop: 12,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <b style={{ fontSize: '1.13rem', letterSpacing: '-0.5px' }}>Carrito</b>
+            <button onClick={() => setCartOpen(false)} aria-label="Minimizar carrito" style={{ background: 'none', border: 'none', fontSize: 26, cursor: 'pointer', color: '#fff', fontWeight: 700, lineHeight: 1, borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .18s' }} onMouseOver={e => e.currentTarget.style.background = '#a259ff33'} onMouseOut={e => e.currentTarget.style.background = 'none'}>
+              <span style={{ fontWeight: 900, fontSize: 28, marginTop: -2 }}>×</span>
+            </button>
+          </div>
           {cart.length === 0 ? (
-            <div>No hay productos en el carrito.</div>
+            <div style={{ textAlign: 'center', color: '#fff8', fontWeight: 500 }}>No hay productos en el carrito.</div>
           ) : (
             <>
-              <ul>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 {cart.map(prod => {
                   let precio = null;
                   let detalle = null;
@@ -507,31 +545,29 @@ export default function Header({ user, onRoleChange }) {
                   }
                   if (prod[`price${moneda}`]) precio = prod[`price${moneda}`];
                   return (
-                    <li key={prod.id}>
-                      {prod.imageUrl && <img src={prod.imageUrl} alt={prod.name} />}
-                      <div>
-                        <div>{prod.name}</div>
-                        <div>
+                    <li key={prod.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, background: '#ffffff0a', borderRadius: 10, padding: '7px 8px', boxShadow: '0 1px 6px #0002' }}>
+                      {prod.imageUrl && <img src={prod.imageUrl} alt={prod.name} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', border: '2px solid #a259ff', background: '#fff' }} />}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 15 }}>{prod.name}</div>
+                        <div style={{ fontSize: 13, color: '#fff9', fontWeight: 500 }}>
                           {precio ? `${moneda}: ${formatPrecio(precio, moneda)}` : 'Sin precio'}
-                          {detalle && <span>({detalle})</span>}
+                          {detalle && <span style={{ marginLeft: 4 }}>({detalle})</span>}
                         </div>
                       </div>
-                      <button onClick={() => handleRemoveFromCart(prod.id)}>✕</button>
+                      <button onClick={() => handleRemoveFromCart(prod.id)} aria-label="Eliminar del carrito" style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#ff5a5a', fontWeight: 700, borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .18s' }} onMouseOver={e => e.currentTarget.style.background = '#ff5a5a22'} onMouseOut={e => e.currentTarget.style.background = 'none'}>✕</button>
                     </li>
                   );
                 })}
               </ul>
-              <div className="header-navbar-cart-total">
-                <div>
-                  Total: {formatPrecio(cart.reduce((acc, prod) => {
-                    let precio = 0;
-                    if (prod[`price${moneda}`]) {
-                      precio = Number(prod[`price${moneda}`]);
-                    }
-                    return acc + (precio || 0);
-                  }, 0), moneda)}
-                </div>
-                <CartBuyButton user={user} />
+              <div className="header-navbar-cart-total" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, paddingTop: 8, borderTop: '1.5px solid #a259ff33', fontWeight: 700, fontSize: 17 }}>
+                <div style={{ color: '#fff' }}>Total: {formatPrecio(cart.reduce((acc, prod) => {
+                  let precio = 0;
+                  if (prod[`price${moneda}`]) {
+                    precio = Number(prod[`price${moneda}`]);
+                  }
+                  return acc + (precio || 0);
+                }, 0), moneda)}</div>
+                <CartBuyButton user={user} setCartOpen={setCartOpen} />
               </div>
             </>
           )}
@@ -543,20 +579,25 @@ export default function Header({ user, onRoleChange }) {
 }
 
 // Botón separado para manejar la navegación y autenticación
-function CartBuyButton({ user }) {
+function CartBuyButton({ user, setCartOpen }) {
   const navigate = useNavigate();
+  const handleBuy = () => {
+    if (typeof setCartOpen === 'function') setCartOpen(false);
+    setTimeout(() => {
+      if (user) {
+        navigate('/checkoutcarrito');
+      } else {
+        navigate('/iniciar-sesion');
+      }
+    }, 120);
+  };
   return (
     <button
       className="header-navbar-cart-buy-btn"
-      onClick={() => {
-        if (user) {
-          navigate('/checkoutcarrito');
-        } else {
-          navigate('/iniciar-sesion');
-        }
-      }}
+      onClick={handleBuy}
+      type="button"
     >
-      Comprar
+      <span className="front">Comprar</span>
     </button>
   );
 }

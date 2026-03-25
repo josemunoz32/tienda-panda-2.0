@@ -41,7 +41,8 @@ export default function Terminos() {
         <div style={{fontWeight:600, color:'#a084e8', margin:'18px 0 6px 0'}}>{iconoAlerta} Riesgos importantes a considerar:</div>
         <ul>
           <li>Nintendo puede detectar actividad sospechosa.</li>
-          <li>Si se cierra sesión en la cuenta, es posible perder acceso al juego.</li>
+          <li>Estas cuentas no son permanentes duran tiempo indefinido ,por eso debe seguir el modo de uso y la instalacion correctamente para que tenga la mayor duracion posible.</li>
+          <li>causas de perdida del juego que se cierre la seccion , que se elimine la cuenta entregada , que se le cambie la contraseña a la cuenta estos riesgos no los incluye la garantia por lo tanto si paso uno de estos es probable que pierda el acceso al juego por eso el bajo costo de las cuentas.</li>
         </ul>
         <div style={{fontWeight:600, color:'#a084e8', margin:'18px 0 6px 0'}}>Requisitos Técnicos</div>
         <ul>

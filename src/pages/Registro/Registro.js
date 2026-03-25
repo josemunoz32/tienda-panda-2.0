@@ -7,6 +7,7 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+import { getDoc } from "firebase/firestore";
 import { GoogleAuthProvider } from "firebase/auth";
 import "../IniciarSesion/IniciarSesion.css";
 import logo from "../../assets/logos/miicono.png";
@@ -149,19 +150,26 @@ export default function Registro() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
+      // Leer el rol actual si existe
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      let role = "user";
+      if (userDocSnap.exists() && userDocSnap.data().role) {
+        role = userDocSnap.data().role;
+      }
       await setDoc(
-        doc(db, "users", user.uid),
+        userDocRef,
         {
           phoneNumber: user.phoneNumber || "",
           displayName: user.displayName || "",
           email: user.email || "",
           photoURL: user.photoURL || "",
-          role: "user"
+          role
         },
         { merge: true }
       );
       setSuccess(true);
-  setTimeout(() => navigate("/home"), 1200);
+      setTimeout(() => navigate("/home"), 1200);
     } catch (err) {
       if (err.code === "auth/account-exists-with-different-credential") {
         setError("Ya existe una cuenta con este correo pero con otro método de acceso. Usa el método correcto.");

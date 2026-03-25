@@ -557,11 +557,15 @@ Monto: ${formatPrecio(totalConDescuentoRedondeado, "USD")}
                         };
                       });
                       // 1. Guardar en colección global 'orders' y obtener el ID real
+                      // Normalizar el campo metodoPago para que sea exactamente 'transferencia' o 'crypto' si corresponde
+                      let metodoPagoFinal = metodoPago;
+                      if (metodoPago === 'transferencia') metodoPagoFinal = 'transferencia';
+                      else if (metodoPago === 'crypto') metodoPagoFinal = 'crypto';
                       const globalOrder = {
                         productos,
                         total: totalConDescuentoRedondeado,
                         moneda: selectedMoneda,
-                        metodoPago,
+                        metodoPago: metodoPagoFinal,
                         fecha: new Date().toISOString(),
                         email: user.email,
                         nombre: userProfile?.firstName ? `${userProfile.firstName} ${userProfile.lastName || ''}` : user.displayName || '',
@@ -575,15 +579,14 @@ Monto: ${formatPrecio(totalConDescuentoRedondeado, "USD")}
                         globalOrderId: orderRef.id
                       });
                       // 3. Solo enviar correo si el método de pago NO es transferencia ni crypto
-                      if (metodoPago !== 'transferencia' && metodoPago !== 'crypto') {
+                      // 3. Enviar correo al admin si el método de pago es transferencia o crypto
+                      if (metodoPago === 'transferencia' || metodoPago === 'crypto') {
                         try {
                           await fetch('https://us-central1-pandastoreupdate.cloudfunctions.net/sendConfirmationEmail', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                               orderId: orderRef.id,
-                              globalOrderId: orderRef.id,
-                              docId: orderRef.id,
                               clienteEmail: user.email
                             })
                           });

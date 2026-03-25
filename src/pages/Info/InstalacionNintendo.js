@@ -45,7 +45,7 @@ export default function InstalacionNintendo() {
         Para la instalación, comunícate con nosotros a través de nuestras redes sociales:<br/>
         <a href="https://wa.me/56974751810" style={{color:'#25D366', fontWeight:700, marginRight:18, textDecoration:'none'}} target="_blank" rel="noopener noreferrer">WhatsApp</a>
         <a href="https://t.me/NintendoChile2" style={{color:'#229ED9', fontWeight:700, marginRight:18, textDecoration:'none'}} target="_blank" rel="noopener noreferrer">Telegram</a>
-        <a href="https://instagram.com/juegos_nintendo_switch_chile2" style={{color:'#a084e8', fontWeight:700, textDecoration:'none'}} target="_blank" rel="noopener noreferrer">Instagram</a>
+        <a href="https://instagram.com/pandastore_gaming" style={{color:'#a084e8', fontWeight:700, textDecoration:'none'}} target="_blank" rel="noopener noreferrer">Instagram</a>
       </p>
 
       {/* Imágenes de instalación en una sola columna */}
@@ -77,10 +77,10 @@ export default function InstalacionNintendo() {
         <ul style={{paddingLeft:22, fontSize:'1.08rem', lineHeight:1.7, marginBottom:0}}>
           <li><span role="img" aria-label="candado">🔒</span> <b>NO CAMBIES</b> ningún dato de la cuenta que te entregamos.</li>
           <li><span role="img" aria-label="prohibido">🚫</span> <b>NO intentes volver a ingresar</b> a la cuenta después de descargar los juegos.</li>
+          <li><span role="img" aria-label="usuario">👤</span> <b>DURACION</b> estos juegos no son permanente duran tiempo indefinido.</li>
           <li><span role="img" aria-label="usuario">👤</span> <b>SIEMPRE JUEGA</b> desde tu perfil personal (el tuyo, no el que te damos).</li>
-          <li><span role="img" aria-label="avion">✈️</span> <b>JUGAR EN MODO AVIÓN</b> una vez instalados los juegos, para evitar desconexiones o bloqueos.</li>
           <li><span role="img" aria-label="cruz">❌</span> Si no sigues estas reglas, pierdes la garantía y la cuenta puede ser bloqueada por Nintendo.</li>
-          <li><span role="img" aria-label="check">✅</span> <b>Garantía solo 24 horas</b></li>
+          <li><span role="img" aria-label="check">✅</span> <b>Garantía solo 1 semana</b></li>
         </ul>
         <div style={{marginTop:14, fontWeight:600, color:'#7b2ff2'}}>
           <span role="img" aria-label="estrella">🪄</span> ¡Sigue bien los pasos y disfruta tus juegos sin problemas!

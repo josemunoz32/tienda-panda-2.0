@@ -214,8 +214,7 @@ export default function MisPedidos() {
                   {Array.isArray(pedido.productos)
                     ? pedido.productos.map((prod, idx) => (
                         <li key={idx} style={{color:"#fff", marginBottom: 6, padding: '6px 0'}}>
-
-
+                          <span style={{color:"#FFD600", fontWeight:700}}>{prod.name}</span> (x{prod.cantidad}) - {formatPrecioPedido(prod.precio, pedido.moneda)}
                         </li>
                       ))
                     : <li style={{ color: '#888' }}>Sin productos</li>
