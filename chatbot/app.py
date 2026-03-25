@@ -154,8 +154,8 @@ PROMPT_BASE = (
 )
 
 CONTACTO_REDIRECT = (
-    "No encontre ese juego en el catalogo ahora mismo.\n\n"
-    "Si quieres, te dejo botones de contacto para revisar disponibilidad o buscar una alternativa."
+    "No encontre ese juego en la base de datos de Panda Store.\n\n"
+    "Ahora mismo no lo tengo en el catalogo. Si quieres, te dejo botones de contacto para hablar con un admin y confirmar disponibilidad o pedir una alternativa."
 )
 
 RESPUESTA_FUERA_DE_TEMA = (
@@ -182,11 +182,24 @@ PALABRAS_REFINAR_BUSQUEDA = {
 }
 
 INFO_KEYWORDS = {
+    'catalogo': {'que juegos venden', 'que venden', 'que juegos tienen', 'que tienen', 'catalogo', 'juegos disponibles', 'que juegos hay'},
     'promociones': {'promocion', 'promociones', 'promo', 'promos', 'ofertas', 'oferta', 'descuento', 'descuentos'},
     'instalacion': {'instalacion', 'instalar', 'instalo', 'guia', 'tutorial', 'como instalar', 'descargar', 'instalkacion'},
     'pagos': {'pago', 'pagos', 'medio de pago', 'medios de pago', 'como pagar', 'tarjeta', 'transferencia', 'paypal', 'crypto'},
+    'compra': {
+        'como compro', 'como comprar', 'como hago la compra', 'como se compra', 'quiero comprar',
+        'como hago para comprar', 'proceso de compra', 'como es la compra', 'como funciona la compra',
+        'como puedo comprar', 'como seria la compra', 'como se realiza la compra', 'que hago para comprar',
+        'cual es el proceso de compra', 'como hacer la compra', 'me explicas la compra'
+    },
+    'formato': {'son digitales', 'son fisicos o digitales', 'son fisicos', 'son físicos', 'formato de los juegos', 'formato de los servicios', 'fisico o digital', 'físico o digital', 'digital o fisico', 'digital o físico'},
     'terminos': {'terminos', 'condiciones', 'seguridad', 'garantia', 'garantias', 'legal', 'terminos y condiciones'},
     'contacto': {'contacto', 'contactar', 'soporte', 'ayuda', 'humano', 'persona', 'whatsapp', 'instagram', 'telegram', 'asesor'},
+    'entrega': {'entrega', 'como es la entrega', 'como entregan', 'como es el envio', 'demora la entrega', 'cuando entregan', 'es inmediata'},
+}
+
+STOPWORDS_INTENCION = {
+    'el', 'la', 'los', 'las', 'de', 'del', 'y', 'o', 'un', 'una', 'unos', 'unas', 'por', 'favor'
 }
 
 LINKS_TIENDAS = {
@@ -237,6 +250,62 @@ def telemetry_is_authorized():
     return secrets.compare_digest(request_key, TELEMETRY_API_KEY)
 
 
+def sanitize_history_action(action):
+    if not isinstance(action, dict):
+        return None
+    action_type = str(action.get('type', '')).strip()
+    label = str(action.get('label', '')).strip()
+    sanitized = {}
+    if action_type:
+        sanitized['type'] = action_type
+    if label:
+        sanitized['label'] = label[:80]
+    producto = action.get('producto')
+    if isinstance(producto, dict):
+        producto_sanitized = {}
+        for key in ['id', 'name', 'categoryId', 'variante', 'meses', 'priceCLP', 'priceUSD']:
+            value = producto.get(key)
+            if value not in [None, '']:
+                producto_sanitized[key] = value
+        if producto_sanitized:
+            sanitized['producto'] = producto_sanitized
+    return sanitized or None
+
+
+def sanitize_history_option(option):
+    if not isinstance(option, dict):
+        return None
+    sanitized = {}
+    title = str(option.get('title', '')).strip()
+    subtitle = str(option.get('subtitle', '')).strip()
+    if title:
+        sanitized['title'] = title[:120]
+    if subtitle:
+        sanitized['subtitle'] = subtitle[:120]
+    action = sanitize_history_action(option.get('action'))
+    if action:
+        sanitized['action'] = action
+    plans = []
+    for plan in option.get('plans', [])[:5]:
+        if not isinstance(plan, dict):
+            continue
+        plan_sanitized = {}
+        label = str(plan.get('label', '')).strip()
+        if label:
+            plan_sanitized['label'] = label[:80]
+        actions = [item for item in (sanitize_history_action(action) for action in plan.get('actions', [])[:5]) if item]
+        if actions:
+            plan_sanitized['actions'] = actions
+        if plan_sanitized:
+            plans.append(plan_sanitized)
+    if plans:
+        sanitized['plans'] = plans
+    actions = [item for item in (sanitize_history_action(action) for action in option.get('actions', [])[:5]) if item]
+    if actions:
+        sanitized['actions'] = actions
+    return sanitized or None
+
+
 def sanitize_history(historial):
     if not isinstance(historial, list):
         raise ValueError('historial debe ser una lista')
@@ -247,8 +316,6 @@ def sanitize_history(historial):
             continue
         texto = str(item.get('text', '') or item.get('content', '') or '').strip()
         origen = str(item.get('from', '') or item.get('role', '') or '').strip().lower()
-        if not texto:
-            continue
         if len(texto) > MAX_HISTORY_TEXT_LENGTH:
             texto = texto[:MAX_HISTORY_TEXT_LENGTH]
         if origen in ['user', 'usuario']:
@@ -257,7 +324,24 @@ def sanitize_history(historial):
             from_value = 'bot'
         else:
             continue
-        historial_sanitizado.append({'from': from_value, 'text': texto})
+
+        options = []
+        actions = []
+        if from_value == 'bot':
+            options = [item for item in (sanitize_history_option(option) for option in item.get('options', [])[:5]) if item]
+            actions = [item for item in (sanitize_history_action(action) for action in item.get('actions', [])[:5]) if item]
+
+        if from_value == 'user' and not texto:
+            continue
+        if from_value == 'bot' and not texto and not options and not actions:
+            continue
+
+        history_item = {'from': from_value, 'text': texto}
+        if options:
+            history_item['options'] = options
+        if actions:
+            history_item['actions'] = actions
+        historial_sanitizado.append(history_item)
     return historial_sanitizado
 
 
@@ -335,10 +419,16 @@ def normalizar_texto(texto):
 
 STOPWORDS = {
     'el', 'la', 'los', 'las', 'de', 'del', 'y', 'o', 'un', 'una', 'unos', 'unas',
-    'quiero', 'necesito', 'busco', 'tienen', 'tienes', 'hay', 'me', 'puedes', 'puedo',
+    'hola', 'quiero', 'necesito', 'busco', 'compra', 'comprar', 'comprarlo', 'comprarlo',
+    'tiene', 'tienen', 'tienes', 'hay', 'me', 'puedes', 'puedo',
     'como', 'instalacion', 'instalar', 'soporte', 'ayuda', 'precio', 'precios',
     'valor', 'vale', 'cuesta', 'categoria', 'categorias', 'juegos', 'juego', 'para',
     'con', 'en', 'por', 'favor', 'hablar', 'cliente', 'promocion', 'promociones'
+}
+
+CONSULTA_EQUIVALENCIAS = {
+    'prime video': 'amazon prime',
+    'amazon video': 'amazon prime',
 }
 
 PALABRAS_INTENCION_PRODUCTO = {
@@ -356,7 +446,120 @@ PALABRAS_FUERA_DE_TEMA = {
 
 
 def tokenizar_consulta(texto):
-    return [token for token in normalizar_texto(texto).split() if token and token not in STOPWORDS]
+    tokens = []
+    for token in normalizar_texto(texto).split():
+        if not token or token in STOPWORDS:
+            continue
+        tokens.append(token)
+
+        # Permite comparar nombres escritos juntos o separados: FC26 <-> FC 26, MK11 <-> MK 11, etc.
+        match = re.fullmatch(r'([a-z]{2,})([0-9]{1,4})', token)
+        if match and token not in {'ps4', 'ps5'}:
+            letras, numeros = match.groups()
+            if letras not in STOPWORDS:
+                tokens.append(letras)
+            tokens.append(numeros)
+    return tokens
+
+
+def normalizar_consulta_busqueda(texto):
+    consulta = normalizar_texto(texto)
+    if not consulta:
+        return ''
+    for origen, destino in CONSULTA_EQUIVALENCIAS.items():
+        if origen in consulta:
+            consulta = consulta.replace(origen, destino)
+    return consulta
+
+
+def simplificar_token(token):
+    token = normalizar_texto(token).replace(' ', '')
+    if not token:
+        return ''
+    return re.sub(r'(.)\1{1,}', r'\1', token)
+
+
+def distancia_damerau_levenshtein(origen, destino, max_distance=None):
+    if origen == destino:
+        return 0
+    if not origen:
+        return len(destino)
+    if not destino:
+        return len(origen)
+    if max_distance is not None and abs(len(origen) - len(destino)) > max_distance:
+        return max_distance + 1
+
+    filas = len(origen) + 1
+    columnas = len(destino) + 1
+    matriz = [[0] * columnas for _ in range(filas)]
+
+    for i in range(filas):
+        matriz[i][0] = i
+    for j in range(columnas):
+        matriz[0][j] = j
+
+    for i in range(1, filas):
+        minimo_fila = None
+        for j in range(1, columnas):
+            costo = 0 if origen[i - 1] == destino[j - 1] else 1
+            matriz[i][j] = min(
+                matriz[i - 1][j] + 1,
+                matriz[i][j - 1] + 1,
+                matriz[i - 1][j - 1] + costo,
+            )
+            if i > 1 and j > 1 and origen[i - 1] == destino[j - 2] and origen[i - 2] == destino[j - 1]:
+                matriz[i][j] = min(matriz[i][j], matriz[i - 2][j - 2] + 1)
+            minimo_fila = matriz[i][j] if minimo_fila is None else min(minimo_fila, matriz[i][j])
+
+        if max_distance is not None and minimo_fila is not None and minimo_fila > max_distance:
+            return max_distance + 1
+
+    return matriz[-1][-1]
+
+
+def tokens_son_parecidos(token, candidato):
+    token_simple = simplificar_token(token)
+    candidato_simple = simplificar_token(candidato)
+
+    if not token_simple or not candidato_simple:
+        return False
+    if token_simple == candidato_simple:
+        return True
+
+    largo_minimo = min(len(token_simple), len(candidato_simple))
+    if largo_minimo <= 2:
+        return False
+
+    max_distancia = 1 if largo_minimo <= 5 else 2
+    distancia = distancia_damerau_levenshtein(token_simple, candidato_simple, max_distance=max_distancia)
+    if distancia <= max_distancia:
+        return True
+
+    similitud = SequenceMatcher(None, token_simple, candidato_simple).ratio()
+    if largo_minimo == 3:
+        return similitud >= 0.8 and token_simple[0] == candidato_simple[0]
+    if largo_minimo <= 5:
+        return similitud >= 0.76
+    return similitud >= 0.82
+
+
+def frase_coincide_aproximada(tokens_consulta, tokens_candidatos):
+    if not tokens_consulta or not tokens_candidatos:
+        return False
+
+    usados = set()
+    for token_consulta in tokens_consulta:
+        encontrado = False
+        for indice, token_candidato in enumerate(tokens_candidatos):
+            if indice in usados:
+                continue
+            if tokens_son_parecidos(token_consulta, token_candidato):
+                usados.add(indice)
+                encontrado = True
+                break
+        if not encontrado:
+            return False
+    return True
 
 
 def obtener_categoria_nombre(producto, categorias):
@@ -441,8 +644,13 @@ def puntuar_producto(consulta, producto):
     overlap = tokens_consulta & tokens_nombre
     score += len(overlap) * 12
 
+    overlap_aproximado = sum(1 for token in tokens_consulta if token_coincide_aproximado(token, tokens_nombre))
+    score += overlap_aproximado * 10
+
     if tokens_consulta and tokens_consulta.issubset(tokens_nombre):
         score += 20
+    elif tokens_consulta and overlap_aproximado == len(tokens_consulta):
+        score += 16
 
     similitud = SequenceMatcher(None, consulta_norm, nombre_norm).ratio()
     score += int(similitud * 30)
@@ -456,11 +664,59 @@ def puntuar_producto(consulta, producto):
 
     return score
 
+
+def extraer_tokens_consulta_relevantes(texto):
+    tokens = tokenizar_consulta(texto)
+    tokens_numericos = [token for token in tokens if token.isdigit()]
+    tokens_texto = [
+        token for token in tokens
+        if not token.isdigit() and (len(token) >= 3 or token in {'ps4', 'ps5', 'gta', 'fc'})
+    ]
+    return tokens_texto, tokens_numericos
+
+
+def token_coincide_aproximado(token, candidatos):
+    for candidato in candidatos:
+        if tokens_son_parecidos(token, candidato):
+            return True
+    return False
+
+
+def producto_es_coincidencia_confiable(consulta, producto):
+    consulta_norm = normalizar_texto(consulta)
+    nombre_norm = normalizar_texto(producto.get('name', ''))
+    if not consulta_norm or not nombre_norm:
+        return False
+
+    if consulta_norm == nombre_norm:
+        return True
+
+    tokens_consulta_texto, tokens_consulta_numericos = extraer_tokens_consulta_relevantes(consulta)
+    tokens_nombre = tokenizar_consulta(producto.get('name', ''))
+
+    if tokens_consulta_numericos and not all(token in tokens_nombre for token in tokens_consulta_numericos):
+        return False
+
+    if not tokens_consulta_texto:
+        return bool(tokens_consulta_numericos)
+
+    coincidencias_texto = sum(1 for token in tokens_consulta_texto if token_coincide_aproximado(token, tokens_nombre))
+    similitud_frase = SequenceMatcher(None, consulta_norm, nombre_norm).ratio()
+
+    if len(tokens_consulta_texto) == 1:
+        return coincidencias_texto == 1
+
+    if coincidencias_texto == len(tokens_consulta_texto):
+        return True
+
+    return coincidencias_texto >= len(tokens_consulta_texto) - 1 and similitud_frase >= 0.78
+
 def buscar_productos_relevantes(consulta, productos, limite=None):
+    consulta = normalizar_consulta_busqueda(consulta)
     puntuados = []
     for producto in productos:
         score = puntuar_producto(consulta, producto)
-        if score > 0:
+        if score > 0 and producto_es_coincidencia_confiable(consulta, producto):
             puntuados.append((score, producto))
     puntuados.sort(key=lambda item: item[0], reverse=True)
     if not puntuados:
@@ -479,9 +735,14 @@ def buscar_productos_relevantes(consulta, productos, limite=None):
 
 def consulta_parece_producto(consulta, productos_relevantes, categorias_relevantes):
     tokens = set(tokenizar_consulta(consulta))
+    tokens_texto, tokens_numericos = extraer_tokens_consulta_relevantes(consulta)
     if productos_relevantes or categorias_relevantes:
         return True
     if tokens & PALABRAS_INTENCION_PRODUCTO:
+        return True
+    if tokens_texto and tokens_numericos:
+        return True
+    if len(tokens_texto) >= 2:
         return True
     return False
 
@@ -680,8 +941,8 @@ def construir_respuesta_refinar_busqueda(mensaje, historial, productos, categori
     if not productos_relevantes:
         return {
             'respuesta': (
-                f"No encontre una alternativa mas precisa para '{consulta_refinada}'.\n\n"
-                "Si quieres, escribe el nombre exacto del juego o usa un boton de contacto para que te ayudemos a revisarlo."
+                f"No encontre '{consulta_refinada}' en la base de datos de Panda Store.\n\n"
+                "Si quieres, escribe el nombre exacto del juego o usa un boton de contacto para confirmar disponibilidad con un admin."
             ),
             'acciones': construir_acciones_contacto(),
         }
@@ -737,6 +998,8 @@ def construir_whatsapp_handoff(historial):
 
 def es_consulta_para_humano(mensaje, historial):
     mensaje_norm = normalizar_texto(mensaje)
+    if mensaje_es_solo_plataforma(mensaje):
+        return False
     if any(frase in mensaje_norm for frase in PALABRAS_FRUSTRACION):
         return True
     if 'soporte' in mensaje_norm and ('humano' in mensaje_norm or 'persona' in mensaje_norm):
@@ -746,7 +1009,7 @@ def es_consulta_para_humano(mensaje, historial):
         for item in historial[-6:]
         if isinstance(item, dict) and str(item.get('from', '')).lower() == 'user'
     ]
-    if len(historial_usuario) >= 3 and len({texto for texto in historial_usuario if texto}) <= 2:
+    if len(historial_usuario) >= 4 and len({texto for texto in historial_usuario if texto}) <= 2:
         return True
     return False
 
@@ -783,8 +1046,9 @@ def construir_respuesta_producto_seleccionado(producto, categorias):
             'acciones': construir_acciones_producto_unico(producto, categorias),
             'opciones': construir_opciones_chat([producto], categorias),
         }
+    categoria = obtener_categoria_nombre(producto, categorias) or 'esa consola'
     return {
-        'respuesta': '',
+        'respuesta': f"Encontre {producto.get('name', 'ese juego')} para {categoria}. Elige si quieres primaria o secundaria.",
         'acciones': construir_acciones_compra(producto, categorias),
         'opciones': [],
     }
@@ -794,12 +1058,162 @@ def construir_respuesta_acciones_filtradas(acciones):
     return {'respuesta': '', 'acciones': acciones, 'opciones': []}
 
 
+def expandir_variantes_relacionadas(consulta, productos_relevantes, productos, categorias):
+    if not productos_relevantes:
+        return productos_relevantes
+
+    tokens_texto, tokens_numericos = extraer_tokens_consulta_relevantes(consulta)
+    if not tokens_numericos and len(tokens_texto) < 2:
+        return productos_relevantes
+
+    variantes = [producto for producto in productos if producto_coincide_con_titulo_base(producto, consulta)]
+    if len(variantes) <= len(productos_relevantes):
+        return productos_relevantes
+
+    variantes.sort(
+        key=lambda producto: (
+            puntuar_producto(consulta, producto),
+            1 if producto_corresponde_a_plataforma(producto, categorias, 'switch') else 0,
+        ),
+        reverse=True,
+    )
+    return variantes
+
+
+def detectar_plataforma_solicitada(mensaje):
+    mensaje_norm = normalizar_texto(mensaje)
+    if 'ps5' in mensaje_norm or 'playstation 5' in mensaje_norm or 'pos5' in mensaje_norm:
+        return 'ps5'
+    if 'ps4' in mensaje_norm or 'playstation 4' in mensaje_norm:
+        return 'ps4'
+    if 'switch' in mensaje_norm or 'nintendo' in mensaje_norm:
+        return 'switch'
+    return None
+
+
+def mensaje_es_solo_plataforma(mensaje):
+    plataforma = detectar_plataforma_solicitada(mensaje)
+    if not plataforma:
+        return False
+
+    tokens = [token for token in normalizar_texto(mensaje).split() if token]
+    tokens_ignorar = {
+        'y', 'o', 'oh', 'para', 'de', 'del', 'la', 'el', 'los', 'las', 'un', 'una',
+        'esa', 'ese', 'mismo', 'misma', 'quiero', 'busco', 'seria', 'seria?', 'hay'
+    }
+    aliases_plataforma = {
+        'ps5', 'ps4', 'pos5', 'switch', 'nintendo', 'playstation', '4', '5'
+    }
+    restantes = [token for token in tokens if token not in tokens_ignorar and token not in aliases_plataforma]
+    return len(restantes) == 0
+
+
+def construir_respuesta_pedir_juego_plataforma(plataforma):
+    etiqueta = plataforma.upper() if plataforma.startswith('ps') else 'Nintendo Switch'
+    return {
+        'respuesta': (
+            f"Si buscas algo para {etiqueta}, dime que juego te interesa y te digo si esta en esa consola.\n\n"
+            "Por ejemplo: FC 26, GTA V, Mario Kart, etc."
+        ),
+        'acciones': [],
+        'opciones': [],
+    }
+
+
+def producto_corresponde_a_plataforma(producto, categorias, plataforma):
+    categoria = normalizar_texto(obtener_categoria_nombre(producto, categorias))
+    if plataforma == 'ps5':
+        return 'ps5' in categoria
+    if plataforma == 'ps4':
+        return 'ps4' in categoria
+    if plataforma == 'switch':
+        return 'switch' in categoria or 'nintendo' in categoria
+    return False
+
+
+def obtener_titulo_contextual(ultimo_mensaje):
+    opciones = ultimo_mensaje.get('options') or []
+    titulos = [str(opcion.get('title', '')).strip() for opcion in opciones if str(opcion.get('title', '')).strip()]
+    if len(set(titulos)) == 1 and titulos:
+        return titulos[0]
+
+    acciones = ultimo_mensaje.get('actions') or []
+    nombres = []
+    for accion in acciones:
+        producto = accion.get('producto') or {}
+        nombre = str(producto.get('name', '')).strip()
+        if nombre:
+            nombres.append(nombre)
+    if len(set(nombres)) == 1 and nombres:
+        return nombres[0]
+    return None
+
+
+def producto_coincide_con_titulo_base(producto, titulo_base):
+    nombre_norm = normalizar_texto(producto.get('name', ''))
+    titulo_norm = normalizar_texto(titulo_base)
+    if not nombre_norm or not titulo_norm:
+        return False
+
+    tokens_texto, tokens_numericos = extraer_tokens_consulta_relevantes(titulo_base)
+    tokens_nombre = tokenizar_consulta(producto.get('name', ''))
+
+    if tokens_numericos and not all(token in tokens_nombre for token in tokens_numericos):
+        return False
+    if tokens_texto and not all(token_coincide_aproximado(token, tokens_nombre) for token in tokens_texto):
+        return False
+
+    return titulo_norm in nombre_norm or bool(tokens_texto or tokens_numericos)
+
+
+def resolver_cambio_plataforma_por_contexto(mensaje, ultimo_mensaje, productos, categorias):
+    plataforma = detectar_plataforma_solicitada(mensaje)
+    if not plataforma:
+        return None
+
+    titulo = obtener_titulo_contextual(ultimo_mensaje)
+    if not titulo:
+        if mensaje_es_solo_plataforma(mensaje):
+            return construir_respuesta_pedir_juego_plataforma(plataforma)
+        return None
+
+    candidatos_plataforma = [
+        producto for producto in productos
+        if producto_corresponde_a_plataforma(producto, categorias, plataforma)
+        and producto_coincide_con_titulo_base(producto, titulo)
+    ]
+    candidatos_plataforma.sort(key=lambda producto: puntuar_producto(titulo, producto), reverse=True)
+
+    if not candidatos_plataforma:
+        return {
+            'respuesta': (
+                f"No encontre una version de {titulo} para {plataforma.upper()} en la base de datos de Panda Store.\n\n"
+                "Si quieres, te dejo botones de contacto para confirmar disponibilidad con un admin."
+            ),
+            'acciones': construir_acciones_contacto(),
+            'opciones': [],
+        }
+
+    if len(candidatos_plataforma) == 1:
+        return construir_respuesta_producto_seleccionado(candidatos_plataforma[0], categorias)
+
+    return {
+        'respuesta': construir_respuesta_opciones(candidatos_plataforma, categorias),
+        'opciones': construir_opciones_chat(candidatos_plataforma, categorias),
+        'acciones': [],
+    }
+
+
 def resolver_seleccion_por_contexto(mensaje, historial, productos, categorias):
     ultimo = obtener_ultimo_mensaje_interactivo(historial)
     if not ultimo:
         return None
 
     mensaje_norm = normalizar_texto(mensaje)
+    respuesta_plataforma = resolver_cambio_plataforma_por_contexto(mensaje, ultimo, productos, categorias)
+    if respuesta_plataforma:
+        return respuesta_plataforma
+
     indice = extraer_indice_opcion(mensaje)
     opciones = ultimo.get('options') or []
     acciones = ultimo.get('actions') or []
@@ -829,14 +1243,33 @@ def resolver_seleccion_por_contexto(mensaje, historial, productos, categorias):
                     if meses_match and meses_match.group(1) in label_norm:
                         return construir_respuesta_acciones_filtradas([*(plan.get('actions') or []), *(opcion.get('actions') or [])])
 
+        mejor_opcion = None
+        mejor_score = 0
         for opcion in opciones:
-            title_norm = normalizar_texto(opcion.get('title', ''))
+            title = str(opcion.get('title', '')).strip()
+            title_norm = normalizar_texto(title)
+            if not title_norm:
+                continue
+
+            score = 0
+            if title_norm == mensaje_norm:
+                score += 100
             if title_norm and title_norm in mensaje_norm:
-                payload = ((opcion.get('action') or {}).get('producto') or {})
-                producto_id = payload.get('id')
-                producto = next((p for p in productos if p.get('id') == producto_id), None)
-                if producto:
-                    return construir_respuesta_producto_seleccionado(producto, categorias)
+                score += 50
+            if mensaje_norm and mensaje_norm in title_norm:
+                score += 25
+            score += puntuar_producto(mensaje, {'name': title})
+
+            if score > mejor_score:
+                mejor_score = score
+                mejor_opcion = opcion
+
+        if mejor_opcion and mejor_score >= 30:
+            payload = ((mejor_opcion.get('action') or {}).get('producto') or {})
+            producto_id = payload.get('id')
+            producto = next((p for p in productos if p.get('id') == producto_id), None)
+            if producto:
+                return construir_respuesta_producto_seleccionado(producto, categorias)
 
     if acciones:
         variantes = []
@@ -886,6 +1319,8 @@ def contexto_es_nintendo_switch(mensaje, historial):
 
 def detectar_faq_switch(mensaje):
     mensaje_norm = normalizar_texto(mensaje)
+    if 'primaria' in mensaje_norm or 'secundaria' in mensaje_norm:
+        return 'tipo_cuenta'
     for faq, patrones in FAQ_SWITCH_PATTERNS.items():
         if any(patron in mensaje_norm for patron in patrones):
             return faq
@@ -909,7 +1344,15 @@ def construir_respuesta_faq_switch(tipo_faq):
 
     if tipo_faq == 'tipo_cuenta':
         return {
-            'respuesta': 'Para Nintendo Switch solo vendemos primarias y juegas desde tu perfil personal.',
+            'respuesta': (
+                'Tipos de cuenta\n\n'
+                'Nintendo Switch:\n'
+                '- Solo vendemos primarias\n'
+                '- Juegas desde tu perfil personal\n\n'
+                'PS4 y PS5:\n'
+                '- Vendemos primaria y secundaria\n'
+                '- En secundaria juegas desde el usuario entregado'
+            ),
             'acciones': [],
             'opciones': [],
         }
@@ -935,21 +1378,26 @@ def construir_respuesta_faq_switch(tipo_faq):
     return None
 
 
+def tokenizar_intencion(texto):
+    return [
+        token for token in normalizar_texto(texto).split()
+        if token and token not in STOPWORDS_INTENCION
+    ]
+
+
 def coincide_keyword_aproximada(mensaje_norm, keywords):
-    tokens = mensaje_norm.split()
+    tokens = tokenizar_intencion(mensaje_norm)
     for keyword in keywords:
         keyword_norm = normalizar_texto(keyword)
         if not keyword_norm:
             continue
         if keyword_norm in mensaje_norm:
             return True
-        keyword_tokens = keyword_norm.split()
-        if keyword_tokens and all(token in tokens for token in keyword_tokens):
+        keyword_tokens = tokenizar_intencion(keyword_norm)
+        if keyword_tokens and frase_coincide_aproximada(keyword_tokens, tokens):
             return True
         for token in tokens:
-            if len(token) < 5 or len(keyword_norm) < 5:
-                continue
-            if SequenceMatcher(None, token, keyword_norm).ratio() >= 0.82:
+            if tokens_son_parecidos(token, keyword_norm):
                 return True
     return False
 
@@ -962,7 +1410,76 @@ def detectar_intencion_info(mensaje):
     return None
 
 
-def construir_respuesta_info(intencion):
+def mensaje_compra_menciona_producto(mensaje):
+    mensaje_norm = normalizar_texto(mensaje)
+    if not any(fragmento in mensaje_norm for fragmento in ['compr', 'conpr']):
+        return False
+
+    tokens_genericos = {
+        'como', 'es', 'la', 'el', 'los', 'las', 'un', 'una', 'de', 'del', 'para', 'que', 'cual',
+        'proceso', 'funciona', 'hacer', 'hago', 'hace', 'puedo', 'quiero', 'seria', 'realiza',
+        'explicas', 'explicame', 'compra', 'comprar', 'compro', 'compras', 'comprarlo', 'comprarla',
+        'conpra', 'conprar', 'conpro', 'conpras'
+    }
+    tokens = [token for token in tokenizar_intencion(mensaje) if token not in tokens_genericos]
+    tokens_texto = [token for token in tokens if not token.isdigit()]
+    tokens_numericos = [token for token in tokens if token.isdigit()]
+    return bool(tokens_texto or tokens_numericos)
+
+
+def construir_respuesta_catalogo_general(productos, categorias):
+    categorias_con_ejemplos = []
+    for categoria in categorias.values():
+        categoria_id = categoria.get('id') or ''
+        nombre = categoria.get('name', '').strip()
+        if not nombre:
+            continue
+        ejemplos = [p.get('name', '').strip() for p in productos if p.get('categoryId') == categoria_id and p.get('name')][:3]
+        if ejemplos:
+            categorias_con_ejemplos.append((nombre, ejemplos))
+
+    if not categorias_con_ejemplos:
+        return {
+            'respuesta': 'Vendemos juegos digitales, suscripciones y streaming. Si quieres, dime una consola o un juego y te ayudo a buscarlo.',
+            'acciones': [],
+        }
+
+    bloques = []
+    for nombre, ejemplos in categorias_con_ejemplos[:4]:
+        bloques.append(f"- {nombre}: {', '.join(ejemplos)}")
+
+    return {
+        'respuesta': (
+            "En Panda Store vendemos juegos digitales, suscripciones y streaming.\n\n"
+            "Categorias y ejemplos:\n"
+            f"{'\n'.join(bloques)}\n\n"
+            "Si quieres, dime el nombre del juego o la consola y te ayudo a encontrarlo."
+        ),
+        'acciones': [
+            {'type': 'send_message', 'label': 'Promociones', 'message': 'promociones'},
+            {'type': 'send_message', 'label': 'Medios de pago', 'message': 'medios de pago'}
+        ],
+    }
+
+
+def construir_respuesta_info(intencion, productos=None, categorias=None):
+    if intencion == 'catalogo':
+        return construir_respuesta_catalogo_general(productos or [], categorias or {})
+
+    if intencion == 'formato':
+        return {
+            'respuesta': (
+                "Formato de los productos\n\n"
+                "En Panda Store trabajamos con productos digitales.\n"
+                "No vendemos juegos fisicos ni hacemos envios fisicos.\n\n"
+                "Despues de la compra te enviamos los datos e instrucciones para usar tu producto."
+            ),
+            'acciones': [
+                {'type': 'send_message', 'label': 'Como es la entrega', 'message': 'como es la entrega'},
+                {'type': 'send_message', 'label': 'Como comprar', 'message': 'como compro'},
+            ],
+        }
+
     if intencion == 'promociones':
         return {
             'respuesta': (
@@ -994,6 +1511,23 @@ def construir_respuesta_info(intencion):
             'acciones': [],
         }
 
+    if intencion == 'compra':
+        return {
+            'respuesta': (
+                "Como comprar en Panda Store\n\n"
+                "1. Busca el juego o suscripcion que quieres del catalogo.\n"
+                "2. Agregalo al carrito con el boton + o entra al detalle del producto.\n"
+                "3. Ve al carrito y revisa tu pedido.\n"
+                "4. Completa el pago con el metodo que prefieras.\n"
+                "5. Despues te enviamos los datos e instrucciones para usar tu compra.\n\n"
+                "Si quieres, puedo ayudarte a buscar un juego o explicarte los medios de pago."
+            ),
+            'acciones': [
+                {'type': 'send_message', 'label': 'Buscar un juego', 'message': 'que juegos venden'},
+                {'type': 'send_message', 'label': 'Ver medios de pago', 'message': 'medios de pago'}
+            ],
+        }
+
     if intencion == 'instalacion':
         return {
             'respuesta': (
@@ -1017,6 +1551,20 @@ def construir_respuesta_info(intencion):
             ],
         }
 
+    if intencion == 'entrega':
+        return {
+            'respuesta': (
+                "Entrega Panda Store\n\n"
+                "La entrega es digital.\n"
+                "Te enviamos los datos e instrucciones por nuestros canales de contacto.\n\n"
+                "Si quieres, tambien puedo ayudarte con instalacion o soporte."
+            ),
+            'acciones': [
+                {'type': 'open_route', 'label': 'Ver instalacion', 'route': '/instalacion-nintendo'},
+                {'type': 'open_url', 'label': 'Hablar con soporte', 'url': LINKS_TIENDAS['whatsapp']}
+            ],
+        }
+
     if intencion == 'contacto':
         return {
             'respuesta': (
@@ -1034,9 +1582,23 @@ def construir_acciones_compra(producto, categorias):
     acciones = []
     base = dict(producto)
 
+    def resumir_precio_boton(payload):
+        valores = []
+        if payload.get('priceCLP') not in [None, '']:
+            valores.append(formatear_moneda(payload.get('priceCLP'), 'CLP'))
+        if payload.get('priceUSD') not in [None, '']:
+            valores.append(formatear_moneda(payload.get('priceUSD'), 'USD'))
+        return ' / '.join(valores)
+
+    def construir_etiqueta_con_precio(base_label, payload):
+        precio_resumido = resumir_precio_boton(payload)
+        if not precio_resumido:
+            return base_label
+        return f"{base_label} - {precio_resumido}"
+
     def agregar_acciones(payload, buy_label, cart_label):
-        acciones.append({'type': 'buy', 'label': buy_label, 'producto': payload})
-        acciones.append({'type': 'add_to_cart', 'label': cart_label, 'producto': payload})
+        acciones.append({'type': 'buy', 'label': construir_etiqueta_con_precio(buy_label, payload), 'producto': payload})
+        acciones.append({'type': 'add_to_cart', 'label': construir_etiqueta_con_precio(cart_label, payload), 'producto': payload})
 
     if categoria in ['streaming', 'suscripciones'] and isinstance(producto.get('preciosPorMes'), list):
         for precio in producto.get('preciosPorMes', []):
@@ -1071,7 +1633,7 @@ def construir_acciones_compra(producto, categorias):
 
     if acciones:
         acciones.append({'type': 'go_to_cart', 'label': 'Ir al carrito'})
-        return acciones[:4]
+        return acciones[:5]
 
     if producto.get('priceCLP') or producto.get('priceUSD'):
         agregar_acciones(base, 'Comprar ahora', 'Agregar al carrito')
@@ -1276,7 +1838,7 @@ def chat():
         return jsonify(respuesta_contextual)
 
     tipo_faq_switch = detectar_faq_switch(mensaje)
-    if tipo_faq_switch and contexto_es_nintendo_switch(mensaje, historial):
+    if tipo_faq_switch and (tipo_faq_switch == 'tipo_cuenta' or contexto_es_nintendo_switch(mensaje, historial)):
         respuesta_switch = construir_respuesta_faq_switch(tipo_faq_switch)
         if respuesta_switch:
             log_chat_event('switch_faq', client_id=client_id, faq=tipo_faq_switch)
@@ -1290,8 +1852,10 @@ def chat():
         return jsonify({'respuesta': RESPUESTA_FUERA_DE_TEMA, 'acciones': [], 'opciones': []})
 
     intencion_info = detectar_intencion_info(mensaje)
+    if intencion_info == 'compra' and mensaje_compra_menciona_producto(mensaje):
+        intencion_info = None
     if intencion_info:
-        respuesta_info = construir_respuesta_info(intencion_info)
+        respuesta_info = construir_respuesta_info(intencion_info, productos=productos, categorias=categorias)
         if respuesta_info:
             log_chat_event('info_intent', client_id=client_id, intent=intencion_info)
             if 'opciones' not in respuesta_info:
@@ -1306,6 +1870,7 @@ def chat():
         return jsonify(respuesta_refinada)
 
     productos_relevantes = buscar_productos_relevantes(mensaje, productos)
+    productos_relevantes = expandir_variantes_relacionadas(mensaje, productos_relevantes, productos, categorias)
     categorias_relevantes = buscar_categorias_relevantes(mensaje, categorias)
     consulta_producto = consulta_parece_producto(mensaje, productos_relevantes, categorias_relevantes)
     consulta_ambigua = consulta_producto and es_consulta_ambigua(mensaje, productos_relevantes)

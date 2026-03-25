@@ -13,7 +13,7 @@ const CHAT_FLAG_IMAGES = {
 const INITIAL_MESSAGES = [
   {
     from: "bot",
-    text: "¡Hola! Soy el bot de Panda Store. Puedo ayudarte con juegos, suscripciones, streaming, promociones e instalación. ¿Qué necesitas?",
+    text: "¡Hola! Soy el bot de Panda Store. Estoy en fase beta, asi que todavia puedo tener fallas o respuestas incompletas. Puedo ayudarte con juegos, suscripciones, streaming, promociones e instalacion. ¿Que necesitas?",
     quickReplies: [
       { type: "send_message", label: "Ver juegos", message: "que juegos venden" },
       { type: "send_message", label: "Promociones", message: "promociones" },
@@ -251,12 +251,14 @@ export default function GlobalChatbot({ user }) {
     }
     if (action.type === "open_route") {
       if (action.route) {
+        setShowChatbot(false);
         navigate(action.route);
       }
       return;
     }
     if (action.type === "open_url") {
       if (action.url) {
+        setShowChatbot(false);
         window.open(action.url, "_blank", "noopener,noreferrer");
       }
       return;
@@ -264,16 +266,19 @@ export default function GlobalChatbot({ user }) {
     if (action.type === "buy") {
       await sendTelemetry("buy_now", { productId: action.producto?.id || null, name: action.producto?.name || null });
       if (!user) {
-        navigate("/iniciar-sesion");
+        setShowChatbot(false);
+        navigate("/registro");
         return;
       }
+      setShowChatbot(false);
       navigate("/comprar-ahora", { state: { producto: action.producto } });
       return;
     }
     if (action.type === "add_to_cart") {
       await sendTelemetry("add_to_cart", { productId: action.producto?.id || null, name: action.producto?.name || null });
       if (!user) {
-        navigate("/iniciar-sesion");
+        setShowChatbot(false);
+        navigate("/registro");
         return;
       }
       const producto = action.producto;
@@ -294,9 +299,11 @@ export default function GlobalChatbot({ user }) {
     if (action.type === "go_to_cart") {
       await sendTelemetry("go_to_cart");
       if (!user) {
-        navigate("/iniciar-sesion");
+        setShowChatbot(false);
+        navigate("/registro");
         return;
       }
+      setShowChatbot(false);
       navigate("/checkoutcarrito");
     }
   };
@@ -381,7 +388,6 @@ export default function GlobalChatbot({ user }) {
               placeholder="Escribe tu mensaje..."
               className="panda-chatbot__input"
               disabled={chatLoading}
-              autoFocus
             />
             <button
               type="submit"
