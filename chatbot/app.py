@@ -113,6 +113,30 @@ PROMPT_BASE = (
 "- Si no hay coincidencias claras de productos, no fuerces una recomendacion de producto equivocada.\n"
 "- Puedes recomendar promociones o categorias al final solo si tiene sentido.\n\n"
 
+"CONTINUIDAD Y CAMBIOS DE TEMA:\n"
+"- Siempre lee el historial completo del chat antes de responder.\n"
+"- Si el usuario cambia de tema (por ejemplo pasa de preguntar por un juego a preguntar por metodos de pago), aceptalo con naturalidad y responde el nuevo tema directamente.\n"
+"- Si el usuario responde algo corto como 'si', 'no', 'ok', 'dale', un pais, un numero o una aclaracion, interpretalo segun la pregunta anterior del chat.\n"
+"- Si el usuario retoma un tema anterior de la conversacion, reconocelo y continua desde donde quedo.\n"
+"- No repitas informacion que el usuario ya vio en el chat.\n\n"
+
+"CLARIFICACION Y CONFIRMACION:\n"
+"- Si no entiendes lo que el usuario quiere decir, PREGUNTALE para clarificar. No adivines ni inventes.\n"
+"- Si el mensaje del usuario es muy vago o ambiguo, pidele mas detalles amablemente.\n"
+"- Antes de dar informacion importante o hacer una accion, confirma que entendiste correctamente si hay duda.\n"
+"- Ejemplos de como pedir clarificacion:\n"
+"  'No estoy seguro de entender. ¿Me puedes dar mas detalles?'\n"
+"  'Quieres decir [X] o [Y]?'\n"
+"  '¿Te refieres a [producto/tema]?'\n"
+"- Si el usuario dice algo que no tiene sentido en el contexto, no lo ignores: pregunta que quiso decir.\n\n"
+
+"RESPUESTAS NATURALES:\n"
+"- Se conversacional y amigable, como un vendedor real de tienda.\n"
+"- Si el usuario saluda o se despide, responde de forma natural.\n"
+"- Si el usuario agradece, responde brevemente y ofrece mas ayuda.\n"
+"- Usa emojis con moderacion (1-2 por respuesta maximo).\n"
+"- Si el usuario hace un comentario casual ('que cool', 'buena onda', 'jaja'), responde de forma breve y natural antes de continuar.\n\n"
+
 "INSTALACIÓN DE JUEGOS NINTENDO SWITCH:\n"
 "Si el cliente pregunta sobre instalación, guía o cómo funciona:\n"
 "Responde:\n"
@@ -457,7 +481,12 @@ STOPWORDS = {
     'tiene', 'tienen', 'tienes', 'hay', 'me', 'puedes', 'puedo',
     'como', 'instalacion', 'instalar', 'soporte', 'ayuda', 'precio', 'precios',
     'valor', 'vale', 'cuesta', 'categoria', 'categorias', 'juegos', 'juego', 'para',
-    'con', 'en', 'por', 'favor', 'hablar', 'cliente', 'promocion', 'promociones'
+    'con', 'en', 'por', 'favor', 'hablar', 'cliente', 'promocion', 'promociones',
+    'que', 'cual', 'cuales', 'disponible', 'disponibles', 'este', 'esta', 'estos', 'estas',
+    'ese', 'esa', 'esos', 'esas', 'estan', 'son', 'ser', 'tengo',
+    'te', 'se', 'le', 'lo', 'nos', 'les', 'al', 'a',
+    'solo', 'todos', 'todas', 'mas', 'muy', 'algun', 'alguno', 'alguna',
+    'si', 'no', 'ya', 'tambien', 'donde', 'cuando', 'sus', 'tu', 'tus', 'mi', 'mis', 'su', 'es',
 }
 
 CONSULTA_EQUIVALENCIAS = {
@@ -738,7 +767,16 @@ def producto_es_coincidencia_confiable(consulta, producto):
     similitud_frase = SequenceMatcher(None, consulta_norm, nombre_norm).ratio()
 
     if len(tokens_consulta_texto) == 1:
-        return coincidencias_texto == 1
+        token = tokens_consulta_texto[0]
+        token_base = token[:-1] if token.endswith('s') and len(token) > 3 else token
+        if token in nombre_norm or token_base in nombre_norm:
+            return True
+        if coincidencias_texto == 1:
+            return any(
+                tokens_son_parecidos(token, tn) and (token[0] == tn[0])
+                for tn in tokens_nombre
+            )
+        return False
 
     if coincidencias_texto == len(tokens_consulta_texto):
         return True
@@ -1252,8 +1290,14 @@ def resolver_seleccion_por_contexto(mensaje, historial, productos, categorias):
     opciones = ultimo.get('options') or []
     acciones = ultimo.get('actions') or []
 
+    FRASES_CONFIRMACION = {
+        'solo ese', 'solo esa', 'ese', 'esa', 'si ese', 'si esa',
+        'ese nomas', 'esa nomas', 'ese mero', 'esa mera',
+        'esa misma', 'ese mismo', 'si', 'si quiero', 'dale', 'va',
+    }
+
     if opciones:
-        if len(opciones) == 1 and ('esa misma' in mensaje_norm or 'ese mismo' in mensaje_norm):
+        if len(opciones) == 1 and (mensaje_norm in FRASES_CONFIRMACION or 'solo ese' in mensaje_norm or 'solo esa' in mensaje_norm or 'esa misma' in mensaje_norm or 'ese mismo' in mensaje_norm):
             indice = 0
 
         if indice is not None and 0 <= indice < len(opciones):
@@ -1316,7 +1360,7 @@ def resolver_seleccion_por_contexto(mensaje, historial, productos, categorias):
             if filtradas:
                 return construir_respuesta_acciones_filtradas(filtradas)
 
-        if 'esa misma' in mensaje_norm or 'ese mismo' in mensaje_norm:
+        if mensaje_norm in FRASES_CONFIRMACION or 'esa misma' in mensaje_norm or 'ese mismo' in mensaje_norm or 'solo ese' in mensaje_norm or 'solo esa' in mensaje_norm:
             return construir_respuesta_acciones_filtradas(acciones)
 
     return None
@@ -1715,6 +1759,52 @@ def construir_acciones_compra(producto, categorias):
     return acciones
 
 
+FRASES_CONVERSACIONALES = {
+    'gracias', 'muchas gracias', 'thanks', 'ok', 'okay', 'listo', 'entiendo',
+    'ya', 'ya entendi', 'perfecto', 'genial', 'buena', 'buena onda', 'chevere',
+    'que cool', 'cool', 'excelente', 'super', 'de acuerdo', 'claro',
+    'no entiendo', 'no entendi', 'como', 'que', 'que quieres decir', 'no te entendi',
+    'a que te refieres', 'que significa eso', 'explicame', 'no me queda claro',
+    'hola', 'buenas', 'buenas tardes', 'buenas noches', 'buenos dias', 'hey',
+    'chao', 'adios', 'bye', 'hasta luego', 'nos vemos',
+    'jaja', 'jajaja', 'xd', 'lol', 'jeje',
+}
+
+FRASES_RESPUESTA_CORTA = {
+    'si', 'no', 'sip', 'sep', 'nop', 'nel', 'dale', 'va', 'simon', 'nel',
+    'bueno', 'malo', 'puede ser', 'tal vez', 'quizas', 'creo que si', 'creo que no',
+    'ambos', 'los dos', 'cualquiera', 'el primero', 'el segundo', 'el tercero',
+    'la primera', 'la segunda', 'la tercera',
+}
+
+
+def es_mensaje_conversacional(mensaje, historial):
+    """Detect messages that are conversational in nature and should go to OpenAI
+    instead of the product search pipeline."""
+    mensaje_norm = normalizar_texto(mensaje)
+
+    if mensaje_norm in FRASES_CONVERSACIONALES:
+        return True
+
+    if mensaje_norm in FRASES_RESPUESTA_CORTA and historial:
+        return True
+
+    if len(mensaje_norm.split()) <= 2 and not any(
+        palabra in mensaje_norm.split()
+        for palabra in PALABRAS_INTENCION_PRODUCTO
+    ):
+        tokens = tokenizar_consulta(mensaje)
+        if not tokens:
+            return True
+
+    if '?' in str(mensaje) and len(mensaje_norm.split()) <= 4:
+        tokens = tokenizar_consulta(mensaje)
+        if not tokens or all(len(t) < 3 for t in tokens):
+            return True
+
+    return False
+
+
 def es_mensaje_buscar_otro(mensaje, historial):
     mensaje_norm = normalizar_texto(mensaje)
     frases = {
@@ -1806,15 +1896,31 @@ def construir_historial_openai(historial):
             continue
         texto = str(item.get('text', '') or item.get('content', '') or '').strip()
         origen = str(item.get('from', '') or item.get('role', '') or '').strip().lower()
-        if not texto:
-            continue
-        if origen in ['user', 'usuario']:
-            role = 'user'
-        elif origen in ['bot', 'assistant', 'asistente', 'system']:
-            role = 'assistant'
-        else:
-            continue
-        mensajes.append({'role': role, 'content': texto})
+
+        if origen in ['bot', 'assistant', 'asistente', 'system']:
+            partes = []
+            if texto:
+                partes.append(texto)
+            opciones = item.get('options') or []
+            if opciones:
+                nombres_opciones = [str(o.get('title', '')).strip() for o in opciones if isinstance(o, dict) and o.get('title')]
+                if nombres_opciones:
+                    partes.append('[Opciones mostradas: ' + ', '.join(nombres_opciones) + ']')
+            acciones = item.get('actions') or []
+            if acciones:
+                nombres_acciones = [str(a.get('label', '')).strip() for a in acciones if isinstance(a, dict) and a.get('label')]
+                productos_accion = [str((a.get('producto') or {}).get('name', '')).strip() for a in acciones if isinstance(a, dict) and (a.get('producto') or {}).get('name')]
+                if productos_accion:
+                    partes.append('[Producto mostrado: ' + ', '.join(set(productos_accion)) + ']')
+                elif nombres_acciones:
+                    partes.append('[Botones: ' + ', '.join(nombres_acciones) + ']')
+            contenido = '\n'.join(partes)
+            if contenido:
+                mensajes.append({'role': 'assistant', 'content': contenido})
+        elif origen in ['user', 'usuario']:
+            if texto:
+                mensajes.append({'role': 'user', 'content': texto})
+
     return mensajes
 
 
@@ -1822,7 +1928,7 @@ def responder_con_openai(mensaje, contexto_productos, contexto_categorias, histo
     mensajes = [
         {
             'role': 'system',
-            'content': PROMPT_BASE + "\nCONTEXTO DE PRODUCTOS:\n" + contexto_productos + "\n\nCONTEXTO DE CATEGORIAS:\n" + contexto_categorias + "\n\nINSTRUCCIONES FINALES:\n- Manten continuidad conversacional con el historial reciente.\n- Si el usuario responde algo corto como un pais, un numero, un si/no o una aclaracion, interpretalo segun la pregunta anterior del chat.\n- Si el usuario pregunta por un juego o precio, responde solo con: titulo, consola/categoria y precio.\n- Si el usuario pregunta que venden, menciona juegos digitales, suscripciones y streaming.\n- No incluyas descripcion del juego salvo que el usuario la pida explicitamente.\n- Si el usuario pide precio, menciona el precio exacto del contexto.\n- Si el usuario pide soporte o instalacion, responde esa ayuda directamente y sin URLs visibles.\n- Si no hay coincidencia clara de producto, dilo con honestidad y luego ayuda igual.\n- Si la consulta es general como 'que juegos venden', responde con categorias y algunos ejemplos del contexto.\n- Usa 🇨🇱 para precios en pesos chilenos y 🇺🇸 para precios en dolares.\n- Ordena la respuesta con bloques cortos y faciles de leer.\n- No cambies de tema si el usuario esta respondiendo a una pregunta previa.\n- No respondas con bloques tecnicos ni JSON.\n- No escribas URLs completas."
+            'content': PROMPT_BASE + "\nCONTEXTO DE PRODUCTOS:\n" + contexto_productos + "\n\nCONTEXTO DE CATEGORIAS:\n" + contexto_categorias + "\n\nINSTRUCCIONES FINALES:\n- Lee todo el historial antes de responder. Pon atencion al contexto reciente para entender de que habla el usuario.\n- Si el usuario responde algo corto como un pais, un numero, un si/no o una aclaracion, interpretalo segun la pregunta anterior del chat.\n- Si el usuario cambia de tema, acepta el cambio con naturalidad y responde sobre el nuevo tema.\n- Si no entiendes la pregunta del usuario, pidele que te explique mejor. No inventes una respuesta.\n- Si el mensaje es ambiguo o podria significar varias cosas, pregunta al usuario cual opcion quiso decir.\n- Si el usuario pregunta por un juego o precio, responde solo con: titulo, consola/categoria y precio.\n- Si el usuario pregunta que venden, menciona juegos digitales, suscripciones y streaming.\n- No incluyas descripcion del juego salvo que el usuario la pida explicitamente.\n- Si el usuario pide precio, menciona el precio exacto del contexto.\n- Si el usuario pide soporte o instalacion, responde esa ayuda directamente y sin URLs visibles.\n- Si no hay coincidencia clara de producto, dilo con honestidad y pregunta si se referia a otra cosa.\n- Si la consulta es general como 'que juegos venden', responde con categorias y algunos ejemplos del contexto.\n- Usa 🇨🇱 para precios en pesos chilenos y 🇺🇸 para precios en dolares.\n- Ordena la respuesta con bloques cortos y faciles de leer.\n- No respondas con bloques tecnicos ni JSON.\n- No escribas URLs completas.\n- [Opciones mostradas: ...] y [Producto mostrado: ...] en el historial indican lo que el bot le presento al usuario. Usalos para entender el contexto."
         },
     ]
 
@@ -1833,8 +1939,8 @@ def responder_con_openai(mensaje, contexto_productos, contexto_categorias, histo
         respuesta = openai_client.chat.completions.create(
             model=OPENAI_MODEL,
             messages=mensajes,
-            temperature=0.5,
-            max_tokens=350,
+            temperature=0.6,
+            max_tokens=450,
         )
         contenido = (((respuesta.choices or [None])[0]).message.content if getattr((respuesta.choices or [None])[0], 'message', None) else '') or ''
         contenido = str(contenido).strip()
@@ -1848,8 +1954,8 @@ def responder_con_openai(mensaje, contexto_productos, contexto_categorias, histo
     respuesta = openai.ChatCompletion.create(
         model=OPENAI_MODEL,
         messages=mensajes,
-        temperature=0.5,
-        max_tokens=350,
+        temperature=0.6,
+        max_tokens=450,
         request_timeout=OPENAI_TIMEOUT_SECONDS,
     )
     contenido = str(((respuesta.get('choices') or [{}])[0].get('message') or {}).get('content') or '').strip()
@@ -1949,6 +2055,17 @@ def chat():
             respuesta_refinada['opciones'] = []
         return jsonify(respuesta_refinada)
 
+    if es_mensaje_conversacional(mensaje, historial):
+        log_chat_event('conversational', client_id=client_id, message=mensaje)
+        contexto_productos = construir_contexto_productos([], categorias)
+        contexto_categorias = construir_contexto_categorias([], productos, categorias)
+        try:
+            respuesta = responder_con_openai(mensaje, contexto_productos, contexto_categorias, historial=historial)
+        except Exception:
+            logger.exception('OpenAI error on conversational message')
+            respuesta = 'No estoy seguro de entender. \u00bfMe puedes dar mas detalles sobre lo que buscas?'
+        return jsonify({'respuesta': respuesta, 'acciones': [], 'opciones': []})
+
     productos_relevantes = buscar_productos_relevantes(mensaje, productos)
     productos_relevantes = expandir_variantes_relacionadas(mensaje, productos_relevantes, productos, categorias)
     categorias_relevantes = buscar_categorias_relevantes(mensaje, categorias)
@@ -1965,6 +2082,15 @@ def chat():
 
     if consulta_producto and not productos_relevantes and not categorias_relevantes:
         log_chat_event('catalog_miss', client_id=client_id, message=mensaje)
+        contexto_productos = construir_contexto_productos([], categorias)
+        contexto_categorias = construir_contexto_categorias([], productos, categorias)
+        try:
+            respuesta_ai = responder_con_openai(mensaje, contexto_productos, contexto_categorias, historial=historial)
+        except Exception:
+            logger.exception('OpenAI error on catalog miss')
+            respuesta_ai = None
+        if respuesta_ai:
+            return jsonify({'respuesta': respuesta_ai, 'acciones': construir_acciones_contacto(), 'opciones': []})
         return jsonify({'respuesta': CONTACTO_REDIRECT, 'acciones': construir_acciones_contacto(), 'opciones': []})
 
     contexto_productos = construir_contexto_productos(productos_relevantes, categorias)
