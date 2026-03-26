@@ -231,6 +231,64 @@ INTENCION_CATEGORIA = {
             "Aca te dejo las opciones disponibles."
         ),
     },
+    'switch': {
+        'keywords': {
+            'juegos de switch', 'juegos switch', 'juegos nintendo', 'juegos de nintendo',
+            'juegos nintendo switch', 'juegos de nintendo switch', 'catalogo switch',
+            'catalogo nintendo', 'que juegos de switch', 'que tienen de switch',
+            'que tienen de nintendo', 'que juegos de nintendo',
+            'que hay de switch', 'que hay de nintendo', 'que hay para switch',
+            'que hay para nintendo', 'juegos para switch', 'juegos para nintendo',
+            'switch juegos', 'nintendo juegos',
+        },
+        'filtro_categoria': 'switch',
+        'es_consola': True,
+        'pregunta': '\u00bfQue juego buscas para Nintendo Switch?',
+    },
+    'switch2': {
+        'keywords': {
+            'juegos de switch 2', 'juegos switch 2', 'juegos nintendo switch 2',
+            'catalogo switch 2', 'que tienen de switch 2', 'switch 2',
+            'juegos para switch 2',
+        },
+        'filtro_categoria': 'switch',
+        'es_consola': True,
+        'pregunta': 'Los juegos de Nintendo Switch son compatibles con Switch y Switch 2.\n\n\u00bfQue juego buscas?',
+    },
+    'ps5': {
+        'keywords': {
+            'juegos de ps5', 'juegos ps5', 'juegos playstation 5', 'juegos de playstation 5',
+            'catalogo ps5', 'catalogo playstation 5', 'que juegos de ps5',
+            'que tienen de ps5', 'que hay de ps5', 'que hay para ps5',
+            'juegos para ps5', 'juegos para playstation 5',
+            'ps5 juegos',
+        },
+        'filtro_categoria': 'ps5',
+        'es_consola': True,
+        'pregunta': '\u00bfQue juego buscas para PS5?',
+    },
+    'ps4': {
+        'keywords': {
+            'juegos de ps4', 'juegos ps4', 'juegos playstation 4', 'juegos de playstation 4',
+            'catalogo ps4', 'catalogo playstation 4', 'que juegos de ps4',
+            'que tienen de ps4', 'que hay de ps4', 'que hay para ps4',
+            'juegos para ps4', 'juegos para playstation 4',
+            'ps4 juegos',
+        },
+        'filtro_categoria': 'ps4',
+        'es_consola': True,
+        'pregunta': '\u00bfQue juego buscas para PS4?',
+    },
+    'suscripciones': {
+        'keywords': {
+            'suscripciones', 'suscripcion', 'membresías', 'membresia',
+            'playstation plus', 'ps plus', 'psplus',
+            'que suscripciones tienen', 'catalogo suscripciones',
+        },
+        'filtro_categoria': 'suscripciones',
+        'es_consola': False,
+        'pregunta': '\u00bfQue suscripcion te interesa?',
+    },
 }
 
 PALABRAS_REFINAR_BUSQUEDA = {
@@ -240,7 +298,7 @@ PALABRAS_REFINAR_BUSQUEDA = {
 }
 
 INFO_KEYWORDS = {
-    'catalogo': {'que juegos venden', 'que venden', 'que juegos tienen', 'que tienen', 'catalogo', 'juegos disponibles', 'que juegos hay'},
+    'catalogo': {'que juegos venden', 'que venden', 'catalogo', 'juegos disponibles', 'que juegos hay'},
     'promociones': {'promocion', 'promociones', 'promo', 'promos', 'ofertas', 'oferta', 'descuento', 'descuentos'},
     'instalacion': {'instalacion', 'instalar', 'instalo', 'guia', 'tutorial', 'como instalar', 'descargar', 'instalkacion'},
     'pagos': {'pago', 'pagos', 'medio de pago', 'medios de pago', 'como pagar', 'tarjeta', 'transferencia', 'paypal', 'crypto'},
@@ -1671,6 +1729,7 @@ def construir_respuesta_categoria(intencion, productos, categorias):
     productos_filtrados = []
     filtro_nombres = config.get('filtro_nombres')
     filtro_categoria = config.get('filtro_categoria')
+    categoria_id_encontrada = None
 
     if filtro_nombres:
         for producto in productos:
@@ -1679,16 +1738,51 @@ def construir_respuesta_categoria(intencion, productos, categorias):
                 productos_filtrados.append(producto)
     elif filtro_categoria:
         for producto in productos:
+            cat_id = producto.get('categoryId', '')
             cat_nombre = normalizar_texto(obtener_categoria_nombre(producto, categorias))
             if filtro_categoria in cat_nombre:
                 productos_filtrados.append(producto)
+                if not categoria_id_encontrada:
+                    categoria_id_encontrada = cat_id
 
     if not productos_filtrados:
         return None
 
+    es_consola = config.get('es_consola', False)
+    pregunta = config.get('pregunta')
+
+    if es_consola or pregunta:
+        muestra = productos_filtrados[:6]
+        nombres_muestra = [p.get('name', 'Sin nombre') for p in muestra]
+        total = len(productos_filtrados)
+
+        texto = pregunta or ''
+        texto += f"\n\nTenemos {total} productos en esta categoria."
+        texto += "\nAlgunos ejemplos:\n"
+        for i, nombre in enumerate(nombres_muestra, 1):
+            texto += f"{i}. {nombre}\n"
+        if total > len(muestra):
+            texto += f"\n...y {total - len(muestra)} mas."
+        texto += "\n\nEscribeme el nombre del que te interesa o visita el catalogo completo."
+
+        acciones = []
+        if categoria_id_encontrada:
+            acciones.append({
+                'type': 'open_route',
+                'label': 'Ver catalogo completo',
+                'route': f'/categoria/{categoria_id_encontrada}',
+            })
+        acciones.extend(construir_acciones_contacto())
+
+        return {
+            'respuesta': texto,
+            'opciones': construir_opciones_chat(muestra, categorias),
+            'acciones': acciones,
+        }
+
     opciones = construir_opciones_chat(productos_filtrados[:8], categorias)
     return {
-        'respuesta': config['mensaje'],
+        'respuesta': config.get('mensaje', ''),
         'opciones': opciones,
         'acciones': [],
     }
