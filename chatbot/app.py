@@ -175,6 +175,40 @@ RESPUESTA_BUSCAR_OTRO = (
     "Si quieres otra opcion, puedo ayudarte a buscar alternativas o dejarte botones de contacto para que te asesoren."
 )
 
+INTENCION_CATEGORIA = {
+    'streaming': {
+        'keywords': {
+            'pelicula', 'peliculas', 'serie', 'series', 'ver peliculas', 'ver series',
+            'plataformas de streaming', 'plataformas streaming', 'donde ver peliculas',
+            'donde ver series', 'quiero ver peliculas', 'quiero ver series',
+            'para ver peliculas', 'para ver series', 'ver tele', 'television',
+            'ver contenido', 'plataforma para ver', 'cuentas streaming',
+            'cuentas de streaming', 'apps de streaming', 'apps streaming',
+        },
+        'filtro_categoria': 'streaming',
+        'mensaje': (
+            "Streaming\n\n"
+            "En Panda Store vendemos cuentas de plataformas de streaming para ver peliculas, series y mas.\n"
+            "Aca te dejo las opciones disponibles."
+        ),
+    },
+    'adulto': {
+        'keywords': {
+            'adulto', 'adultos', 'pagina adulto', 'paginas adulto', 'paginas para adultos',
+            'contenido adulto', 'xxx', 'porno', 'pornografia',
+            'para adultos', 'pagina para adultos', 'contenido para adultos',
+            'paginas xxx', 'paginas porno', 'contenido xxx', 'contenido 18',
+            'paginas de adultos', 'pagina de adultos',
+        },
+        'filtro_nombres': ['xvideo', 'pornhub'],
+        'mensaje': (
+            "Contenido para adultos (+18)\n\n"
+            "Si, tenemos cuentas de plataformas para adultos.\n"
+            "Aca te dejo las opciones disponibles."
+        ),
+    },
+}
+
 PALABRAS_REFINAR_BUSQUEDA = {
     'otro', 'otra', 'busco', 'buscar', 'quiero', 'alguno', 'alguna', 'mas',
     'similar', 'parecido', 'parecida', 'opcion', 'opciones', 'de', 'del', 'el',
@@ -1577,6 +1611,45 @@ def construir_respuesta_info(intencion, productos=None, categorias=None):
     return None
 
 
+def detectar_intencion_categoria(mensaje):
+    mensaje_norm = normalizar_texto(mensaje)
+    for nombre, config in INTENCION_CATEGORIA.items():
+        if coincide_keyword_aproximada(mensaje_norm, config['keywords']):
+            return nombre
+    return None
+
+
+def construir_respuesta_categoria(intencion, productos, categorias):
+    config = INTENCION_CATEGORIA.get(intencion)
+    if not config:
+        return None
+
+    productos_filtrados = []
+    filtro_nombres = config.get('filtro_nombres')
+    filtro_categoria = config.get('filtro_categoria')
+
+    if filtro_nombres:
+        for producto in productos:
+            nombre_norm = normalizar_texto(producto.get('name', ''))
+            if any(kw in nombre_norm for kw in filtro_nombres):
+                productos_filtrados.append(producto)
+    elif filtro_categoria:
+        for producto in productos:
+            cat_nombre = normalizar_texto(obtener_categoria_nombre(producto, categorias))
+            if filtro_categoria in cat_nombre:
+                productos_filtrados.append(producto)
+
+    if not productos_filtrados:
+        return None
+
+    opciones = construir_opciones_chat(productos_filtrados[:8], categorias)
+    return {
+        'respuesta': config['mensaje'],
+        'opciones': opciones,
+        'acciones': [],
+    }
+
+
 def construir_acciones_compra(producto, categorias):
     categoria = obtener_categoria_nombre(producto, categorias).lower()
     acciones = []
@@ -1861,6 +1934,13 @@ def chat():
             if 'opciones' not in respuesta_info:
                 respuesta_info['opciones'] = []
             return jsonify(respuesta_info)
+
+    intencion_cat = detectar_intencion_categoria(mensaje)
+    if intencion_cat:
+        respuesta_cat = construir_respuesta_categoria(intencion_cat, productos, categorias)
+        if respuesta_cat:
+            log_chat_event('category_intent', client_id=client_id, intent=intencion_cat)
+            return jsonify(respuesta_cat)
 
     respuesta_refinada = construir_respuesta_refinar_busqueda(mensaje, historial, productos, categorias)
     if respuesta_refinada:

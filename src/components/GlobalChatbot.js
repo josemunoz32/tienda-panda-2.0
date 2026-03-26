@@ -26,6 +26,27 @@ const INITIAL_MESSAGES = [
 
 const CHATBOT_API_BASE_URL = (process.env.REACT_APP_CHATBOT_API_URL || "http://localhost:5000").replace(/\/$/, "");
 
+function getChatbotApiUrl() {
+  try {
+    return new URL(CHATBOT_API_BASE_URL, window.location.origin);
+  } catch {
+    return null;
+  }
+}
+
+function chatbotApiRequiresLocalDeviceAccess() {
+  if (typeof window === "undefined") return false;
+  const apiUrl = getChatbotApiUrl();
+  if (!apiUrl) return false;
+  const frontendHost = window.location.hostname;
+  const apiHost = apiUrl.hostname;
+  const frontendIsLocal = ["localhost", "127.0.0.1"].includes(frontendHost);
+  const apiIsLocal = ["localhost", "127.0.0.1"].includes(apiHost);
+  return !frontendIsLocal && apiIsLocal;
+}
+
+const CHATBOT_CONFIGURATION_ERROR = "El chatbot no esta configurado correctamente en produccion. Intenta nuevamente mas tarde.";
+
 function ChatbotIcon() {
   return <img src={chatbotAvatar} alt="Panda Store bot" className="panda-chatbot__fab-icon" />;
 }
@@ -175,6 +196,17 @@ export default function GlobalChatbot({ user }) {
 
   useEffect(() => {
     try {
+      const navigationEntry = typeof window !== "undefined" && window.performance?.getEntriesByType
+        ? window.performance.getEntriesByType("navigation")[0]
+        : null;
+      const isReload = navigationEntry?.type === "reload";
+
+      if (isReload) {
+        localStorage.removeItem(storageKey);
+        setChatMessages(INITIAL_MESSAGES);
+        return;
+      }
+
       const raw = localStorage.getItem(storageKey);
       if (!raw) {
         setChatMessages(INITIAL_MESSAGES);
@@ -200,12 +232,30 @@ export default function GlobalChatbot({ user }) {
   }, [chatMessages, storageKey]);
 
   useEffect(() => {
+    const clearStoredChat = () => {
+      try {
+        localStorage.removeItem(storageKey);
+      } catch {
+        // ignore localStorage removal errors
+      }
+    };
+
+    window.addEventListener("beforeunload", clearStoredChat);
+    return () => {
+      window.removeEventListener("beforeunload", clearStoredChat);
+    };
+  }, [storageKey]);
+
+  useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [chatMessages, showChatbot]);
+  }, [chatMessages, showChatbot, chatLoading]);
 
   const sendTelemetry = async (event, metadata = {}) => {
+    if (chatbotApiRequiresLocalDeviceAccess()) {
+      return;
+    }
     try {
       await fetch(`${CHATBOT_API_BASE_URL}/chat/telemetry`, {
         method: "POST",
@@ -220,6 +270,16 @@ export default function GlobalChatbot({ user }) {
   const sendMessage = async (overrideMessage) => {
     const msg = String(overrideMessage ?? chatInput).trim();
     if (!msg) return;
+
+    if (chatbotApiRequiresLocalDeviceAccess()) {
+      const userMessage = { from: "user", text: msg };
+      setChatMessages((prev) => [...prev, userMessage, { from: "bot", text: CHATBOT_CONFIGURATION_ERROR, options: [], actions: [] }]);
+      if (overrideMessage === undefined) {
+        setChatInput("");
+      }
+      return;
+    }
+
     const userMessage = { from: "user", text: msg };
     const historial = [...chatMessages, userMessage].slice(-12);
     setChatMessages((prev) => [...prev, userMessage]);
@@ -376,6 +436,13 @@ export default function GlobalChatbot({ user }) {
                   );
                 })()
               ))}
+              {chatLoading && (
+                <div className="panda-chatbot__message panda-chatbot__message--bot panda-chatbot__typing">
+                  <span className="panda-chatbot__typing-dot" />
+                  <span className="panda-chatbot__typing-dot" />
+                  <span className="panda-chatbot__typing-dot" />
+                </div>
+              )}
               <div ref={chatEndRef} />
             </div>
           </div>
