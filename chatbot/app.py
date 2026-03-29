@@ -168,8 +168,21 @@ PROMPT_BASE = (
 "PROMOCIONES:\n"
 "Si el cliente pregunta por promociones disponibles:\n"
 "Indica que puede abrir el boton de promociones actuales.\n"
-"Tambien puedes sugerir el boton del pack de juegos Nintendo Switch si aplica.\n"
+"Tambien puedes sugerir el boton de packs de juegos Nintendo Switch si aplica.\n"
 "Estas promociones son principalmente para Nintendo Switch.\n\n"
+
+"CATÁLOGOS Y PÁGINAS DE LA TIENDA:\n"
+"Si el cliente pregunta por catalogos, categorias o quiere ver productos, puedes indicarle que use los botones.\n"
+"La tienda tiene estas paginas principales:\n"
+"- /categorias — ver todas las categorias de la tienda\n"
+"- /categoria/{id} — ver productos de una categoria especifica\n"
+"- /packs-nintendo — packs de juegos Nintendo Switch con varios juegos incluidos\n"
+"- /promos — promociones activas\n"
+"- /instalacion-nintendo — guia de instalacion paso a paso\n"
+"- /terminos — terminos y condiciones\n"
+"- /preguntas-frecuentes — preguntas frecuentes\n"
+"No escribas las URLs directamente. Solo menciona que el cliente puede usar el boton correspondiente.\n"
+"Si preguntan por juegos de Switch, PS4, PS5, streaming, suscripciones o packs, menciona que pueden ver el catalogo completo desde el boton.\n\n"
 
 "RECOMENDACIONES:\n"
 "Cuando tenga sentido, puedes sugerir productos, categorias o promociones relacionadas.\n"
@@ -208,6 +221,16 @@ INTENCION_CATEGORIA = {
             'para ver peliculas', 'para ver series', 'ver tele', 'television',
             'ver contenido', 'plataforma para ver', 'cuentas streaming',
             'cuentas de streaming', 'apps de streaming', 'apps streaming',
+            'catalogo streaming', 'catalogo de streaming', 'que streaming tienen',
+            'que tienen de streaming', 'que plataformas tienen', 'que plataformas hay',
+            'netflix', 'hbo', 'disney', 'amazon prime', 'prime video', 'crunchyroll',
+            'spotify', 'youtube premium', 'paramount', 'star plus', 'apple tv',
+            'ver anime', 'anime', 'donde ver anime', 'para ver anime',
+            'catalogo peliculas', 'catalogo de peliculas', 'catalogo series',
+            'catalogo de series', 'que peliculas tienen', 'que series tienen',
+            'quiero ver algo', 'quiero ver contenido', 'cuentas para ver',
+            'cuentas para peliculas', 'cuentas para series',
+            'plataformas para peliculas', 'plataformas para series',
         },
         'filtro_categoria': 'streaming',
         'mensaje': (
@@ -240,9 +263,18 @@ INTENCION_CATEGORIA = {
             'que hay de switch', 'que hay de nintendo', 'que hay para switch',
             'que hay para nintendo', 'juegos para switch', 'juegos para nintendo',
             'switch juegos', 'nintendo juegos',
+            'catalogo de switch', 'catalogo de nintendo', 'catalogo nintendo switch',
+            'ver juegos de switch', 'ver juegos switch', 'ver catalogo switch',
+            'ver catalogo nintendo', 'mostrar juegos switch', 'mostrar juegos nintendo',
+            'lista de juegos switch', 'lista de juegos nintendo',
+            'todos los juegos de switch', 'todos los juegos switch',
+            'que juegos tienen para switch', 'que juegos tienen para nintendo',
+            'ver switch', 'productos switch', 'productos nintendo',
+            'tienda switch', 'tienda nintendo',
         },
         'filtro_categoria': 'switch',
         'es_consola': True,
+        'nombre_catalogo': 'Nintendo Switch',
         'pregunta': '\u00bfQue juego buscas para Nintendo Switch?',
     },
     'switch2': {
@@ -262,9 +294,15 @@ INTENCION_CATEGORIA = {
             'que tienen de ps5', 'que hay de ps5', 'que hay para ps5',
             'juegos para ps5', 'juegos para playstation 5',
             'ps5 juegos',
+            'catalogo de ps5', 'ver juegos ps5', 'ver juegos de ps5',
+            'ver catalogo ps5', 'mostrar juegos ps5', 'lista de juegos ps5',
+            'todos los juegos de ps5', 'todos los juegos ps5',
+            'que juegos tienen para ps5', 'que juegos tienen de ps5',
+            'ver ps5', 'productos ps5', 'tienda ps5',
         },
         'filtro_categoria': 'ps5',
         'es_consola': True,
+        'nombre_catalogo': 'PS5',
         'pregunta': '\u00bfQue juego buscas para PS5?',
     },
     'ps4': {
@@ -274,9 +312,15 @@ INTENCION_CATEGORIA = {
             'que tienen de ps4', 'que hay de ps4', 'que hay para ps4',
             'juegos para ps4', 'juegos para playstation 4',
             'ps4 juegos',
+            'catalogo de ps4', 'ver juegos ps4', 'ver juegos de ps4',
+            'ver catalogo ps4', 'mostrar juegos ps4', 'lista de juegos ps4',
+            'todos los juegos de ps4', 'todos los juegos ps4',
+            'que juegos tienen para ps4', 'que juegos tienen de ps4',
+            'ver ps4', 'productos ps4', 'tienda ps4',
         },
         'filtro_categoria': 'ps4',
         'es_consola': True,
+        'nombre_catalogo': 'PS4',
         'pregunta': '\u00bfQue juego buscas para PS4?',
     },
     'suscripciones': {
@@ -284,10 +328,47 @@ INTENCION_CATEGORIA = {
             'suscripciones', 'suscripcion', 'membresías', 'membresia',
             'playstation plus', 'ps plus', 'psplus',
             'que suscripciones tienen', 'catalogo suscripciones',
+            'catalogo de suscripciones', 'ver suscripciones',
+            'nintendo online', 'switch online', 'nintendo switch online',
+            'ps plus premium', 'ps plus extra',
+            'que membresías tienen', 'que membresías hay',
         },
         'filtro_categoria': 'suscripciones',
         'es_consola': False,
+        'nombre_catalogo': 'Suscripciones',
         'pregunta': '\u00bfQue suscripcion te interesa?',
+    },
+    'packs_nintendo': {
+        'keywords': {
+            'packs', 'pack', 'packs nintendo', 'packs de nintendo', 'packs switch',
+            'packs de switch', 'pack nintendo', 'pack de nintendo', 'pack switch',
+            'pack de switch', 'packs de juegos', 'pack de juegos',
+            'paquete de juegos', 'paquetes de juegos', 'combos de juegos',
+            'combo de juegos', 'oferta de juegos', 'ofertas de juegos',
+            'ver packs', 'catalogo packs', 'catalogo de packs',
+            'packs disponibles', 'que packs tienen', 'que packs hay',
+            'tienen packs', 'hay packs',
+            'ofertas switch', 'ofertas nintendo', 'ofertas de switch', 'ofertas de nintendo',
+            'oferta switch', 'oferta nintendo', 'oferta de switch', 'oferta de nintendo',
+            'promos switch', 'promos nintendo', 'promos de switch', 'promos de nintendo',
+            'promo switch', 'promo nintendo', 'promo de switch', 'promo de nintendo',
+            'descuento switch', 'descuento nintendo', 'descuentos switch', 'descuentos nintendo',
+            'juegos baratos switch', 'juegos baratos nintendo',
+            'juegos en oferta', 'juegos en oferta switch', 'juegos en oferta nintendo',
+            'juegos en pack', 'juegos en combo', 'juegos con descuento',
+            'pack juegos', 'pack juegos switch', 'pack juegos nintendo',
+            'combos switch', 'combos nintendo', 'combo switch', 'combo nintendo',
+            'paquete switch', 'paquete nintendo', 'paquetes switch', 'paquetes nintendo',
+            'ofertones', 'ofertones switch', 'ofertones nintendo',
+            'pack de juegos switch', 'pack de juegos nintendo',
+            'packs de juegos switch', 'packs de juegos nintendo',
+        },
+        'es_pack': True,
+        'mensaje': (
+            "Packs Nintendo Switch\n\n"
+            "Tenemos packs con varios juegos incluidos a precio especial.\n"
+            "Revisa el catalogo completo desde el boton de abajo."
+        ),
     },
 }
 
@@ -298,8 +379,23 @@ PALABRAS_REFINAR_BUSQUEDA = {
 }
 
 INFO_KEYWORDS = {
-    'catalogo': {'que juegos venden', 'que venden', 'catalogo', 'juegos disponibles', 'que juegos hay'},
-    'promociones': {'promocion', 'promociones', 'promo', 'promos', 'ofertas', 'oferta', 'descuento', 'descuentos'},
+    'catalogo': {
+        'que juegos venden', 'que venden', 'catalogo', 'juegos disponibles', 'que juegos hay',
+        'catalogo general', 'catalogo completo', 'ver catalogo', 'ver el catalogo',
+        'mostrar catalogo', 'que tienen', 'que productos tienen', 'que hay disponible',
+        'que hay en la tienda', 'que vende panda store', 'que venden en panda store',
+        'categorias', 'que categorias tienen', 'que categorias hay',
+        'ver categorias', 'mostrar categorias', 'lista de categorias',
+        'todos los productos', 'todos los juegos', 'ver todos los juegos',
+        'ver productos', 'ver todo', 'que hay', 'que ofrecen',
+    },
+    'promociones': {
+        'promocion', 'promociones', 'promo', 'promos', 'ofertas', 'oferta', 'descuento', 'descuentos',
+        'hay ofertas', 'tienen ofertas', 'que ofertas tienen', 'que ofertas hay',
+        'que promos tienen', 'que promos hay', 'que descuentos tienen',
+        'ofertas disponibles', 'promos disponibles', 'descuentos disponibles',
+        'hay promociones', 'tienen promociones',
+    },
     'instalacion': {'instalacion', 'instalar', 'instalo', 'guia', 'tutorial', 'como instalar', 'descargar', 'instalkacion'},
     'pagos': {'pago', 'pagos', 'medio de pago', 'medios de pago', 'como pagar', 'tarjeta', 'transferencia', 'paypal', 'crypto'},
     'compra': {
@@ -1576,8 +1672,14 @@ def construir_respuesta_catalogo_general(productos, categorias):
 
     if not categorias_con_ejemplos:
         return {
-            'respuesta': 'Vendemos juegos digitales, suscripciones y streaming. Si quieres, dime una consola o un juego y te ayudo a buscarlo.',
-            'acciones': [],
+            'respuesta': (
+                'Vendemos juegos digitales, suscripciones y streaming.\n\n'
+                'Puedes explorar el catalogo completo desde los botones de abajo, o dime una consola o juego y te ayudo.'
+            ),
+            'acciones': [
+                {'type': 'open_route', 'label': 'Ver todas las categorias', 'route': '/categorias'},
+                {'type': 'open_route', 'label': 'Packs de juegos Switch', 'route': '/packs-nintendo'},
+            ],
         }
 
     bloques = []
@@ -1588,19 +1690,28 @@ def construir_respuesta_catalogo_general(productos, categorias):
         'respuesta': (
             "En Panda Store vendemos juegos digitales, suscripciones y streaming.\n\n"
             "Categorias y ejemplos:\n"
-            f"{'\n'.join(bloques)}\n\n"
+            + '\n'.join(bloques) + "\n\n"
             "Si quieres, dime el nombre del juego o la consola y te ayudo a encontrarlo."
         ),
         'acciones': [
-            {'type': 'send_message', 'label': 'Promociones', 'message': 'promociones'},
-            {'type': 'send_message', 'label': 'Medios de pago', 'message': 'medios de pago'}
+            {'type': 'open_route', 'label': 'Ver todas las categorias', 'route': '/categorias'},
+            {'type': 'open_route', 'label': 'Packs de juegos Switch', 'route': '/packs-nintendo'},
+            {'type': 'open_route', 'label': 'Promociones', 'route': '/promos'},
         ],
     }
 
 
 def construir_respuesta_info(intencion, productos=None, categorias=None):
     if intencion == 'catalogo':
-        return construir_respuesta_catalogo_general(productos or [], categorias or {})
+        resp = construir_respuesta_catalogo_general(productos or [], categorias or {})
+        resp.setdefault('acciones', [])
+        resp['acciones'] = [
+            {'type': 'open_route', 'label': 'Ver todas las categorias', 'route': '/categorias'},
+            {'type': 'open_route', 'label': 'Packs de juegos Switch', 'route': '/packs-nintendo'},
+            {'type': 'open_route', 'label': 'Promociones', 'route': '/promos'},
+        ]
+        resp.setdefault('opciones', [])
+        return resp
 
     if intencion == 'formato':
         return {
@@ -1621,11 +1732,11 @@ def construir_respuesta_info(intencion, productos=None, categorias=None):
             'respuesta': (
                 "Promociones Panda Store\n\n"
                 "Revisa las promos activas desde los botones de abajo.\n"
-                "Tambien puedes abrir el pack de juegos de Nintendo Switch."
+                "Tambien puedes ver los packs de juegos de Nintendo Switch a precio especial."
             ),
             'acciones': [
                 {'type': 'open_route', 'label': 'Ver promociones', 'route': '/promos'},
-                {'type': 'open_url', 'label': 'Ver pack de juegos', 'url': LINKS_TIENDAS['pack_switch']}
+                {'type': 'open_route', 'label': 'Packs de juegos Switch', 'route': '/packs-nintendo'},
             ],
         }
 
@@ -1745,11 +1856,22 @@ def construir_respuesta_categoria(intencion, productos, categorias):
                 if not categoria_id_encontrada:
                     categoria_id_encontrada = cat_id
 
-    if not productos_filtrados:
+    if not productos_filtrados and not config.get('es_pack'):
         return None
+
+    # Special handling for packs_nintendo — redirect to page
+    if config.get('es_pack'):
+        return {
+            'respuesta': config.get('mensaje', ''),
+            'opciones': [],
+            'acciones': [
+                {'type': 'open_route', 'label': 'Ver packs Nintendo', 'route': '/packs-nintendo'},
+            ],
+        }
 
     es_consola = config.get('es_consola', False)
     pregunta = config.get('pregunta')
+    nombre_catalogo = config.get('nombre_catalogo', '')
 
     if es_consola or pregunta:
         muestra = productos_filtrados[:6]
@@ -1763,16 +1885,31 @@ def construir_respuesta_categoria(intencion, productos, categorias):
             texto += f"{i}. {nombre}\n"
         if total > len(muestra):
             texto += f"\n...y {total - len(muestra)} mas."
-        texto += "\n\nEscribeme el nombre del que te interesa o visita el catalogo completo."
+        if nombre_catalogo:
+            texto += f"\n\nEscribeme el nombre del que te interesa o visita el catalogo de {nombre_catalogo}."
+        else:
+            texto += "\n\nEscribeme el nombre del que te interesa o visita el catalogo completo."
 
         acciones = []
         if categoria_id_encontrada:
+            label_catalogo = f'Catalogo {nombre_catalogo}' if nombre_catalogo else 'Ver catalogo completo'
             acciones.append({
                 'type': 'open_route',
-                'label': 'Ver catalogo completo',
+                'label': label_catalogo,
                 'route': f'/categoria/{categoria_id_encontrada}',
             })
-        acciones.extend(construir_acciones_contacto())
+        # Add packs button for Switch categories
+        if config.get('filtro_categoria') in ('switch',):
+            acciones.append({
+                'type': 'open_route',
+                'label': 'Packs de juegos Switch',
+                'route': '/packs-nintendo',
+            })
+        acciones.append({
+            'type': 'open_route',
+            'label': 'Todas las categorias',
+            'route': '/categorias',
+        })
 
         return {
             'respuesta': texto,
@@ -1781,10 +1918,17 @@ def construir_respuesta_categoria(intencion, productos, categorias):
         }
 
     opciones = construir_opciones_chat(productos_filtrados[:8], categorias)
+    acciones_streaming = []
+    if categoria_id_encontrada:
+        acciones_streaming.append({
+            'type': 'open_route',
+            'label': 'Ver catalogo completo',
+            'route': f'/categoria/{categoria_id_encontrada}',
+        })
     return {
         'respuesta': config.get('mensaje', ''),
         'opciones': opciones,
-        'acciones': [],
+        'acciones': acciones_streaming,
     }
 
 
@@ -2124,6 +2268,14 @@ def chat():
         log_chat_event('off_topic', client_id=client_id)
         return jsonify({'respuesta': RESPUESTA_FUERA_DE_TEMA, 'acciones': [], 'opciones': []})
 
+    # Check category intents FIRST (packs, switch, streaming, etc.)
+    intencion_cat = detectar_intencion_categoria(mensaje)
+    if intencion_cat:
+        respuesta_cat = construir_respuesta_categoria(intencion_cat, productos, categorias)
+        if respuesta_cat:
+            log_chat_event('category_intent', client_id=client_id, intent=intencion_cat)
+            return jsonify(respuesta_cat)
+
     intencion_info = detectar_intencion_info(mensaje)
     if intencion_info == 'compra' and mensaje_compra_menciona_producto(mensaje):
         intencion_info = None
@@ -2134,13 +2286,6 @@ def chat():
             if 'opciones' not in respuesta_info:
                 respuesta_info['opciones'] = []
             return jsonify(respuesta_info)
-
-    intencion_cat = detectar_intencion_categoria(mensaje)
-    if intencion_cat:
-        respuesta_cat = construir_respuesta_categoria(intencion_cat, productos, categorias)
-        if respuesta_cat:
-            log_chat_event('category_intent', client_id=client_id, intent=intencion_cat)
-            return jsonify(respuesta_cat)
 
     respuesta_refinada = construir_respuesta_refinar_busqueda(mensaje, historial, productos, categorias)
     if respuesta_refinada:
