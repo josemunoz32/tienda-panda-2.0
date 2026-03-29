@@ -45,7 +45,7 @@ export default function InstalacionNintendo() {
         Para la instalación, comunícate con nosotros a través de nuestras redes sociales:<br/>
         <a href="https://wa.me/56974751810" style={{color:'#25D366', fontWeight:700, marginRight:18, textDecoration:'none'}} target="_blank" rel="noopener noreferrer">WhatsApp</a>
         <a href="https://t.me/NintendoChile2" style={{color:'#229ED9', fontWeight:700, marginRight:18, textDecoration:'none'}} target="_blank" rel="noopener noreferrer">Telegram</a>
-        <a href="https://instagram.com/pandastore_gaming" style={{color:'#a084e8', fontWeight:700, textDecoration:'none'}} target="_blank" rel="noopener noreferrer">Instagram</a>
+        <a href="https://instagram.com/juegos_nintendo_switch_chile2" style={{color:'#a084e8', fontWeight:700, textDecoration:'none'}} target="_blank" rel="noopener noreferrer">Instagram</a>
       </p>
 
       {/* Imágenes de instalación en una sola columna */}
