@@ -5,7 +5,7 @@ import "./PacksNintendo.css";
 import pandaLoader from "../../assets/logos/miicono.png";
 
 const WHATSAPP = "56974751810";
-const INSTAGRAM = "https://instagram.com/pandastore_gaming";
+const INSTAGRAM = "https://instagram.com/juegos_nintendo_switch_chile2";
 const TELEGRAM = "https://t.me/NintendoChile2";
 
 function formatCLP(n) {
