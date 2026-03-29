@@ -37,6 +37,7 @@ import AdminSoporte from "./pages/Admin/AdminSoporte";
 
 import AdminCupones from './pages/Admin/AdminCupones';
 import PromosList from './pages/Promos/PromosList';
+import PacksNintendo from './pages/Packs/PacksNintendo';
 import GlobalChatbot from './components/GlobalChatbot';
 
 const MOBILE_LAYOUT_BREAKPOINT = 700;
@@ -208,6 +209,7 @@ function App() {
           <Route path="/instalacion-nintendo" element={<InstalacionNintendo />} />
           <Route path="/soporte" element={<SoporteCliente />} />
           <Route path="/promos" element={<PromosList />} />
+          <Route path="/packs-nintendo" element={<PacksNintendo />} />
           <Route path="/confirmacion-exitosa" element={<ConfirmacionExitosa/>} />
           <Route path="/confirmacion-pendiente" element={<ConfirmacionPendiente/>} />
 

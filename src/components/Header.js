@@ -384,6 +384,7 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
                   <>
                     <li><Link to="/home" onClick={() => setSidebarOpen(false)}>Home</Link></li>
                     <li><Link to="/promos" onClick={() => setSidebarOpen(false)}>Promociones</Link></li>
+                    <li><Link to="/packs-nintendo" onClick={() => setSidebarOpen(false)}>🎮 Packs Nintendo</Link></li>
                     {categorias.length > 0 && (
                       <li>
                         <details>
@@ -412,6 +413,7 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
                   <>
                     <li><Link to="/home" onClick={() => setSidebarOpen(false)}>Home</Link></li>
                     <li><Link to="/promos" onClick={() => setSidebarOpen(false)}>Promociones</Link></li>
+                    <li><Link to="/packs-nintendo" onClick={() => setSidebarOpen(false)}>🎮 Packs Nintendo</Link></li>
                     <li><Link to="/perfil" onClick={() => setSidebarOpen(false)}>Perfil</Link></li>
                     <li><Link to="/mispedidos" onClick={() => setSidebarOpen(false)}>Mis Pedidos</Link></li>
                     {categorias.length > 0 && (
