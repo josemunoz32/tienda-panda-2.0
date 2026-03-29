@@ -174,7 +174,7 @@ PROMPT_BASE = (
 "CATÁLOGOS Y PÁGINAS DE LA TIENDA:\n"
 "Si el cliente pregunta por catalogos, categorias o quiere ver productos, puedes indicarle que use los botones.\n"
 "La tienda tiene estas paginas principales:\n"
-"- /categorias — ver todas las categorias de la tienda\n"
+"- /home — pagina principal con todas las categorias y productos\n"
 "- /categoria/{id} — ver productos de una categoria especifica\n"
 "- /packs-nintendo — packs de juegos Nintendo Switch con varios juegos incluidos\n"
 "- /promos — promociones activas\n"
@@ -1677,7 +1677,7 @@ def construir_respuesta_catalogo_general(productos, categorias):
                 'Puedes explorar el catalogo completo desde los botones de abajo, o dime una consola o juego y te ayudo.'
             ),
             'acciones': [
-                {'type': 'open_route', 'label': 'Ver todas las categorias', 'route': '/categorias'},
+                {'type': 'open_route', 'label': 'Ver catalogo', 'route': '/home'},
                 {'type': 'open_route', 'label': 'Packs de juegos Switch', 'route': '/packs-nintendo'},
             ],
         }
@@ -1694,7 +1694,7 @@ def construir_respuesta_catalogo_general(productos, categorias):
             "Si quieres, dime el nombre del juego o la consola y te ayudo a encontrarlo."
         ),
         'acciones': [
-            {'type': 'open_route', 'label': 'Ver todas las categorias', 'route': '/categorias'},
+            {'type': 'open_route', 'label': 'Ver catalogo', 'route': '/home'},
             {'type': 'open_route', 'label': 'Packs de juegos Switch', 'route': '/packs-nintendo'},
             {'type': 'open_route', 'label': 'Promociones', 'route': '/promos'},
         ],
@@ -1706,7 +1706,7 @@ def construir_respuesta_info(intencion, productos=None, categorias=None):
         resp = construir_respuesta_catalogo_general(productos or [], categorias or {})
         resp.setdefault('acciones', [])
         resp['acciones'] = [
-            {'type': 'open_route', 'label': 'Ver todas las categorias', 'route': '/categorias'},
+            {'type': 'open_route', 'label': 'Ver catalogo', 'route': '/home'},
             {'type': 'open_route', 'label': 'Packs de juegos Switch', 'route': '/packs-nintendo'},
             {'type': 'open_route', 'label': 'Promociones', 'route': '/promos'},
         ]
@@ -1907,8 +1907,8 @@ def construir_respuesta_categoria(intencion, productos, categorias):
             })
         acciones.append({
             'type': 'open_route',
-            'label': 'Todas las categorias',
-            'route': '/categorias',
+            'label': 'Ver catalogo',
+            'route': '/home',
         })
 
         return {
