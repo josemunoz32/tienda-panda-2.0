@@ -8,6 +8,7 @@ import React, { useState, useEffect } from "react";
 import "./ProductDetail.css";
 import { useMoneda } from "../../context/MonedaContext";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { prodUrl, extractId } from '../../utils/slugify';
 import { db, auth } from "../../firebase";
 import {
   doc,
@@ -30,17 +31,17 @@ function DescripcionExpandible({ descripcion }) {
   if (!descripcion) return null;
   const isLong = descripcion.length > maxLen;
   return (
-  <div style={{marginBottom: 10, background:'#23232b', borderRadius:10, padding:'10px 12px', maxWidth: '100%', overflow:'hidden', position:'relative', minHeight:48}}>
-      <b style={{color:'#e0e0e0'}}>Descripción:</b>{' '}
+  <div style={{marginBottom: 10, background:'rgba(36,0,70,0.55)', borderRadius:12, padding:'10px 14px', maxWidth: '100%', overflow:'hidden', position:'relative', minHeight:48, border:'1px solid rgba(162,89,255,0.2)'}}>
+      <b style={{color:'#c4b5fd'}}>Descripción:</b>{' '}
       <span style={{
         display:'inline',
         wordBreak:'break-word',
         whiteSpace: expand ? 'pre-line' : 'normal',
         maxHeight: expand ? 'none' : 64,
         overflow: 'hidden',
-        fontSize: '1.04rem',
-        color:'#f3f3f3',
-        lineHeight:1.5
+        fontSize: '0.97rem',
+        color:'#d4c8f0',
+        lineHeight:1.6
       }}>
         {expand || !isLong ? descripcion : descripcion.slice(0, maxLen) + '...'}
       </span>
@@ -71,19 +72,62 @@ function DescripcionExpandible({ descripcion }) {
 function PreguntaRespuesta({ pregunta, onResponder, user, isAdmin }) {
   const [respuesta, setRespuesta] = useState("");
   return (
-    <div style={{marginBottom: 14, borderBottom: '1px solid #eee', paddingBottom: 8}}>
-      <div style={{fontWeight: 500}}>{pregunta.userName}: <span style={{color: '#333'}}>{pregunta.text}</span></div>
+    <div style={{
+      marginBottom: 16,
+      padding: '14px 18px',
+      background: 'rgba(36,0,70,0.55)',
+      borderRadius: 14,
+      border: '1.5px solid rgba(162,89,255,0.3)',
+      boxShadow: '0 2px 12px rgba(123,47,242,0.1)'
+    }}>
+      <div style={{ fontWeight: 600, color: '#c4b5fd', marginBottom: 6, fontSize: '1rem' }}>
+        <span style={{ color: '#a259ff', marginRight: 6 }}>💬</span>
+        <span style={{ color: '#e8e0f5' }}>{pregunta.userName}:</span>{' '}
+        <span style={{ color: '#d4c8f0', fontWeight: 400 }}>{pregunta.text}</span>
+      </div>
       {pregunta.answer ? (
-        <div style={{marginLeft: 12, color: '#1976d2', fontSize: 15}}><b>Respuesta:</b> {pregunta.answer}</div>
+        <div style={{
+          marginLeft: 16, marginTop: 8,
+          padding: '8px 14px',
+          background: 'rgba(162,89,255,0.12)',
+          borderRadius: 10,
+          borderLeft: '3px solid #a259ff',
+          color: '#c4b5fd',
+          fontSize: '0.97rem'
+        }}>
+          <span style={{ fontWeight: 700, color: '#a259ff' }}>Respuesta: </span>{pregunta.answer}
+        </div>
       ) : (
-        isAdmin || (user && user.uid !== pregunta.userId) ? (
-          <form onSubmit={e => {e.preventDefault(); onResponder(respuesta, pregunta.id); setRespuesta("");}} style={{marginLeft: 12, marginTop: 4}}>
-            <input value={respuesta} onChange={e => setRespuesta(e.target.value)} placeholder="Responder..." style={{width: 220, marginRight: 6}} />
-            <button type="submit" disabled={!respuesta.trim()}>Responder</button>
+        (isAdmin || (user && user.uid !== pregunta.userId)) ? (
+          <form onSubmit={e => {e.preventDefault(); onResponder(respuesta, pregunta.id); setRespuesta("");}} style={{
+            marginLeft: 16, marginTop: 10,
+            display: 'flex', gap: 8, alignItems: 'center'
+          }}>
+            <input
+              value={respuesta}
+              onChange={e => setRespuesta(e.target.value)}
+              placeholder="Responder..."
+              style={{
+                flex: 1, padding: '8px 12px', borderRadius: 10,
+                border: '1.5px solid rgba(162,89,255,0.4)',
+                background: 'rgba(30,0,60,0.8)', color: '#e8e0f5',
+                fontSize: '0.95rem', outline: 'none', fontFamily: 'inherit'
+              }}
+            />
+            <button type="submit" disabled={!respuesta.trim()} style={{
+              padding: '8px 18px', borderRadius: 10, border: 'none',
+              background: 'linear-gradient(90deg,#7b2ff2,#a259ff)',
+              color: '#fff', fontWeight: 700, cursor: 'pointer',
+              fontSize: '0.95rem', opacity: respuesta.trim() ? 1 : 0.5
+            }}>Responder</button>
           </form>
         ) : null
       )}
-      {pregunta.answer && <div style={{fontSize: 11, color: '#888', marginLeft: 12}}>Respondido el {pregunta.answeredAt && pregunta.answeredAt.substring(0,10)}</div>}
+      {pregunta.answer && (
+        <div style={{ fontSize: 11, color: '#6b5e8a', marginLeft: 16, marginTop: 4 }}>
+          Respondido el {pregunta.answeredAt && pregunta.answeredAt.substring(0, 10)}
+        </div>
+      )}
     </div>
   );
 }
@@ -243,7 +287,8 @@ export default function ProductDetail() {
   // Estado de usuario
   const [user, setUser] = useState(null);
   // Obtener id de la URL
-  const { id } = useParams();
+  const { id: rawId } = useParams();
+  const id = extractId(rawId);
   // Estado del producto
   const [producto, setProducto] = useState(null);
   // Productos relacionados
@@ -379,8 +424,6 @@ export default function ProductDetail() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setProducto({ id: docSnap.id, ...docSnap.data() });
-        } else {
-          console.log("No such document!");
         }
       } catch (err) {
         if (err && err.code === "unavailable") setNetworkError(true);
@@ -580,6 +623,80 @@ export default function ProductDetail() {
     return arr;
   }
 
+  // SEO: Dynamic meta tags & Product schema
+  useEffect(() => {
+    if (!producto) return;
+    const title = `${producto.name} | PandaStore - Videojuegos Digitales`;
+    document.title = title;
+
+    const setMeta = (attr, key, content) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`);
+      if (!el) { el = document.createElement('meta'); el.setAttribute(attr, key); document.head.appendChild(el); }
+      el.setAttribute('content', content);
+    };
+    const desc = producto.description
+      ? producto.description.slice(0, 160)
+      : `Compra ${producto.name} en PandaStore. Entrega digital inmediata.`;
+    setMeta('name', 'description', desc);
+    setMeta('property', 'og:title', title);
+    setMeta('property', 'og:description', desc);
+    setMeta('property', 'og:url', window.location.href);
+    if (producto.imageUrl) setMeta('property', 'og:image', producto.imageUrl);
+    setMeta('property', 'og:type', 'product');
+    setMeta('name', 'twitter:title', title);
+    setMeta('name', 'twitter:description', desc);
+    if (producto.imageUrl) setMeta('name', 'twitter:image', producto.imageUrl);
+
+    // Product JSON-LD
+    const price = producto.priceUSD || producto.pricePrimariaUSD || producto.priceCLP || null;
+    const currency = producto.priceUSD || producto.pricePrimariaUSD ? 'USD' : 'CLP';
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": producto.name,
+      "description": desc,
+      "image": producto.imageUrl || "",
+      "url": window.location.href,
+      "brand": { "@type": "Brand", "name": producto.category || "PandaStore" },
+      "sku": producto.id || id,
+      ...(price ? {
+        "offers": {
+          "@type": "Offer",
+          "price": price,
+          "priceCurrency": currency,
+          "availability": "https://schema.org/InStock",
+          "seller": { "@type": "Organization", "name": "PandaStore" }
+        }
+      } : {}),
+      ...(avgRating && reviews.length > 0 ? {
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": avgRating,
+          "reviewCount": reviews.length,
+          "bestRating": 5,
+          "worstRating": 1
+        }
+      } : {}),
+      "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://pandastoreupdate.web.app/home" },
+          { "@type": "ListItem", "position": 2, "name": "Productos", "item": "https://pandastoreupdate.web.app/productos" },
+          { "@type": "ListItem", "position": 3, "name": producto.name, "item": window.location.href }
+        ]
+      }
+    };
+    let scriptEl = document.querySelector('script#product-jsonld');
+    if (!scriptEl) { scriptEl = document.createElement('script'); scriptEl.id = 'product-jsonld'; scriptEl.type = 'application/ld+json'; document.head.appendChild(scriptEl); }
+    scriptEl.textContent = JSON.stringify(schema);
+
+    return () => {
+      document.title = 'PandaStore | Tienda de Videojuegos Digitales';
+      const s = document.querySelector('script#product-jsonld');
+      if (s) s.remove();
+    };
+  }, [producto, id]);
+
   // Asegura que no se renderice nada del producto si producto es null
   if (loading) return <div>Cargando...</div>;
   if (networkError) return <div style={{color:'#b71c1c',fontWeight:700,padding:24}}>No se pudo conectar con el servidor. Verifica tu conexión a internet.</div>;
@@ -714,61 +831,46 @@ export default function ProductDetail() {
           </button>
         </div>
         {/* Compartir */}
-        <div style={{marginTop: 18, display: 'flex', gap: 10, alignItems: 'center', position: 'relative'}}>
-          <span style={{fontWeight: 500}}>Compartir:</span>
-          <a
-            href="#"
-            onClick={e => {e.preventDefault(); window.open(`https://wa.me/?text=${encodeURIComponent(producto.name + ' ' + window.location.href)}`,'_blank','noopener');}}
-            title="Compartir en WhatsApp"
-            style={{textDecoration: 'none', fontSize: 20, color: '#25d366', fontWeight: 600}}
-          >
-            🟢 WhatsApp
-          </a>
-          <button
-            onClick={handleCopyLink}
-            style={{
-              fontSize: 18,
-              padding: '6px 16px',
-              border: 'none',
-              borderRadius: 6,
-              background: 'linear-gradient(90deg, #7b2ff2 0%, #f357a8 100%)',
-              color: '#fff',
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px #7b2ff233',
-              transition: 'background 0.2s, box-shadow 0.2s'
-            }}
-            title="Copiar link para compartir por privado"
-            onMouseDown={e => e.currentTarget.style.background = 'linear-gradient(90deg, #f357a8 0%, #7b2ff2 100%)'}
-            onMouseUp={e => e.currentTarget.style.background = 'linear-gradient(90deg, #7b2ff2 0%, #f357a8 100%)'}
-          >
-            📋 Copiar link
-          </button>
-          {copyMsg && (
-            <span
+        <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(162,89,255,0.2)' }}>
+          <div style={{ color: '#a08ab8', fontSize: '0.82rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>Compartir producto</div>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', position: 'relative', flexWrap: 'wrap' }}>
+            <a
+              href="#"
+              onClick={e => { e.preventDefault(); window.open(`https://wa.me/?text=${encodeURIComponent(producto.name + ' ' + window.location.href)}`, '_blank', 'noopener'); }}
+              title="Compartir en WhatsApp"
               style={{
-                position: 'absolute',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                bottom: '-38px',
-                background: 'linear-gradient(90deg,#7b2ff2 0%,#f357a8 100%)',
-                color: '#fff',
-                padding: '8px 18px',
-                borderRadius: 8,
-                fontWeight: 700,
-                fontSize: '1.01rem',
-                boxShadow: '0 2px 12px #7b2ff244',
-                zIndex: 20,
-                maxWidth: '90vw',
-                width: 'max-content',
-                textAlign: 'center',
-                whiteSpace: 'pre-line',
-                wordBreak: 'break-word',
+                textDecoration: 'none',
+                display: 'flex', alignItems: 'center', gap: 7,
+                padding: '9px 18px', borderRadius: 12,
+                background: 'rgba(37,211,102,0.12)',
+                border: '1.5px solid rgba(37,211,102,0.4)',
+                color: '#25d366', fontWeight: 700, fontSize: '0.95rem',
+                transition: 'background 0.2s, border-color 0.2s, transform 0.15s',
+                cursor: 'pointer'
               }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(37,211,102,0.22)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(37,211,102,0.12)'; e.currentTarget.style.transform = 'translateY(0)'; }}
             >
-              {copyMsg}
-            </span>
-          )}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.117 1.528 5.847L.057 23.786a.5.5 0 0 0 .614.641l6.094-1.596A11.946 11.946 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.007-1.373l-.358-.214-3.718.974.996-3.63-.234-.374A9.818 9.818 0 1 1 12 21.818z"/></svg>
+              WhatsApp
+            </a>
+            <button
+              onClick={handleCopyLink}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 7,
+                padding: '9px 18px', borderRadius: 12, border: '1.5px solid rgba(162,89,255,0.45)',
+                background: 'rgba(123,47,242,0.12)',
+                color: '#c4b5fd', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
+                transition: 'background 0.2s, border-color 0.2s, transform 0.15s'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(123,47,242,0.25)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(123,47,242,0.12)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+              title="Copiar link para compartir"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              {copyMsg ? <span style={{ color: '#a3e635' }}>✓ ¡Copiado!</span> : 'Copiar link'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -779,31 +881,70 @@ export default function ProductDetail() {
           <>
             {reviews.length === 0 && <div>No hay reseñas aún.</div>}
             {reviews.filter(r => r.visible !== false).map(r => (
-              <div key={r.id} style={{marginBottom: 12, borderBottom: '1px solid #000000ff', paddingBottom: 8}}>
-                <div><b>{r.userName}</b> <StarRating rating={r.rating} /></div>
-                <div style={{fontSize: 13, color: '#555'}}>{r.comment}</div>
-                <div style={{fontSize: 11, color: '#aaa'}}>{r.date && r.date.substring(0, 10)}</div>
+              <div key={r.id} style={{
+                marginBottom: 12,
+                padding: '14px 18px',
+                background: 'rgba(36,0,70,0.55)',
+                borderRadius: 14,
+                border: '1.5px solid rgba(162,89,255,0.25)',
+                boxShadow: '0 2px 10px rgba(123,47,242,0.1)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontWeight: 700, color: '#c4b5fd', fontSize: '0.97rem' }}>{r.userName}</span>
+                  <StarRating rating={r.rating} />
+                </div>
+                <div style={{ fontSize: '0.95rem', color: '#d4c8f0', lineHeight: 1.6 }}>{r.comment}</div>
+                <div style={{ fontSize: 11, color: '#6b5e8a', marginTop: 4 }}>{r.date && r.date.substring(0, 10)}</div>
               </div>
             ))}
           </>
         )}
         {isLoggedIn && (
-          <form onSubmit={handleReviewSubmit} style={{marginTop: 18, padding: 12, borderRadius: 6, maxWidth: 400}}>
-            <div style={{marginBottom: 8}}>
-              <b>Tu calificación:</b><br/>
-              {[1,2,3,4,5].map(i => (
-                <span key={i} style={{cursor: 'pointer', fontSize: 22, color: i <= rating ? '#ffc107' : '#ccc'}} onClick={() => setRating(i)}>&#9733;</span>
-              ))}
-              <span style={{marginLeft: 8}}>{rating > 0 ? rating : ''}</span>
+          <form onSubmit={handleReviewSubmit} style={{ marginTop: 20, width: '100%', maxWidth: '100%' }}>
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ color: '#c4b5fd', fontWeight: 700, marginBottom: 8, fontSize: '0.97rem' }}>Tu calificación:</div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {[1,2,3,4,5].map(i => (
+                  <span key={i} style={{ cursor: 'pointer', fontSize: 28, color: i <= rating ? '#ffc107' : 'rgba(162,89,255,0.3)', transition: 'color 0.15s, transform 0.15s', display: 'inline-block' }}
+                    onClick={() => setRating(i)}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.2)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                  >&#9733;</span>
+                ))}
+              </div>
             </div>
-            <div style={{marginBottom: 8}}>
-              <textarea value={comment} onChange={e => setComment(e.target.value)} rows={3} placeholder="Escribe tu reseña..." style={{width: '100%', resize: 'vertical'}} />
+            <div style={{ marginBottom: 12 }}>
+              <textarea
+                value={comment}
+                onChange={e => setComment(e.target.value)}
+                rows={3}
+                placeholder="Escribe tu reseña..."
+                style={{
+                  width: '100%', resize: 'vertical',
+                  padding: '10px 14px', borderRadius: 10,
+                  border: '1.5px solid rgba(162,89,255,0.4)',
+                  background: 'rgba(30,0,60,0.8)', color: '#e8e0f5',
+                  fontSize: '0.97rem', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box'
+                }}
+              />
             </div>
-            {submitError && <div style={{color: 'red', marginBottom: 8}}>{submitError}</div>}
-            <button type="submit" disabled={reviewLoading || !rating || comment.trim().length < 5}>
+            {submitError && <div style={{ color: '#ff6b6b', marginBottom: 10, fontSize: '0.9rem' }}>{submitError}</div>}
+            <button
+              type="submit"
+              disabled={reviewLoading || !rating || comment.trim().length < 5}
+              style={{
+                width: '100%', padding: '12px', borderRadius: 10, border: 'none',
+                background: reviewLoading || !rating || comment.trim().length < 5
+                  ? 'rgba(162,89,255,0.25)'
+                  : 'linear-gradient(90deg,#7b2ff2,#a259ff)',
+                color: '#fff', fontWeight: 700, fontSize: '1rem',
+                cursor: reviewLoading || !rating || comment.trim().length < 5 ? 'not-allowed' : 'pointer',
+                transition: 'background 0.2s'
+              }}
+            >
               {userReview ? 'Actualizar reseña' : 'Enviar reseña'}
             </button>
-            {userReview && <span style={{marginLeft: 10, color: '#888'}}>Ya enviaste una reseña para este producto.</span>}
+            {userReview && <div style={{ marginTop: 8, color: '#a08ab8', fontSize: '0.87rem', textAlign: 'center' }}>Ya enviaste una reseña para este producto.</div>}
           </form>
         )}
       </div>
@@ -832,7 +973,7 @@ export default function ProductDetail() {
                 {getCarruselSlice(relacionadoIndex, slidesToShow).map((prod, idx) => (
                   <Link
                     key={prod.id + '-' + idx}
-                    to={`/producto/${prod.id}`}
+                    to={prodUrl(prod.name, prod.id)}
                     className="relacionados-slide"
                     style={{
                       width: `${100 / slidesToShow}%`,
@@ -873,28 +1014,53 @@ export default function ProductDetail() {
           </>
         )}
         {isLoggedIn && (
-          <form onSubmit={handleAsk} style={{marginTop: 12, padding: 10, borderRadius: 6, maxWidth: 400}}>
-            <b>Haz una pregunta:</b><br/>
-            <input value={questionText} onChange={e => setQuestionText(e.target.value)} placeholder="Escribe tu pregunta..." style={{width: '100%', marginBottom: 6}} />
-            {questionError && <div style={{color: 'red', marginBottom: 6}}>{questionError}</div>}
-            <button type="submit" disabled={questionLoading || questionText.trim().length < 5}>Enviar pregunta</button>
+          <form onSubmit={handleAsk} style={{ marginTop: 16, width: '100%', maxWidth: '100%' }}>
+            <div style={{ color: '#c4b5fd', fontWeight: 700, marginBottom: 10, fontSize: '0.97rem' }}>Haz una pregunta:</div>
+            <input
+              value={questionText}
+              onChange={e => setQuestionText(e.target.value)}
+              placeholder="Escribe tu pregunta..."
+              style={{
+                width: '100%', marginBottom: 10, padding: '10px 14px', borderRadius: 10,
+                border: '1.5px solid rgba(162,89,255,0.4)',
+                background: 'rgba(30,0,60,0.8)', color: '#e8e0f5',
+                fontSize: '0.97rem', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box'
+              }}
+            />
+            {questionError && <div style={{ color: '#ff6b6b', marginBottom: 8, fontSize: '0.9rem' }}>{questionError}</div>}
+            <button
+              type="submit"
+              disabled={questionLoading || questionText.trim().length < 5}
+              style={{
+                width: '100%', padding: '12px', borderRadius: 10, border: 'none',
+                background: questionLoading || questionText.trim().length < 5
+                  ? 'rgba(162,89,255,0.25)'
+                  : 'linear-gradient(90deg,#7b2ff2,#a259ff)',
+                color: '#fff', fontWeight: 700, fontSize: '1rem',
+                cursor: questionLoading || questionText.trim().length < 5 ? 'not-allowed' : 'pointer',
+                transition: 'background 0.2s'
+              }}
+            >Enviar pregunta</button>
           </form>
         )}
       </div>
-      <div style={{gridColumn: "span 2", marginTop: 24, textAlign: "center"}}>
+      <div style={{ gridColumn: 'span 2', marginTop: 8, marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
         <button
           onClick={() => window.history.back()}
           style={{
-            color: '#7b2ff2',
-            fontWeight: 700,
-            textDecoration: 'underline',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: 18
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '11px 28px', borderRadius: 14,
+            border: '1.5px solid rgba(162,89,255,0.35)',
+            background: 'rgba(123,47,242,0.08)',
+            color: '#a08ab8', fontWeight: 600, fontSize: '0.97rem',
+            cursor: 'pointer', letterSpacing: '0.02em',
+            transition: 'background 0.2s, color 0.2s, border-color 0.2s, transform 0.15s'
           }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(123,47,242,0.2)'; e.currentTarget.style.color = '#c4b5fd'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(123,47,242,0.08)'; e.currentTarget.style.color = '#a08ab8'; e.currentTarget.style.transform = 'translateY(0)'; }}
         >
-          ← Volver atrás
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+          Volver atrás
         </button>
       </div>
     </div>

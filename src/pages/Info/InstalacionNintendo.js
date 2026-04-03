@@ -1,6 +1,5 @@
 import React from "react";
-
-// Importar imágenes desde assets/instalacionnintendo
+import "./InstalacionNintendo.css";
 
 import img1 from "../../assets/instalacionnintendo/1.png";
 import img2 from "../../assets/instalacionnintendo/2.png";
@@ -11,81 +10,109 @@ import img6 from "../../assets/instalacionnintendo/6.png";
 import img7 from "../../assets/instalacionnintendo/7.png";
 import img8 from "../../assets/instalacionnintendo/8.png";
 
+const pasos = [
+  { img: img1, label: "Paso 1 — Accede a la configuración de usuario" },
+  { img: img2, label: "Paso 2 — Selecciona 'Agregar usuario'" },
+  { img: img3, label: "Paso 3 — Ingresa las credenciales de la cuenta entregada" },
+  { img: img4, label: "Paso 4 — Confirma el inicio de sesión" },
+  { img: img5, label: "Paso 5 — Ve a la Nintendo eShop" },
+  { img: img6, label: "Paso 6 — Descarga el juego" },
+  { img: img7, label: "Paso 7 — Espera que finalice la descarga" },
+  { img: img8, label: "Paso 8 — ¡Listo! Juega desde tu perfil personal" },
+];
+
 export default function InstalacionNintendo() {
   return (
-    <div style={{
-      maxWidth:900,
-      margin:'40px auto',
-      padding:24,
-      background:'#fff',
-      borderRadius:18,
-      boxShadow:'0 4px 32px #0002',
-      border:'2px solid #a084e8',
-      position:'relative',
-      zIndex:2
-    }}>
-      {/* Título y sección de comunicación */}
-      <h1 style={{
-        fontSize:'2.8rem',
-        textAlign:'center',
-        marginBottom:10,
-        letterSpacing:2,
-        fontWeight:900,
-        color:'#7b2ff2',
-        textShadow:'0 2px 12px #fff, 0 1px 0 #a084e8'
-      }}>INSTALACIÓN</h1>
-      <p style={{
-        textAlign:'center',
-        fontSize:'1.18rem',
-        marginBottom:22,
-        color:'#222',
-        fontWeight:500,
-        textShadow:'0 1px 0 #fff'
-      }}>
-        Para la instalación, comunícate con nosotros a través de nuestras redes sociales:<br/>
-        <a href="https://wa.me/56974751810" style={{color:'#25D366', fontWeight:700, marginRight:18, textDecoration:'none'}} target="_blank" rel="noopener noreferrer">WhatsApp</a>
-        <a href="https://t.me/NintendoChile2" style={{color:'#229ED9', fontWeight:700, marginRight:18, textDecoration:'none'}} target="_blank" rel="noopener noreferrer">Telegram</a>
-        <a href="https://instagram.com/juegos_nintendo_switch_chile2" style={{color:'#a084e8', fontWeight:700, textDecoration:'none'}} target="_blank" rel="noopener noreferrer">Instagram</a>
-      </p>
+    <div className="install-root">
 
-      {/* Imágenes de instalación en una sola columna */}
-      <div style={{display:'flex', flexDirection:'column', alignItems:'center', gap:32, margin:'32px 0'}}>
-        {[img1, img2, img3, img4, img5, img6, img7, img8].map((img, idx) => (
-          <img
-            key={idx}
-            src={img}
-            alt={`Paso ${idx + 1}`}
-            style={{
-              maxWidth: '98%',
-              width: '700px',
-              borderRadius: 14,
-              boxShadow: '0 2px 18px #0003',
-              background:'#fff',
-              border:'1.5px solid #e0e0e0',
-              margin:'0 auto',
-              display:'block'
-            }}
-          />
+      {/* ── Título ── */}
+      <h1 className="install-title">
+        <span className="install-title-icon">🎮</span>
+        <span className="install-title-text">Guía de Instalación — Nintendo Switch</span>
+      </h1>
+      <p className="install-title-sub">Sigue cada paso con atención para instalar correctamente tu juego</p>
+      <div className="install-divider" />
+
+      {/* ── Canal de contacto ── */}
+      <div className="install-channel-banner">
+        <div className="install-channel-title">
+          💬 ¿Necesitas ayuda con tu instalación?
+        </div>
+        <div className="install-channel-buttons">
+          <a
+            href="https://wa.me/56974751810"
+            className="install-btn install-btn--whatsapp"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {/* WhatsApp icon */}
+            <svg width="18" height="18" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="16" fill="#25D366"/><path d="M23.5 8.5C21.6 6.6 19.1 5.5 16.5 5.5C11.3 5.5 7 9.8 7 15C7 17 7.6 18.9 8.6 20.5L7 25l4.7-1.5C13.2 24.4 14.8 25 16.5 25C21.7 25 26 20.7 26 15.5C26 12.9 24.9 10.4 23.5 8.5ZM16.5 23.3C15 23.3 13.6 22.8 12.4 22L12 21.8l-3 1 1-2.9-.3-.4C9 18.3 8.7 16.9 8.7 15.5C8.7 11.1 12.1 7.7 16.5 7.7C18.7 7.7 20.7 8.5 22.2 10C23.8 11.5 24.5 13.4 24.5 15.5C24.5 19.9 21.1 23.3 16.5 23.3ZM21 17.4C20.8 17.3 19.7 16.7 19.5 16.7C19.3 16.6 19.2 16.6 19 16.8C18.9 17 18.4 17.6 18.3 17.8C18.2 17.9 18.1 17.9 17.9 17.8C17.8 17.8 17.1 17.5 16.2 16.7C15.5 16.1 15 15.3 14.9 15.1C14.8 14.9 14.9 14.8 15 14.7C15.1 14.6 15.2 14.5 15.3 14.3C15.4 14.2 15.5 14.1 15.5 14C15.5 13.8 15.5 13.7 15.4 13.6C15.3 13.5 14.8 12.4 14.6 12C14.4 11.6 14.2 11.6 14.1 11.6H13.7C13.5 11.6 13.3 11.7 13.1 11.9C12.9 12.1 12.3 12.7 12.3 13.8C12.3 14.9 13.1 15.9 13.2 16.1C13.3 16.2 14.8 18.4 17 19.4C19.2 20.3 19.2 20 19.6 20C20 20 20.9 19.4 21.1 18.8C21.3 18.2 21.3 17.7 21.2 17.6C21.1 17.5 21.1 17.5 21 17.4Z" fill="white"/></svg>
+            WhatsApp
+          </a>
+          <a
+            href="https://instagram.com/juegos_nintendo_switch_chile2"
+            className="install-btn install-btn--instagram"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="6" stroke="#a259ff" strokeWidth="2"/><circle cx="12" cy="12" r="4" stroke="#a259ff" strokeWidth="2"/><circle cx="17.5" cy="6.5" r="1.2" fill="#a259ff"/></svg>
+            Instagram
+          </a>
+          <a
+            href="https://t.me/NintendoChile2"
+            className="install-btn install-btn--telegram"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#229ED9"/><path d="M17.5 7.5L5.5 11.8c-.8.3-.8.8 0 1l3 1 1.2 3.8c.2.6.5.7.9.4l1.7-1.5 3.3 2.4c.6.4 1 .2 1.1-.5l1.8-9.2c.2-.9-.3-1.3-1-1.7z" fill="white"/></svg>
+            Telegram
+          </a>
+        </div>
+        <div className="install-channel-note">
+          ⚠️ Por favor contáctanos <strong>solo por un canal</strong> — el mismo que usaste para comprar. Si compraste por Instagram, escríbenos ahí. Si fue por WhatsApp, por WhatsApp. Así te atendemos más rápido y sin confusiones.
+        </div>
+      </div>
+
+      {/* ── Pasos ── */}
+      <div className="install-steps-title">
+        📋 Pasos de instalación — Sigue el orden
+      </div>
+      <div className="install-steps-grid">
+        {pasos.map((paso, idx) => (
+          <div className="install-step-card" key={idx}>
+            <div className="install-step-header">{paso.label}</div>
+            <img src={paso.img} alt={paso.label} />
+          </div>
         ))}
       </div>
 
-      {/* Bloque de advertencias/modo de uso */}
-      <div style={{background:'#fff', color:'#222', borderRadius:18, boxShadow:'0 4px 24px #0002', padding:'28px 24px', maxWidth:650, margin:'40px auto 0 auto', border:'2px solid #a084e8'}}>
-        <div style={{fontWeight:900, fontSize:'1.25rem', marginBottom:12, display:'flex', alignItems:'center', gap:8}}>
-          <span role="img" aria-label="warning">⚠️</span> IMPORTANTE PARA TODOS LOS CLIENTES <span role="img" aria-label="warning">⚠️</span>
+      {/* ── Bloque importante ── */}
+      <div className="install-important">
+        <div className="install-important-header">
+          ⚠️ IMPORTANTE — Lee esto antes de instalar
         </div>
-        <ul style={{paddingLeft:22, fontSize:'1.08rem', lineHeight:1.7, marginBottom:0}}>
-          <li><span role="img" aria-label="candado">🔒</span> <b>NO CAMBIES</b> ningún dato de la cuenta que te entregamos.</li>
-          <li><span role="img" aria-label="prohibido">🚫</span> <b>NO intentes volver a ingresar</b> a la cuenta después de descargar los juegos.</li>
-          <li><span role="img" aria-label="usuario">👤</span> <b>DURACION</b> estos juegos no son permanente duran tiempo indefinido.</li>
-          <li><span role="img" aria-label="usuario">👤</span> <b>SIEMPRE JUEGA</b> desde tu perfil personal (el tuyo, no el que te damos).</li>
-          <li><span role="img" aria-label="cruz">❌</span> Si no sigues estas reglas, pierdes la garantía y la cuenta puede ser bloqueada por Nintendo.</li>
-          <li><span role="img" aria-label="check">✅</span> <b>Garantía solo 1 semana</b></li>
-        </ul>
-        <div style={{marginTop:14, fontWeight:600, color:'#7b2ff2'}}>
-          <span role="img" aria-label="estrella">🪄</span> ¡Sigue bien los pasos y disfruta tus juegos sin problemas!
+        <div className="install-important-body">
+          <ul className="install-ilist">
+            <li><span className="ii">🔒</span><span><strong>NO CAMBIES</strong> ningún dato de la cuenta que te entregamos (usuario, contraseña o correo).</span></li>
+            <li><span className="ii">🚫</span><span><strong>NO vuelvas a ingresar</strong> a esa cuenta después de descargar los juegos. Tu rol es jugar desde tu perfil personal.</span></li>
+            <li><span className="ii">👤</span><span><strong>SIEMPRE JUEGA</strong> desde tu perfil personal — el tuyo, no el que te entregamos.</span></li>
+            <li><span className="ii">⏳</span><span><strong>DURACIÓN:</strong> estas cuentas no son permanentes. Duran tiempo indefinido — pueden durar meses o más si se siguen las instrucciones.</span></li>
+            <li><span className="ii">❌</span><span>Si no respetas estas reglas, <strong>pierdes la garantía</strong> y la cuenta puede ser bloqueada por Nintendo.</span></li>
+            <li><span className="ii">✅</span><span><strong>Garantía: 1 semana</strong> desde la entrega, siempre que se hayan seguido las instrucciones.</span></li>
+          </ul>
+
+          <div className="install-tip">
+            <div className="install-tip-title">✈️ Tip: Modo Avión puede ayudar</div>
+            <p>Jugar con el <strong>modo avión activado</strong> reduce las validaciones en línea de Nintendo y puede extender la vida de la cuenta. <strong>No garantiza permanencia</strong>, pero es una buena práctica mientras juegas.</p>
+          </div>
         </div>
       </div>
+
+      {/* ── Footer ── */}
+      <div className="install-footer">
+        🪄 ¡Sigue bien los pasos y disfruta tus juegos sin problemas!
+      </div>
+
     </div>
   );
 }

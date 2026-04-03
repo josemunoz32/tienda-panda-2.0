@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "PandaStore",
+  "name": "PandaStore - Tienda de Videojuegos Digitales",
+  "description": "Compra juegos digitales de PS4, PS5, Nintendo Switch, suscripciones de streaming y más. Entrega inmediata.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -18,8 +19,9 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "start_url": "/home",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#18122B",
+  "background_color": "#0f0a1e",
+  "categories": ["games", "shopping", "entertainment"]
 }

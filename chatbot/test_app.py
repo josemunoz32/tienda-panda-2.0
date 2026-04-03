@@ -49,7 +49,7 @@ class ChatbotSecurityTests(unittest.TestCase):
         response = self.client.post('/chat', json={'mensaje': 'promociones', 'historial': []})
         body = response.get_json()
         labels = [action['label'] for action in body['acciones']]
-        self.assertIn('Ver pack de juegos', labels)
+        self.assertIn('Packs de juegos Switch', labels)
 
     def test_payment_info_returns_structured_response(self):
         response = self.client.post('/chat', json={'mensaje': 'medios de pago', 'historial': []})

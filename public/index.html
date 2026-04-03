@@ -1,22 +1,89 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="utf-8" />
-  <link rel="icon" type="image/jpeg" href="%PUBLIC_URL%/icono.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="PandaStore"
-      content="Tienda de Videojuegos digitales"
-    />
-  <link rel="apple-touch-icon" href="%PUBLIC_URL%/icono.jpg" />
+    <meta name="theme-color" content="#18122B" />
+
+    <!-- SEO Meta Tags -->
+    <title>PandaStore | Tienda de Videojuegos Digitales - PS4, PS5, Nintendo Switch, Streaming</title>
+    <meta name="description" content="PandaStore: Tu tienda online de videojuegos digitales. Compra juegos de PS4, PS5, Nintendo Switch, suscripciones de streaming y más. Precios accesibles, entrega inmediata y atención personalizada." />
+    <meta name="keywords" content="videojuegos digitales, juegos PS4, juegos PS5, juegos Nintendo Switch, tienda de videojuegos, comprar juegos online, suscripciones gaming, streaming, PlayStation, Nintendo, juegos baratos, PandaStore, tienda gamer, juegos digitales baratos, ofertas videojuegos" />
+    <meta name="author" content="PandaStore" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://pandastoreupdate.web.app/" />
+
+    <!-- Google Search Console Verification — Agrega tu código en Firebase Console > Hosting > Custom domain -->
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://pandastoreupdate.web.app/" />
+    <meta property="og:title" content="PandaStore | Tienda de Videojuegos Digitales" />
+    <meta property="og:description" content="Compra juegos digitales de PS4, PS5, Nintendo Switch, suscripciones de streaming y más. Entrega inmediata y precios accesibles." />
+    <meta property="og:image" content="https://pandastoreupdate.web.app/icono.jpg" />
+    <meta property="og:site_name" content="PandaStore" />
+    <meta property="og:locale" content="es_ES" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="PandaStore | Tienda de Videojuegos Digitales" />
+    <meta name="twitter:description" content="Compra juegos digitales de PS4, PS5, Nintendo Switch, suscripciones de streaming y más. Entrega inmediata." />
+    <meta name="twitter:image" content="https://pandastoreupdate.web.app/icono.jpg" />
+
+    <!-- Favicon & Icons -->
+    <link rel="icon" type="image/jpeg" href="%PUBLIC_URL%/icono.jpg" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/icono.jpg" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <title>PandaStore</title>
-  <script src="https://sdk.mercadopago.com/js/v2"></script>
+
+    <!-- Organization Schema JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Store",
+      "name": "PandaStore",
+      "description": "Tienda online de videojuegos digitales para PS4, PS5, Nintendo Switch, suscripciones de streaming y más.",
+      "url": "https://pandastoreupdate.web.app",
+      "logo": "https://pandastoreupdate.web.app/icono.jpg",
+      "image": "https://pandastoreupdate.web.app/icono.jpg",
+      "priceRange": "$",
+      "servesCuisine": "",
+      "sameAs": [],
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://pandastoreupdate.web.app/productos?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      },
+      "offers": {
+        "@type": "AggregateOffer",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock",
+        "itemCondition": "https://schema.org/NewCondition"
+      }
+    }
+    </script>
+
+    <!-- WebSite Schema for Sitelinks Search Box -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "PandaStore",
+      "url": "https://pandastoreupdate.web.app",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://pandastoreupdate.web.app/productos?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>PandaStore - Tienda de videojuegos digitales. Activa JavaScript para ver la tienda.</noscript>
     <div id="root"></div>
   </body>
 </html>

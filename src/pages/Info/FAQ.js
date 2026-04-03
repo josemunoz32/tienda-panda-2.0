@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "./FAQ.css";
 
 // Estructura base para la página de Preguntas Frecuentes (FAQ)
@@ -85,6 +85,32 @@ export default function FAQ() {
 
   const [openIndex, setOpenIndex] = React.useState(null);
   const [openQuestion, setOpenQuestion] = React.useState({});
+
+  // SEO: FAQ Schema JSON-LD (rich results en Google)
+  useEffect(() => {
+    document.title = 'Preguntas Frecuentes | PandaStore - Videojuegos Digitales';
+    const allPreguntas = categorias.flatMap(cat =>
+      cat.subcategorias.flatMap(sub => sub.preguntas)
+    );
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": allPreguntas.map(p => ({
+        "@type": "Question",
+        "name": p.q,
+        "acceptedAnswer": { "@type": "Answer", "text": p.a }
+      }))
+    };
+    let el = document.querySelector('script#faq-jsonld');
+    if (!el) { el = document.createElement('script'); el.id = 'faq-jsonld'; el.type = 'application/ld+json'; document.head.appendChild(el); }
+    el.textContent = JSON.stringify(schema);
+    return () => {
+      document.title = 'PandaStore | Tienda de Videojuegos Digitales';
+      const s = document.querySelector('script#faq-jsonld');
+      if (s) s.remove();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="faq-root">

@@ -26,6 +26,7 @@ import Terminos from './pages/Info/Terminos';
 import SobreNosotros from './pages/Info/SobreNosotros';
 import AdminUsuarios from './pages/Admin/AdminUsuarios';
 import AdminResenas from './pages/Admin/AdminResenas';
+import AdminPreguntas from './pages/Admin/AdminPreguntas';
 import CheckoutCompraDirecta from './pages/Checkout/CheckoutCompraDirecta';
 import TestimoniosPage from "./pages/Testimonios/TestimoniosPage";
 import CheckoutCarrito from "./pages/Checkout/CheckoutCarrito";
@@ -39,6 +40,7 @@ import AdminCupones from './pages/Admin/AdminCupones';
 import PromosList from './pages/Promos/PromosList';
 import PacksNintendo from './pages/Packs/PacksNintendo';
 import GlobalChatbot from './components/GlobalChatbot';
+import usePresence from './utils/usePresence';
 
 const MOBILE_LAYOUT_BREAKPOINT = 700;
 const VIEWPORT_MODE_STORAGE_KEY = 'pandaViewportMode';
@@ -57,6 +59,7 @@ function AdminRoute({ user, role, children }) {
 }
 
 function App() {
+  usePresence();
   // Scroll al top al cambiar de ruta
   function ScrollToTop() {
     const { pathname } = useLocation();
@@ -251,6 +254,9 @@ function App() {
           } />
           <Route path="/admin/cupones" element={
             <AdminRoute user={user} role={role}><AdminCupones /></AdminRoute>
+          } />
+          <Route path="/admin/preguntas" element={
+            <AdminRoute user={user} role={role}><AdminPreguntas user={user} role={role} /></AdminRoute>
           } />
         </Routes>
         <Footer />

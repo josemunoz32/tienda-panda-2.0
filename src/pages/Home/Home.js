@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { catUrl, prodUrl } from '../../utils/slugify';
 import { useMoneda } from "../../context/MonedaContext";
 import { db, auth } from "../../firebase";
 import {
@@ -152,7 +153,7 @@ function DestacadosCarrusel({ productos, moneda, handleFav, favIds, openAuthModa
           return (
             <div key={prod.id} className="card1" style={{display:'flex',alignItems:'center',justifyContent:'center',padding:0,boxSizing:'border-box',position:'relative',background:'none',boxShadow:'none',border:'none',cursor:'pointer'}}>
               {prod.imageUrl && (
-                <Link to={`/producto/${prod.id}`} style={{display:'block',width:'100%',height:'100%'}} onClick={e => {
+                <Link to={prodUrl(prod.name, prod.id)} style={{display:'block',width:'100%',height:'100%'}} onClick={e => {
                   if (!user) {
                     e.preventDefault();
                     if (typeof openAuthModal === 'function') openAuthModal();
@@ -161,6 +162,7 @@ function DestacadosCarrusel({ productos, moneda, handleFav, favIds, openAuthModa
                   <img
                     src={prod.imageUrl}
                     alt={prod.name}
+                    loading="lazy"
                     style={{
                       width: '100%',
                       height: 220,
@@ -204,7 +206,7 @@ export default function Home() {
     // Nintendo Switch 1 y 2 debe ir a la categoría Nintendo
     if (opcion === "nintendo" || opcion === "nintendo switch 1 y 2") {
       if (categoryIds?.nintendo) {
-        navigate(`/categoria/${categoryIds.nintendo}`);
+        navigate(catUrl(categoryNames?.nintendo, categoryIds.nintendo));
         return;
       }
       // fallback si aún no cargó categoryIds
@@ -231,7 +233,7 @@ export default function Home() {
           return name && name.includes(nombreBuscado);
         });
       if (cat) {
-        navigate(`/categoria/${cat.id}`);
+        navigate(catUrl(cat.name, cat.id));
       }
     } catch (e) {
       // Si falla, no hace nada
@@ -298,6 +300,12 @@ export default function Home() {
       setShowModal(true);
     }
   }, [location?.pathname]);
+
+  // SEO: Set page title for Home
+  useEffect(() => {
+    document.title = 'PandaStore | Tienda de Videojuegos Digitales - PS4, PS5, Nintendo Switch, Streaming';
+    return () => { document.title = 'PandaStore | Tienda de Videojuegos Digitales'; };
+  }, []);
 
   // PAGINATION STATE
   const [page, setPage] = useState(1);
@@ -571,6 +579,17 @@ export default function Home() {
     };
   }, [categorias]);
 
+  const categoryNames = useMemo(() => {
+    const nameOf = (id) => categorias.find(c => c.id === id)?.name || '';
+    return {
+      nintendo: nameOf(categoryIds.nintendo),
+      ps4: nameOf(categoryIds.ps4),
+      ps5: nameOf(categoryIds.ps5),
+      streaming: nameOf(categoryIds.streaming),
+      suscripciones: nameOf(categoryIds.suscripciones),
+    };
+  }, [categoryIds, categorias]);
+
   const previewByCategory = useMemo(() => {
     const take8 = (catId) => {
       if (!catId) return [];
@@ -832,11 +851,11 @@ export default function Home() {
 
         {/* Helper inline para secciones por categoría */}
         {([
-          { key: 'nintendo', img: letreroNintendo, alt: 'Nintendo Switch', catId: categoryIds.nintendo, items: previewByCategory.nintendo },
-          { key: 'ps4', img: letreroPS4, alt: 'PS4', catId: categoryIds.ps4, items: previewByCategory.ps4 },
-          { key: 'ps5', img: letreroPS5, alt: 'PS5', catId: categoryIds.ps5, items: previewByCategory.ps5 },
-          { key: 'streaming', img: letreroStreaming, alt: 'Streaming', catId: categoryIds.streaming, items: previewByCategory.streaming },
-          { key: 'suscripciones', img: letreroSuscripciones, alt: 'Suscripciones', catId: categoryIds.suscripciones, items: previewByCategory.suscripciones },
+          { key: 'nintendo', img: letreroNintendo, alt: 'Nintendo Switch', catId: categoryIds.nintendo, catName: categoryNames.nintendo, items: previewByCategory.nintendo },
+          { key: 'ps4', img: letreroPS4, alt: 'PS4', catId: categoryIds.ps4, catName: categoryNames.ps4, items: previewByCategory.ps4 },
+          { key: 'ps5', img: letreroPS5, alt: 'PS5', catId: categoryIds.ps5, catName: categoryNames.ps5, items: previewByCategory.ps5 },
+          { key: 'streaming', img: letreroStreaming, alt: 'Streaming', catId: categoryIds.streaming, catName: categoryNames.streaming, items: previewByCategory.streaming },
+          { key: 'suscripciones', img: letreroSuscripciones, alt: 'Suscripciones', catId: categoryIds.suscripciones, catName: categoryNames.suscripciones, items: previewByCategory.suscripciones },
         ]).map((sec) => (
           <div key={sec.key} style={{ marginBottom: 26 }}>
             <div style={{ textAlign: 'center', marginBottom: 10 }}>
@@ -855,7 +874,7 @@ export default function Home() {
                 return (
                   <Link
                     key={prod.id}
-                    to={`/producto/${prod.id}`}
+                    to={prodUrl(prod.name, prod.id)}
                     onClick={(e) => {
                       if (!user) {
                         e.preventDefault();
@@ -893,6 +912,7 @@ export default function Home() {
                           <img
                             src={prod.imageUrl}
                             alt={prod.name}
+                            loading="lazy"
                             style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }}
                           />
                         ) : (
@@ -938,7 +958,7 @@ export default function Home() {
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>
               <Link
-                to={sec.catId ? `/categoria/${sec.catId}` : '/productos'}
+                to={sec.catId ? catUrl(sec.catName, sec.catId) : '/productos'}
                 style={{
                   background: 'linear-gradient(90deg, #7b2ff2 0%, #f357a8 100%)',
                   color: '#fff',

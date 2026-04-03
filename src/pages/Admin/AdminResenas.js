@@ -21,14 +21,12 @@ export default function AdminResenas({ user, role }) {
         try {
           // Trae todas las subcolecciones reviews de todos los productos
           const snap = await getDocs(collectionGroup(db, "reviews"));
-          console.log("collectionGroup reviews snapshot:", snap);
           const arr = snap.docs.map(docu => ({
             id: docu.id,
             ...docu.data(),
             ref: docu.ref,
             productoId: docu.ref.parent.parent.id // id del producto
           }));
-          console.log("Reseñas mapeadas:", arr);
           setResenas(arr);
         } catch (e) {
           setError("Error al cargar reseñas");
