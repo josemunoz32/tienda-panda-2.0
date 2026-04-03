@@ -16,5 +16,10 @@ service firebase.storage {
       // El rol debe estar en el token de autenticación como custom claim
       allow write: if request.auth != null && request.auth.token.role == "admin";
     }
+    // Comprobantes de pago: usuario autenticado puede subir, admin puede leer
+    match /comprobantes/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
   }
 }

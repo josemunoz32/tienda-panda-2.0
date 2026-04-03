@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import { prodUrl } from '../utils/slugify';
 import { getAllProductsWithImage } from "../utils/allProducts";
 import { notificationNames } from "../utils/notificationNames";
 import { auth } from "../firebase"; // Agrega esta línea para obtener el usuario
@@ -206,7 +207,7 @@ export default function SalesNotification({ isMenuOpen }) {
 
   const handleNotificationClick = () => {
     if (user && event && event.id) {
-      navigate(`/producto/${event.id}`);
+      navigate(prodUrl(event.product, event.id));
     }
   };
 

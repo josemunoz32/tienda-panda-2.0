@@ -64,7 +64,15 @@ const Footer = () => {
 
             {/* BARRA INFERIOR DE COPYRIGHT */}
             <div className="footer-bottom">
-                &copy; {currentYear} PandaStore. Todos los derechos reservados.
+                <span>&copy; {currentYear} PandaStore. Todos los derechos reservados.</span>
+                <span className="footer-dev-credit">
+                    <span className="footer-dev-sep">|</span>
+                    Dise&ntilde;ado por
+                    <a href="https://instagram.com/jm.websolutions" target="_blank" rel="noopener noreferrer" className="footer-dev-link">
+                        <img src="/logoJmSolution.png" alt="JM WebSolutions" className="footer-dev-logo" />
+                        <span className="footer-dev-name">JM WebSolutions</span>
+                    </a>
+                </span>
             </div>
 
             <style>{`
@@ -224,13 +232,57 @@ const Footer = () => {
                 }
 
                 .footer-bottom {
-                    text-align: center;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                    gap: 6px;
                     padding: 12px 16px;
                     font-size: 0.85rem;
                     background: #111; 
                     border-top: 1px solid #2f2f2f;
                     color: #888;
                 }
+
+                .footer-dev-sep {
+                    color: #3a2a5a;
+                    margin: 0 6px;
+                }
+
+                .footer-dev-credit {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 5px;
+                    color: #666;
+                    font-size: 0.82rem;
+                }
+
+                .footer-dev-logo {
+                    width: 20px;
+                    height: 20px;
+                    object-fit: contain;
+                    border-radius: 4px;
+                    opacity: 0.75;
+                    transition: opacity 0.2s;
+                }
+
+                .footer-dev-name {
+                    font-weight: 700;
+                    color: #7b2ff2;
+                    letter-spacing: 0.02em;
+                    transition: color 0.2s;
+                }
+
+                .footer-dev-credit:hover .footer-dev-logo { opacity: 1; }
+                .footer-dev-credit:hover .footer-dev-name { color: #a259ff; }
+
+                .footer-dev-link {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 5px;
+                    text-decoration: none;
+                }
+                .footer-dev-link:before { content: none !important; }
 
                 /* --- MEDIA QUERIES (RESPONSIVE): Centrado para Móvil (Mantiene el centrado) --- */
                 @media (max-width: 768px) {

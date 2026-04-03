@@ -5,6 +5,7 @@ import { getStorage } from "firebase/storage";
 import { getFunctions } from "firebase/functions";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getAnalytics, logEvent } from "firebase/analytics";
 
 // Reemplaza estos valores con tu configuración de Firebase
 const firebaseConfig = {
@@ -25,5 +26,6 @@ const functions = getFunctions(app);
 
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
-export { app, database, storage, functions, auth, googleProvider };
+const analytics = getAnalytics(app);
+export { app, database, storage, functions, auth, googleProvider, analytics, logEvent };
 export const db = getFirestore(app);

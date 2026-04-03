@@ -7,6 +7,8 @@ import { useMoneda } from "../../context/MonedaContext";
 import { db, auth } from "../../firebase";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { collection, query, where, getDocs, doc, getDoc, deleteDoc, setDoc, onSnapshot } from "firebase/firestore";
+import "./CategoriaPage.css";
+import { prodUrl, extractId } from '../../utils/slugify';
 
 // Formatea el precio según la moneda
 function formatPrecio(precio, moneda) {
@@ -21,7 +23,8 @@ function formatPrecio(precio, moneda) {
 }
 
 export default function CategoriaPage() {
-  const { id } = useParams();
+  const { id: rawId } = useParams();
+  const id = extractId(rawId);
   const { moneda } = useMoneda();
   // Buscador local para la categoría
   const [productos, setProductos] = useState([]);
@@ -189,6 +192,40 @@ export default function CategoriaPage() {
     };
   }, [user]);
 
+  // SEO: Dynamic meta tags + Breadcrumb schema for category page
+  useEffect(() => {
+    if (!categoria) return;
+    const title = `${categoria.name} | PandaStore - Videojuegos Digitales`;
+    document.title = title;
+    const desc = `Compra juegos de ${categoria.name} en PandaStore. Cat\u00e1logo con entrega digital inmediata y precios accesibles.`;
+    let el = document.querySelector('meta[name="description"]');
+    if (el) el.setAttribute('content', desc);
+    let og = document.querySelector('meta[property="og:title"]');
+    if (og) og.setAttribute('content', title);
+    let ogd = document.querySelector('meta[property="og:description"]');
+    if (ogd) ogd.setAttribute('content', desc);
+
+    // Breadcrumb schema
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://pandastoreupdate.web.app/home" },
+        { "@type": "ListItem", "position": 2, "name": "Categor\u00edas", "item": "https://pandastoreupdate.web.app/categorias" },
+        { "@type": "ListItem", "position": 3, "name": categoria.name, "item": window.location.href }
+      ]
+    };
+    let scriptEl = document.querySelector('script#cat-breadcrumb-jsonld');
+    if (!scriptEl) { scriptEl = document.createElement('script'); scriptEl.id = 'cat-breadcrumb-jsonld'; scriptEl.type = 'application/ld+json'; document.head.appendChild(scriptEl); }
+    scriptEl.textContent = JSON.stringify(schema);
+
+    return () => {
+      document.title = 'PandaStore | Tienda de Videojuegos Digitales';
+      const s = document.querySelector('script#cat-breadcrumb-jsonld');
+      if (s) s.remove();
+    };
+  }, [categoria]);
+
   // Handlers para agregar/quitar del carrito y favoritos
   const [showAuthModal, setShowAuthModal] = useState(false);
   const openAuthModal = () => setShowAuthModal(true);
@@ -262,688 +299,234 @@ export default function CategoriaPage() {
     setPage(1);
   }, [search, minPrice, maxPrice, moneda, id]);
 
-  if (loading) return <div>Cargando...</div>;
-  if (!categoria) return <div>Categoría no encontrada.</div>;
+  if (loading) return (
+    <div className="catpage-loading">
+      <div className="catpage-loading-orbit" />
+      <p className="catpage-loading-text">Cargando productos...</p>
+    </div>
+  );
+  if (!categoria) return <div style={{minHeight:'60vh',display:'flex',alignItems:'center',justifyContent:'center',color:'#a084e8',fontWeight:700,fontSize:'1.15rem'}}>Categor&iacute;a no encontrada.</div>;
+
+  const isSwitch = (categoria?.name || '').toLowerCase().includes('switch');
+  const totalPages = Math.ceil(searchResults.length / perPage);
+  const paginated = searchResults.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <div
-      className="home-root"
-      style={{
-        position: 'relative',
-        minHeight: '100vh',
-        overflow: 'hidden',
-        zIndex: 10,
-        background: 'linear-gradient(180deg, #18122B 0%, #393053 100%)',
-        paddingBottom: 60
-      }}
-    >
-      {/* Modal de autenticación */}
+    <div className="catpage-root home-root">
+
+      {/* Modal auth */}
       {showAuthModal && (
-        <div className="modal-bg" style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',background:'rgba(24,18,43,0.82)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={e => {if(e.target.classList.contains('modal-bg'))closeAuthModal();}}>
-          <div style={{background:'#fff',borderRadius:18,padding:'38px 32px 28px 32px',boxShadow:'0 8px 32px #7b2ff244',maxWidth:380,width:'90%',textAlign:'center',position:'relative'}}>
-            <h2 style={{fontWeight:800,fontSize:'1.35rem',color:'#7b2ff2',marginBottom:12}}>Debes iniciar sesión</h2>
-            <p style={{color:'#222',fontSize:'1.08rem',marginBottom:22}}>Para agregar productos al carrito, favoritos o ver detalles, primero debes iniciar sesión o crear una cuenta.</p>
-            <div style={{display:'flex',gap:16,justifyContent:'center',marginBottom:8}}>
-              <button onClick={()=>{closeAuthModal();navigate('/iniciar-sesion');}} style={{background:'linear-gradient(90deg,#7b2ff2 0%,#a084e8 100%)',color:'#fff',fontWeight:700,fontSize:'1.08rem',border:'none',borderRadius:10,padding:'12px 24px',boxShadow:'0 2px 12px #7b2ff244',cursor:'pointer'}}>Iniciar sesión</button>
-              <button onClick={()=>{closeAuthModal();navigate('/registro');}} style={{background:'linear-gradient(90deg,#f357a8 0%,#7b2ff2 100%)',color:'#fff',fontWeight:700,fontSize:'1.08rem',border:'none',borderRadius:10,padding:'12px 24px',boxShadow:'0 2px 12px #7b2ff244',cursor:'pointer'}}>Registrarse</button>
+        <div className="catpage-auth-overlay" onClick={e => { if (e.target === e.currentTarget) closeAuthModal(); }}>
+          <div className="catpage-auth-card">
+            <h2>Debes iniciar sesi&oacute;n</h2>
+            <p>Para agregar productos al carrito, favoritos o ver detalles, primero debes iniciar sesi&oacute;n o crear una cuenta.</p>
+            <div className="catpage-auth-btns">
+              <button className="catpage-auth-btn primary" onClick={() => { closeAuthModal(); navigate('/iniciar-sesion'); }}>Iniciar sesi&oacute;n</button>
+              <button className="catpage-auth-btn secondary" onClick={() => { closeAuthModal(); navigate('/registro'); }}>Registrarse</button>
             </div>
-            <button onClick={closeAuthModal} style={{background:'none',border:'none',color:'#a084e8',fontWeight:600,fontSize:'1rem',marginTop:8,cursor:'pointer'}}>Cancelar</button>
+            <button className="catpage-auth-cancel" onClick={closeAuthModal}>Cancelar</button>
           </div>
         </div>
       )}
 
-      {/* Buscador principal (mismo estilo que Home) */}
-      <div className="home-buscador" style={{
-        maxWidth: 520,
-        margin: '32px auto 24px auto',
-        background: 'rgba(44,19,80,0.18)',
-        borderRadius: 16,
-        boxShadow: '0 2px 12px #7b2ff244',
-        padding: '18px 18px 12px 18px',
-        border: '1.5px solid #a084e8',
-        position: 'relative',
-        zIndex: 2
-      }}>
-        <div className="home-buscar-box" style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-          <div style={{position:'relative',flex:1}}>
-            <input
-              type="text"
-              className="home-buscar-input"
-              placeholder={`Buscar en ${categoria?.name || 'categoría'}...`}
-              value={searchInput}
-              onChange={e => { setSearchInput(e.target.value); setFiltroAplicado(false); }}
-              onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  const term = searchInput.trim();
-                  if (!term) return;
-                  setSearch(term);
-                  setFiltroAplicado(true);
-                }
-              }}
-              style={{
-                width: '100%',
-                padding: '12px 40px 12px 16px',
-                fontSize: '1.08rem',
-                borderRadius: 10,
-                border: '1.5px solid #a084e8',
-                outline: 'none',
-                background: '#1a1a2e',
-                color: '#fff',
-                fontFamily: 'Poppins, Montserrat, Segoe UI, Arial, sans-serif',
-                fontWeight: 600,
-                boxShadow: '0 0 8px #7b2ff222',
-                transition: 'border 0.25s, box-shadow 0.25s',
-                marginRight: 0,
-                boxSizing: 'border-box'
-              }}
-            />
-            <span className="home-buscar-icon" style={{
-              position: 'absolute',
-              right: 14,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              fontSize: 22,
-              color: '#FFD600',
-              pointerEvents: 'none',
-              textShadow: '0 1px 6px #7b2ff244',
-              zIndex: 2
-            }}>🔍</span>
-          </div>
-          <button
-            disabled={!searchInput.trim().length}
-            onClick={() => {
-              const term = searchInput.trim();
-              if (!term) return;
-              setSearch(term);
-              setFiltroAplicado(true);
-            }}
-            style={{
-              background: !searchInput.trim().length ? '#9ca3af' : '#22c55e',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 10,
-              padding: '10px 16px',
-              height: 44,
-              fontWeight: 800,
-              fontSize: '1rem',
-              boxShadow: '0 2px 8px #7b2ff244',
-              cursor: !searchInput.trim().length ? 'not-allowed' : 'pointer',
-              transition: 'background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.15s',
-              outline: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 3
-            }}
-          >
-            Aplicar
-          </button>
-          {(filtroAplicado || minPrice || maxPrice || search || order !== 'price-asc') && (
-            <button onClick={() => { setSearchInput(""); setSearch(""); setMinPrice(""); setMaxPrice(""); setOrder('price-asc'); setFiltroAplicado(false); setPage(1); }} style={{
-              background:'#374151',
-              color:'#fff',
-              border:'none',
-              borderRadius:10,
-              padding:'10px 14px',
-              height:44,
-              fontWeight:700,
-              fontSize:'0.98rem',
-              boxShadow:'0 2px 8px #7b2ff244',
-              cursor:'pointer'
-            }}>Quitar filtro</button>
-          )}
-          <button className="home-buscar-filtros-btn" onClick={() => setShowFilters(f => !f)} style={{
-            background: '#f357a8',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 8,
-            padding: '10px 14px',
-            fontWeight: 700,
-            fontSize: '1.1rem',
-            boxShadow: '0 2px 8px #7b2ff244',
-            cursor: 'pointer',
-            transition: 'background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.15s',
-            outline: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: 44,
-            minWidth: 44,
-            zIndex: 3
-          }}>
-            <span className="material-icons">tune</span>
-          </button>
-        </div>
-        {/* Botones de ordenamiento visual, solo visibles si showFilters */}
-        {showFilters && (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-            alignItems: 'stretch',
-            margin: '18px 0 8px 0',
-            width: '100%'
-          }}>
-            <div style={{
-              display:'flex',
-              gap:10,
-              justifyContent:'flex-start',
-              width:'100%',
-              flexWrap:'nowrap',
-              overflowX:'auto',
-              borderBottom:'1.5px solid #a084e8',
-              paddingBottom:10,
-              scrollbarWidth:'none',
-              WebkitOverflowScrolling:'touch',
-              msOverflowStyle:'none',
-              minHeight: '56px'
-            }}>
-              <button className={`btn${order==='price-asc' ? ' incart' : ''}`} style={{padding:'7px 18px',fontSize:'1rem',minWidth:120,flex:'0 0 auto'}} onClick={()=>setOrder('price-asc')}>Menor precio</button>
-              <button className={`btn${order==='price-desc' ? ' incart' : ''}`} style={{padding:'7px 18px',fontSize:'1rem',minWidth:120,flex:'0 0 auto'}} onClick={()=>setOrder('price-desc')}>Mayor precio</button>
-              <button className={`btn${order==='az' ? ' incart' : ''}`} style={{padding:'7px 18px',fontSize:'1rem',minWidth:90,flex:'0 0 auto'}} onClick={()=>setOrder('az')}>A-Z</button>
-              <button className={`btn${order==='za' ? ' incart' : ''}`} style={{padding:'7px 18px',fontSize:'1rem',minWidth:90,flex:'0 0 auto'}} onClick={()=>setOrder('za')}>Z-A</button>
-            </div>
-            <div style={{
-              display: 'flex',
-              gap: 10,
-              width: '100%',
-              maxWidth: 500,
-              margin: '4px auto 0 auto',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}>
-              <input
-                type="number"
-                placeholder="Precio mín"
-                value={minPrice}
-                min={0}
-                onChange={e => {
-                  const val = e.target.value;
-                  if (val === "" || Number(val) >= 0) setMinPrice(val);
-                }}
-                style={{
-                  width:'110px',
-                  padding:'10px 12px',
-                  borderRadius:8,
-                  border:'1.5px solid #a084e8',
-                  background:'#1a1a2e',
-                  color:'#fff',
-                  fontSize:'1rem',
-                  fontFamily:'Poppins, Montserrat, Segoe UI, Arial, sans-serif',
-                  fontWeight:500,
-                  outline:'none',
-                  marginTop:0
-                }}
-              />
-              <input
-                type="number"
-                placeholder="Precio máx"
-                value={maxPrice}
-                min={0}
-                onChange={e => {
-                  const val = e.target.value;
-                  if (val === "" || Number(val) >= 0) setMaxPrice(val);
-                }}
-                style={{
-                  width:'110px',
-                  padding:'10px 12px',
-                  borderRadius:8,
-                  border:'1.5px solid #a084e8',
-                  background:'#1a1a2e',
-                  color:'#fff',
-                  fontSize:'1rem',
-                  fontFamily:'Poppins, Montserrat, Segoe UI, Arial, sans-serif',
-                  fontWeight:500,
-                  outline:'none',
-                  marginTop:0
-                }}
-              />
-              <button
-                onClick={() => { setSearchInput(""); setSearch(""); setMinPrice(""); setMaxPrice(""); setOrder('price-asc'); setFiltroAplicado(false); setPage(1); }}
-                style={{
-                  padding: '10px 18px',
-                  borderRadius: 8,
-                  border: '1.5px solid #a084e8',
-                  background: '#374151',
-                  color: '#fff',
-                  fontWeight: 700,
-                  fontSize: '1rem',
-                  marginLeft: 8,
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px #7b2ff244',
-                  transition: 'background 0.18s, box-shadow 0.18s, transform 0.15s',
-                  outline: 'none',
-                  marginTop: 0
-                }}
-              >Quitar filtro</button>
-            </div>
+      {/* Hero header */}
+      <div className="catpage-hero">
+        <h1 className="catpage-hero-title">{categoria?.name || 'Categor\u00eda'}</h1>
+        <span className="catpage-hero-line" />
+        <br />
+        <span className="catpage-hero-count">{searchResults.length} producto{searchResults.length !== 1 ? 's' : ''}</span>
+        {isSwitch && (
+          <div className="catpage-switch-compat">
+            <span className="catpage-switch-compat-icon">🎮</span>
+            <span>Compatible con <strong>Nintendo Switch 1</strong> y <strong>Switch 2</strong></span>
           </div>
         )}
+      </div>
+
+      {/* Search */}
+      <div className="catpage-search-wrap">
+        <div className="catpage-search-card">
+          <div className="catpage-search-row">
+            <div className="catpage-search-field">
+              <span className="catpage-search-icon">&#128269;</span>
+              <input
+                type="text"
+                className="catpage-search-input"
+                placeholder={`Buscar en ${categoria?.name || 'categor\u00eda'}...`}
+                value={searchInput}
+                onChange={e => { setSearchInput(e.target.value); setFiltroAplicado(false); }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    const term = searchInput.trim();
+                    if (!term) return;
+                    setSearch(term);
+                    setFiltroAplicado(true);
+                  }
+                }}
+              />
+            </div>
+            <button
+              className="catpage-search-btn"
+              disabled={!searchInput.trim().length}
+              onClick={() => {
+                const term = searchInput.trim();
+                if (!term) return;
+                setSearch(term);
+                setFiltroAplicado(true);
+              }}
+            >Buscar</button>
+            {(filtroAplicado || search) && (
+              <button
+                className="catpage-clear-btn"
+                title="Limpiar"
+                onClick={() => { setSearchInput(""); setSearch(""); setMinPrice(""); setMaxPrice(""); setOrder('price-asc'); setFiltroAplicado(false); setPage(1); }}
+              >&#10005;</button>
+            )}
+          </div>
+
+          {/* Sort pills */}
+          <div className="catpage-sort-row">
+            <span className="catpage-sort-label">Ordenar:</span>
+            <div className="catpage-sort-pills">
+              <button className={`catpage-sort-pill${order === 'price-asc' ? ' active' : ''}`} onClick={() => setOrder('price-asc')}>
+                <span>&#8593;</span> Menor precio
+              </button>
+              <button className={`catpage-sort-pill${order === 'price-desc' ? ' active' : ''}`} onClick={() => setOrder('price-desc')}>
+                <span>&#8595;</span> Mayor precio
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Autocomplete dropdown */}
         {!filtroAplicado && searchInput.trim().length > 0 && searchResults.length > 0 && (
-          <div className="home-buscar-resultados" style={{
-            background:'#fff',
-            border:'1.5px solid #a084e8',
-            borderRadius:8,
-            marginTop:8,
-            zIndex:10,
-            position:'relative',
-            boxShadow:'0 2px 12px #7b2ff244',
-            overflow:'hidden'
-          }}>
-            {searchResults.slice(0,15).map(prod => (
-              <Link key={prod.id} to={`/producto/${prod.id}`} onClick={e => {
-                if (!user) {
-                  e.preventDefault();
-                  openAuthModal();
-                } else {
-                  setSearch(prod.name);
-                }
-              }} style={{display:'flex', alignItems:'center', gap:8, padding:10, borderBottom:'1px solid #eee', textDecoration:'none', color:'#222', fontFamily:'Poppins, Montserrat, Segoe UI, Arial, sans-serif', fontWeight:600, fontSize:'1.01rem'}}>
-                {prod.imageUrl && <img src={prod.imageUrl} alt={prod.name} style={{width:32, height:32, objectFit:'cover', borderRadius:4}} />}
+          <div className="catpage-autocomplete">
+            {searchResults.slice(0, 12).map(prod => (
+              <Link key={prod.id} to={prodUrl(prod.name, prod.id)} className="catpage-autocomplete-item" onClick={e => {
+                if (!user) { e.preventDefault(); openAuthModal(); } else { setSearch(prod.name); }
+              }}>
+                {prod.imageUrl && <img src={prod.imageUrl} alt={prod.name} className="catpage-autocomplete-img" />}
                 <span>{prod.name}</span>
               </Link>
             ))}
-            {searchResults.length > 15 && (
-              <div style={{padding: '8px 14px', color: '#888', fontWeight: 500, fontSize: '0.95rem', background: '#f7f7fa', borderTop: '1px solid #eee', textAlign:'center'}}>
-                Mostrando solo los primeros 15 resultados...
+            {searchResults.length > 12 && (
+              <div style={{padding:'8px 14px',textAlign:'center',color:'rgba(160,132,232,0.6)',fontSize:'0.85rem',fontWeight:500}}>
+                Mostrando los primeros 12 resultados...
               </div>
             )}
           </div>
         )}
         {!filtroAplicado && searchInput.trim().length > 0 && searchResults.length === 0 && (
-          <div style={{
-            background:'#fff',
-            border:'1.5px solid #a084e8',
-            borderRadius:8,
-            marginTop:8,
-            zIndex:10,
-            position:'relative',
-            boxShadow:'0 2px 12px #7b2ff244',
-            padding:'12px 16px',
-            textAlign:'center',
-            fontWeight:700,
-            color:'#444'
-          }}>
-            Productos no encontrados
+          <div className="catpage-autocomplete">
+            <div className="catpage-autocomplete-empty">
+              Sin resultados para &quot;{searchInput}&quot;
+            </div>
           </div>
         )}
       </div>
-      {/* Lista de productos */}
-      {/* Contador de productos totales filtrados */}
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 1400,
-          margin: '0 auto 10px auto',
-          textAlign: 'left',
-          fontWeight: 800,
-          fontSize: '1.18rem',
-          color: '#FFD600',
-          letterSpacing: '0.01em',
-          paddingLeft: 8,
-          paddingBottom: 4,
-          background: 'none',
-          borderRadius: 0,
-          boxShadow: 'none',
-          minHeight: 'unset',
-          padding: 0,
-          borderLeft: 'none',
-          borderBottom: 'none',
-          display: 'block'
-        }}
-      >
-  {`Productos encontrados: ${searchResults.length}`}
-      </div>
-      <div className="home-productos-list" style={{display:'flex', flexDirection:'column', alignItems:'center', width:'100%'}}>
-        {(() => {
-          // Paginate searchResults
-          const paginated = searchResults.slice((page-1)*perPage, page*perPage);
-          if (searchResults.length === 0) {
-            return <div style={{padding:32, textAlign:'center', color:'#888', fontSize:20, fontWeight:700}}>Productos no encontrados</div>;
-          }
-          return (
-            <>
-              <div
-                className="home-productos-grid"
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  justifyContent: 'center',
-                  gap: '28px 18px',
-                  width: '100%',
-                  maxWidth: 1400,
-                  margin: '0 auto'
-                }}
-              >
-                {paginated.map(prod => (
-                  <div
-                    key={prod.id}
-                    className="card1 card1-full-mobile"
-                    style={{
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'flex-start',
-                      padding: 18,
-                      boxSizing: 'border-box',
-                      position: 'relative',
-                      background: 'rgba(44,19,80,0.18)',
-                      borderRadius: 14,
-                      border: '1.5px solid #a084e8',
-                      boxShadow: '0 2px 12px #7b2ff244',
-                      minWidth: 220,
-                      maxWidth: 260,
-                      marginBottom: 10,
-                      cursor: 'pointer'
-                    }}
-                    onClick={e => {
-                      if (
-                        e.target.tagName === 'BUTTON' ||
-                        (e.target.closest && e.target.closest('button'))
-                      ) return;
-                      if (!user) {
-                        openAuthModal();
-                        return;
-                      }
-                      navigate(`/producto/${prod.id}`);
-                    }}
-                  >
-                    {/* Estrella de favoritos igual que Home */}
-                    <button
-                      onClick={e => { e.stopPropagation(); handleFav(prod); }}
-                      className={`star-fav-btn${favIds.includes(prod.id) ? ' fav' : ''}`}
-                      title={favIds.includes(prod.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
-                      style={{
-                        position: 'absolute',
-                        top: 12,
-                        right: 14,
-                        zIndex: 2,
-                        borderRadius: '50%',
-                        padding: 2,
-                        border: 'none',
-                        background: 'transparent',
-                        color: favIds.includes(prod.id) ? '#FFD600' : '#fff',
-                        fontSize: 22,
-                        cursor: 'pointer',
-                        boxShadow: 'none',
-                        transition: 'color 0.18s'
-                      }}
-                    >
-                      <span
-                        role="img"
-                        aria-label="star"
-                        style={{
-                          color: favIds.includes(prod.id) ? '#FFD600' : '#fff',
-                          textShadow: favIds.includes(prod.id)
-                            ? '0 0 8px #FFD60099, 0 1px 0 #18122B'
-                            : '0 1px 6px #7b2ff244'
-                        }}
-                      >★</span>
-                    </button>
-                    {prod.imageUrl && (
-                      <img src={prod.imageUrl} alt={prod.name} style={{
-                        width: '98%',
-                        height: 180,
-                        maxWidth: 240,
-                        display: 'block',
-                        objectFit: 'contain',
-                        background: 'transparent',
-                        borderRadius: 12,
-                        margin: '8px auto 16px auto',
-                        padding: 0,
-                        boxShadow: 'none',
-                        border: 'none'
-                      }} />
-                    )}
-                    <div style={{
-                      marginBottom: 4,
-                      fontWeight: 700,
-                      fontSize: '1.08rem',
-                      color: '#fff',
-                      textAlign: 'center',
-                      width: '100%'
-                    }}>
-                      <Link to={`/producto/${prod.id}`} style={{ color: '#fff', textDecoration: 'none' }}>{prod.name}</Link>
-                    </div>
-                    <div style={{
-                      marginBottom: 12,
-                      fontWeight: 700,
-                      color: '#fff',
-                      fontSize: '1.08rem',
-                      textAlign: 'center',
-                      width: '100%',
-                      display: 'flex',
-                      justifyContent: 'center',
-                    }}>
-                      {(() => {
-                        const min = getMinPriceByMoneda(prod, moneda);
-                        return min ? (
-                          <span style={{
-                            background: 'linear-gradient(90deg, #7b2ff2 0%, #a084e8 100%)',
-                            color: '#fff',
-                            borderRadius: 10,
-                            padding: '7px 22px',
-                            fontWeight: 800,
-                            fontSize: '1.08rem',
-                            letterSpacing: '0.02em',
-                            boxShadow: '0 2px 8px #0002',
-                            border: 'none',
-                            display: 'inline-block',
-                            fontFamily: 'Poppins, Montserrat, Segoe UI, Arial, sans-serif',
-                            textShadow: '0 1px 6px #18122B44',
-                            marginBottom: 0
-                          }}>
-                            Desde: {formatPrecio(min, moneda)}
-                          </span>
-                        ) : (
-                          <span style={{ color: '#888' }}>Sin precio en {moneda}</span>
-                        );
-                      })()}
-                    </div>
-                    <div style={{ display: 'flex', gap: 8, justifyContent: 'center', width: '100%', marginTop: 4 }}>
-                      <button
-                        onClick={async e => {
-                          e.stopPropagation();
-                          if (!user) { openAuthModal(); return; }
-                          await handleCart(prod);
-                        }}
-                        className={`btn${cartIds.includes(prod.id) ? ' incart' : ''}`}
-                        style={{
-                          marginTop: 8,
-                          marginBottom: 2,
-                          background: cartIds.includes(prod.id)
-                            ? 'linear-gradient(90deg, #d32f2f 0%, #a084e8 100%)'
-                            : 'linear-gradient(90deg, #7b2ff2 0%, #f357a8 100%)',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: 8,
-                          padding: '8px 18px',
-                          fontWeight: 700,
-                          fontSize: '1.01rem',
-                          boxShadow: '0 2px 8px #7b2ff244',
-                          cursor: 'pointer',
-                          transition: 'background 0.18s, box-shadow 0.18s, transform 0.15s'
-                        }}
-                      >
-                        {cartIds.includes(prod.id) ? 'Quitar del carrito' : 'Agregar al carrito'}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {/* PAGINATION CONTROLS SOLO SI HAY MÁS DE UNA PÁGINA */}
-              {searchResults.length > perPage && (
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: 18,
-                  margin: '40px auto 0 auto',
-                  width: '100%',
-                  maxWidth: 520,
-                  flexWrap: 'wrap',
-                  padding: '0 8px',
-                }}>
-                  <button
-                    onClick={() => {
-                      setPage(p => {
-                        const newPage = Math.max(1, p-1);
-                        setTimeout(() => window.scrollTo({top:0,behavior:'smooth'}), 10);
-                        return newPage;
-                      });
-                    }}
-                    disabled={page === 1}
-                    style={{
-                      padding: '14px 24px',
-                      borderRadius: 14,
-                      border: '2px solid #a084e8',
-                      background: 'rgba(44,19,80,0.18)',
-                      color: '#fff',
-                      fontWeight: 700,
-                      cursor: page === 1 ? 'not-allowed' : 'pointer',
-                      fontSize: '1.08rem',
-                      boxShadow: '0 2px 12px #7b2ff244',
-                      transition: 'background 0.18s, box-shadow 0.18s, transform 0.15s',
-                      outline: 'none',
-                      minWidth: 110,
-                      width: '100%',
-                      maxWidth: 180,
-                      margin: '0 0.5rem',
-                    }}
-                  >Anterior</button>
-                  <span style={{
-                    color: '#fff',
-                    fontWeight: 800,
-                    alignSelf: 'center',
-                    fontSize: '1.08rem',
-                    letterSpacing: '0.02em',
-                    background: 'rgba(44,19,80,0.18)',
-                    borderRadius: 10,
-                    padding: '12px 18px',
-                    border: '2px solid #a084e8',
-                    boxShadow: '0 2px 12px #7b2ff244',
-                    margin: '0 0.5rem',
-                    textAlign: 'center',
-                    minWidth: 120,
-                    width: '100%',
-                    maxWidth: 180,
-                    wordBreak: 'break-word',
-                  }}>Página {page} de {Math.ceil(searchResults.length/perPage)}</span>
-                  <button
-                    onClick={() => {
-                      setPage(p => {
-                        const newPage = Math.min(Math.ceil(searchResults.length/perPage), p+1);
-                        setTimeout(() => window.scrollTo({top:0,behavior:'smooth'}), 10);
-                        return newPage;
-                      });
-                    }}
-                    disabled={page >= Math.ceil(searchResults.length/perPage)}
-                    style={{
-                      padding: '14px 24px',
-                      borderRadius: 14,
-                      border: '2px solid #a084e8',
-                      background: 'rgba(44,19,80,0.18)',
-                      color: '#fff',
-                      fontWeight: 700,
-                      cursor: page >= Math.ceil(searchResults.length/perPage) ? 'not-allowed' : 'pointer',
-                      fontSize: '1.08rem',
-                      boxShadow: '0 2px 12px #7b2ff244',
-                      transition: 'background 0.18s, box-shadow 0.18s, transform 0.15s',
-                      outline: 'none',
-                      minWidth: 110,
-                      width: '100%',
-                      maxWidth: 180,
-                      margin: '0 0.5rem',
-                    }}
-                  >Siguiente</button>
-                </div>
-              )}
-            </>
-          );
-        })()}
-      </div>
-      {/* Modal para seleccionar variante/suscripción */}
-      {/* El modal solo se muestra si se agrega, nunca para quitar */}
-      {modal.open && (
-        <div className="modal-bg" style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          background: '#0008',
-          zIndex: 1000,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          paddingTop: 60, // <-- Espacio para no topar el header
-          boxSizing: 'border-box'
-        }}>
-          <div style={{
-            background: '#fff',
-            padding: 32,
-            borderRadius: 18,
-            minWidth: 320,
-            maxWidth: 400,
-            boxShadow: '0 8px 32px #7b2ff244',
-            border: '2px solid #a084e8',
-            position: 'relative',
-            marginTop: 32 // <-- Extra margen por si acaso
-          }}>
-            <h3 style={{
-              fontWeight: 800,
-              fontSize: '1.25rem',
-              color: '#7b2ff2',
-              marginBottom: 18,
-              textAlign: 'center'
-            }}>Selecciona una opción</h3>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {modal.opciones.map(op => (
-                <li key={op.value} style={{ marginBottom: 18 }}>
-                  <button
-                    style={{
-                      width: '100%',
-                      padding: '16px 0',
-                      borderRadius: 12,
-                      border: '2px solid #a084e8',
-                      background: '#e3f2fd',
-                      fontWeight: 700,
-                      fontSize: '1.15rem',
-                      color: '#393053',
-                      boxShadow: '0 2px 8px #7b2ff244',
-                      cursor: 'pointer',
-                      transition: 'background 0.18s, box-shadow 0.18s, transform 0.15s',
-                      outline: 'none',
-                      textShadow: '0 1px 6px #7b2ff244'
-                    }}
-                    onClick={() => handleCartModal(op)}
-                  >
-                    {op.label}
+
+      {/* Product grid */}
+      <div className="catpage-grid-container">
+        {searchResults.length === 0 ? (
+          <div className="catpage-empty">No se encontraron productos</div>
+        ) : (
+          <>
+            <div className="catpage-grid">
+              {paginated.map(prod => (
+                <div
+                  key={prod.id}
+                  className="catpage-card"
+                  onClick={e => {
+                    if (e.target.tagName === 'BUTTON' || (e.target.closest && e.target.closest('button'))) return;
+                    if (e.target.tagName === 'A' || (e.target.closest && e.target.closest('a'))) return;
+                    if (!user) { openAuthModal(); return; }
+                    navigate(prodUrl(prod.name, prod.id));
+                  }}
+                >
+                  {/* Fav */}
+                  <button className="catpage-fav-btn" onClick={e => { e.stopPropagation(); handleFav(prod); }} title={favIds.includes(prod.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'}>
+                    <span className={`catpage-fav-star ${favIds.includes(prod.id) ? 'on' : 'off'}`}>&#9733;</span>
                   </button>
+
+                  {prod.imageUrl && (
+                    <img src={prod.imageUrl} alt={prod.name} className="catpage-card-img" loading="lazy" />
+                  )}
+
+                  <div className="catpage-card-name">
+                    <Link to={prodUrl(prod.name, prod.id)}>{prod.name}</Link>
+                  </div>
+
+                  {isSwitch && (
+                    <div className="catpage-switch-badge">
+                      <span className="catpage-switch-badge-dot" />
+                      Switch 1 &amp; 2
+                    </div>
+                  )}
+
+                  {(() => {
+                    const min = getMinPriceByMoneda(prod, moneda);
+                    return min ? (
+                      <div className="catpage-price-badge">
+                        Desde: <span className="price-val">{formatPrecio(min, moneda)}</span>
+                      </div>
+                    ) : (
+                      <div className="catpage-no-price">Sin precio en {moneda}</div>
+                    );
+                  })()}
+
+                  <button
+                    className={`catpage-cart-btn${cartIds.includes(prod.id) ? ' in-cart' : ''}`}
+                    onClick={async e => {
+                      e.stopPropagation();
+                      if (!user) { openAuthModal(); return; }
+                      await handleCart(prod);
+                    }}
+                  >
+                    {cartIds.includes(prod.id) ? (
+                      <><span style={{fontSize:'0.9rem'}}>&#10005;</span> Quitar del carrito</>
+                    ) : (
+                      <><svg className="catpage-cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> Agregar al carrito</>
+                    )}
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="catpage-pagination">
+                <button
+                  className="catpage-page-btn"
+                  disabled={page === 1}
+                  onClick={() => { setPage(p => Math.max(1, p - 1)); setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 10); }}
+                >&#8592; Anterior</button>
+                <span className="catpage-page-info">
+                  {page} / {totalPages}
+                </span>
+                <button
+                  className="catpage-page-btn"
+                  disabled={page >= totalPages}
+                  onClick={() => { setPage(p => Math.min(totalPages, p + 1)); setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 10); }}
+                >Siguiente &#8594;</button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Variant / Subscription modal */}
+      {modal.open && (
+        <div className="catpage-modal-overlay" onClick={e => { if (e.target === e.currentTarget) setModal({ open: false, prod: null, opciones: [], tipo: null }); }}>
+          <div className="catpage-modal-card">
+            <h3>Selecciona una opci&oacute;n</h3>
+            <ul className="catpage-modal-options">
+              {modal.opciones.map(op => (
+                <li key={op.value}>
+                  <button className="catpage-modal-option-btn" onClick={() => handleCartModal(op)}>{op.label}</button>
                 </li>
               ))}
             </ul>
-            <button
-              style={{
-                marginTop: 8,
-                width: '100%',
-                padding: '14px 0',
-                borderRadius: 10,
-                border: 'none',
-                background: 'linear-gradient(90deg, #7b2ff2 0%, #f357a8 100%)',
-                color: '#fff',
-                fontWeight: 800,
-                fontSize: '1.13rem',
-                boxShadow: '0 2px 8px #7b2ff244',
-                cursor: 'pointer',
-                transition: 'background 0.18s, box-shadow 0.18s, transform 0.15s',
-                outline: 'none',
-                letterSpacing: '0.02em'
-              }}
-              onClick={() => setModal({ open: false, prod: null, opciones: [], tipo: null })}
-            >
-              Cancelar
-            </button>
+            <button className="catpage-modal-cancel" onClick={() => setModal({ open: false, prod: null, opciones: [], tipo: null })}>Cancelar</button>
           </div>
         </div>
       )}

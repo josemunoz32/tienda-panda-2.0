@@ -1,17 +1,269 @@
-/* SobreNosotros.css - Estilos profesionales y temáticos para la sección Sobre Nosotros */
+/* SobreNosotros.css - Galaxy dark theme profesional */
 
 .sobre-root {
-  max-width: 800px;
-  margin: 48px auto 64px auto;
-  padding: 36px 28px 44px 28px;
-  /* Fondo oscuro con toque morado, similar a un tema "gamer" */
-  background: rgba(40,18,60,0.97); 
-  border-radius: 18px;
-  /* Efecto de cristal esmerilado con morado vibrante */
-  box-shadow: 0 8px 32px 0 rgba(124,58,237,0.18); 
-  color: #f3e8ff; /* Texto principal claro */
+  max-width: 860px;
+  margin: 52px auto 72px auto;
+  padding: 0 16px 48px 16px;
+  color: #f3e8ff;
   position: relative;
   z-index: 2;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+}
+
+/* ── Título ──────────────────────────── */
+.sobre-title {
+  font-size: 2.4rem;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.sobre-title-icon {
+  font-size: 2.2rem;
+  flex-shrink: 0;
+}
+
+.sobre-title-text {
+  background: linear-gradient(90deg, #FFD600 0%, #a259ff 60%, #7b2ff2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sobre-title-sub {
+  text-align: center;
+  color: #a08ab8;
+  font-size: 0.98rem;
+  margin-bottom: 10px;
+  letter-spacing: 0.3px;
+}
+
+.sobre-divider {
+  width: 80px;
+  height: 4px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #7b2ff2, #FFD600);
+  margin: 0 auto 40px auto;
+}
+
+/* ── Frase destacada ───────────────────── */
+.sobre-frase {
+  text-align: center;
+  font-style: italic;
+  font-size: 1.12rem;
+  color: #c4b5fd;
+  margin-bottom: 40px;
+  padding: 18px 28px;
+  background: rgba(162,89,255,0.07);
+  border-radius: 14px;
+  border: 1px solid rgba(162,89,255,0.20);
+  line-height: 1.7;
+  position: relative;
+}
+
+.sobre-frase-icon {
+  font-size: 2rem;
+  color: #a259ff;
+  line-height: 0;
+  vertical-align: -0.35em;
+  font-style: normal;
+  margin: 0 4px;
+  opacity: 0.6;
+}
+
+/* ── Stats ───────────────────────────── */
+.sobre-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 36px;
+}
+
+.sobre-stat-card {
+  background: rgba(26,16,53,0.98);
+  border: 1.5px solid rgba(162,89,255,0.28);
+  border-radius: 14px;
+  padding: 18px 10px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(123,47,242,0.10);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.sobre-stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(123,47,242,0.22);
+}
+
+.sobre-stat-value {
+  font-size: 1.8rem;
+  font-weight: 900;
+  background: linear-gradient(90deg, #FFD600, #a259ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 4px;
+  line-height: 1.1;
+}
+
+.sobre-stat-label {
+  font-size: 0.78rem;
+  color: #a08ab8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* ── Secciones card ───────────────────── */
+.sobre-section {
+  margin-bottom: 24px;
+  background: rgba(26,16,53,0.98);
+  border: 1.5px solid rgba(162,89,255,0.28);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(123,47,242,0.12);
+}
+
+.sobre-section-header {
+  padding: 15px 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  border-bottom: 1.5px solid rgba(162,89,255,0.15);
+}
+
+.sobre-section-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.sobre-section--historia .sobre-section-header {
+  background: linear-gradient(90deg, rgba(123,47,242,0.22) 0%, rgba(26,16,53,0) 100%);
+  color: #c4b5fd;
+  border-bottom-color: rgba(123,47,242,0.20);
+}
+
+.sobre-section--vision .sobre-section-header {
+  background: linear-gradient(90deg, rgba(255,214,0,0.15) 0%, rgba(26,16,53,0) 100%);
+  color: #fde68a;
+  border-bottom-color: rgba(255,214,0,0.15);
+}
+
+.sobre-section--contacto .sobre-section-header {
+  background: linear-gradient(90deg, rgba(74,222,128,0.15) 0%, rgba(26,16,53,0) 100%);
+  color: #86efac;
+  border-bottom-color: rgba(74,222,128,0.15);
+}
+
+.sobre-section-body {
+  padding: 22px 24px 20px 24px;
+}
+
+.sobre-section-body p {
+  font-size: 0.98rem;
+  line-height: 1.78;
+  color: #d4c8f0;
+  margin: 0 0 12px 0;
+}
+
+.sobre-section-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Contacto grid ───────────────────── */
+.sobre-contacto-intro {
+  margin-bottom: 16px !important;
+  color: #a08ab8 !important;
+  font-size: 0.92rem !important;
+}
+
+.sobre-contacto-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sobre-contacto-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(162,89,255,0.07);
+  border: 1px solid rgba(162,89,255,0.18);
+  border-radius: 12px;
+  padding: 12px 16px;
+  text-decoration: none;
+  transition: background 0.18s, border-color 0.18s, transform 0.15s;
+  cursor: pointer;
+}
+
+.sobre-contacto-card:hover {
+  background: rgba(162,89,255,0.14);
+  border-color: rgba(162,89,255,0.40);
+  transform: translateX(4px);
+}
+
+.sobre-contacto-card--whatsapp:hover {
+  background: rgba(37,211,102,0.08);
+  border-color: rgba(37,211,102,0.35);
+}
+
+.sobre-contacto-card--instagram:hover {
+  background: rgba(225,48,108,0.08);
+  border-color: rgba(225,48,108,0.35);
+}
+
+.sobre-contacto-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  background: rgba(162,89,255,0.12);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sobre-contacto-type {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #a259ff;
+  margin-bottom: 2px;
+}
+
+.sobre-contacto-value {
+  font-size: 0.93rem;
+  color: #d4c8f0;
+  word-break: break-all;
+}
+
+/* ── Responsive ───────────────────────── */
+@media (max-width: 600px) {
+  .sobre-root {
+    padding: 0 4px 32px 4px;
+    margin-top: 28px;
+  }
+  .sobre-title {
+    font-size: 1.6rem;
+  }
+  .sobre-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .sobre-section-header {
+    font-size: 1rem;
+    padding: 12px 14px;
+  }
+  .sobre-section-body {
+    padding: 16px 14px;
+  }
 }
 
 .sobre-title {

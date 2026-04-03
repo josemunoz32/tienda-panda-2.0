@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { catUrl } from '../utils/slugify';
 import { useMoneda } from "../context/MonedaContext";
 import { auth, db } from "../firebase";
 import { signOut } from "firebase/auth";
@@ -392,7 +393,7 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
                           <ul>
                             {categorias.map(cat => (
                               <li key={cat.id}>
-                                <Link to={`/categoria/${cat.id}`} onClick={() => setSidebarOpen(false)}>{cat.name}</Link>
+                                <Link to={catUrl(cat.name, cat.id)} onClick={() => setSidebarOpen(false)}>{cat.name}</Link>
                               </li>
                             ))}
                           </ul>
@@ -423,7 +424,7 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
                           <ul>
                             {categorias.map(cat => (
                               <li key={cat.id}>
-                                <Link to={`/categoria/${cat.id}`} onClick={() => setSidebarOpen(false)}>{cat.name}</Link>
+                                <Link to={catUrl(cat.name, cat.id)} onClick={() => setSidebarOpen(false)}>{cat.name}</Link>
                               </li>
                             ))}
                           </ul>
@@ -466,39 +467,48 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
       {/* Dropdowns de favoritos y carrito (flotantes) */}
       {favOpen && (
         <div ref={favMenuRef} className="header-navbar-dropdown" style={{
-          background: 'linear-gradient(120deg, #2a0845 0%, #6441a5 100%)',
-          borderRadius: 18,
-          boxShadow: '0 8px 32px #0008',
-          padding: 18,
-          minWidth: 270,
-          maxWidth: 340,
+          background: 'linear-gradient(120deg, #1a1035 0%, #2d1950 50%, #1a1035 100%)',
+          borderRadius: 20,
+          boxShadow: '0 12px 48px #000a, 0 0 0 1px #a259ff22',
+          padding: 0,
+          minWidth: 320,
+          maxWidth: 380,
           color: '#fff',
-          border: '1.5px solid #a259ff44',
+          border: '1.5px solid #a259ff33',
           marginTop: 12,
+          overflow: 'hidden',
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <b style={{ fontSize: '1.13rem', letterSpacing: '-0.5px' }}>Favoritos</b>
-            <button onClick={() => setFavOpen(false)} aria-label="Minimizar favoritos" style={{ background: 'none', border: 'none', fontSize: 26, cursor: 'pointer', color: '#fff', fontWeight: 700, lineHeight: 1, borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .18s' }} onMouseOver={e => e.currentTarget.style.background = '#a259ff33'} onMouseOut={e => e.currentTarget.style.background = 'none'}>
-              <span style={{ fontWeight: 900, fontSize: 28, marginTop: -2 }}>×</span>
+          {/* Header de favoritos */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 18px 12px', borderBottom: '1px solid #a259ff22' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 20 }}>⭐</span>
+              <b style={{ fontSize: '1.1rem', letterSpacing: '-0.3px' }}>Favoritos</b>
+              {favorites.length > 0 && <span style={{ background: '#a259ff', color: '#fff', borderRadius: 20, padding: '2px 9px', fontSize: 12, fontWeight: 700 }}>{favorites.length}</span>}
+            </div>
+            <button onClick={() => setFavOpen(false)} aria-label="Cerrar favoritos" style={{ background: '#ffffff0a', border: 'none', fontSize: 22, cursor: 'pointer', color: '#fff9', fontWeight: 700, lineHeight: 1, borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .18s' }} onMouseOver={e => { e.currentTarget.style.background = '#a259ff33'; e.currentTarget.style.color = '#fff'; }} onMouseOut={e => { e.currentTarget.style.background = '#ffffff0a'; e.currentTarget.style.color = '#fff9'; }}>
+              ×
             </button>
           </div>
           {favorites.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#fff8', fontWeight: 500 }}>No hay productos en favoritos.</div>
+            <div style={{ textAlign: 'center', color: '#fff6', fontWeight: 500, padding: '32px 18px' }}>
+              <div style={{ fontSize: 36, marginBottom: 8, opacity: 0.5 }}>⭐</div>
+              No hay productos en favoritos
+            </div>
           ) : (
-            <ul className="panel-favoritos-lista" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            <ul className="panel-favoritos-lista" style={{ listStyle: 'none', padding: '8px 14px', margin: 0, maxHeight: 280, overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#a259ff55 transparent' }}>
               {favorites.map(prod => {
                 const dbProd = favProducts[prod.id] || {};
                 const min = getMinPriceByMoneda(dbProd, moneda) ?? getMinPriceByMoneda(prod, moneda);
                 return (
-                  <li key={prod.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, background: '#ffffff0a', borderRadius: 10, padding: '7px 8px', boxShadow: '0 1px 6px #0002' }}>
-                    {prod.imageUrl && <img src={prod.imageUrl} alt={prod.name} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', border: '2px solid #a259ff', background: '#fff' }} />}
+                  <li key={prod.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, background: '#ffffff08', borderRadius: 12, padding: '8px 10px', transition: 'background .15s' }}>
+                    {prod.imageUrl && <img src={prod.imageUrl} alt={prod.name} style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover', border: '1.5px solid #a259ff55', background: '#18122b' }} />}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 15 }}>{prod.name}</div>
-                      <div style={{ fontSize: 13, color: '#fff9', fontWeight: 500 }}>
+                      <div style={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 14 }}>{prod.name}</div>
+                      <div style={{ fontSize: 12, color: '#c4b5fd', fontWeight: 600 }}>
                         {min ? `${moneda}: ${formatPrecio(min, moneda)}` : 'Sin precio'}
                       </div>
                     </div>
-                    <button onClick={() => handleRemoveFromFav(prod.id)} aria-label="Eliminar favorito" style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#ff5a5a', fontWeight: 700, borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .18s' }} onMouseOver={e => e.currentTarget.style.background = '#ff5a5a22'} onMouseOut={e => e.currentTarget.style.background = 'none'}>✕</button>
+                    <button onClick={() => handleRemoveFromFav(prod.id)} aria-label="Eliminar favorito" style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', color: '#ff6b6b', fontWeight: 700, borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .18s' }} onMouseOver={e => e.currentTarget.style.background = '#ff5a5a22'} onMouseOut={e => e.currentTarget.style.background = 'none'}>✕</button>
                   </li>
                 );
               })}
@@ -508,27 +518,36 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
       )}
       {cartOpen && (
         <div ref={cartMenuRef} className="header-navbar-dropdown" style={{
-          background: 'linear-gradient(120deg, #2a0845 0%, #6441a5 100%)',
-          borderRadius: 18,
-          boxShadow: '0 8px 32px #0008',
-          padding: 18,
-          minWidth: 270,
-          maxWidth: 340,
+          background: 'linear-gradient(120deg, #1a1035 0%, #2d1950 50%, #1a1035 100%)',
+          borderRadius: 20,
+          boxShadow: '0 12px 48px #000a, 0 0 0 1px #a259ff22',
+          padding: 0,
+          minWidth: 320,
+          maxWidth: 380,
           color: '#fff',
-          border: '1.5px solid #a259ff44',
+          border: '1.5px solid #a259ff33',
           marginTop: 12,
+          overflow: 'hidden',
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <b style={{ fontSize: '1.13rem', letterSpacing: '-0.5px' }}>Carrito</b>
-            <button onClick={() => setCartOpen(false)} aria-label="Minimizar carrito" style={{ background: 'none', border: 'none', fontSize: 26, cursor: 'pointer', color: '#fff', fontWeight: 700, lineHeight: 1, borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .18s' }} onMouseOver={e => e.currentTarget.style.background = '#a259ff33'} onMouseOut={e => e.currentTarget.style.background = 'none'}>
-              <span style={{ fontWeight: 900, fontSize: 28, marginTop: -2 }}>×</span>
+          {/* Header del carrito */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 18px 12px', borderBottom: '1px solid #a259ff22' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 20 }}>🛒</span>
+              <b style={{ fontSize: '1.1rem', letterSpacing: '-0.3px' }}>Carrito</b>
+              {cart.length > 0 && <span style={{ background: '#a259ff', color: '#fff', borderRadius: 20, padding: '2px 9px', fontSize: 12, fontWeight: 700 }}>{cart.length}</span>}
+            </div>
+            <button onClick={() => setCartOpen(false)} aria-label="Cerrar carrito" style={{ background: '#ffffff0a', border: 'none', fontSize: 22, cursor: 'pointer', color: '#fff9', fontWeight: 700, lineHeight: 1, borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .18s' }} onMouseOver={e => { e.currentTarget.style.background = '#a259ff33'; e.currentTarget.style.color = '#fff'; }} onMouseOut={e => { e.currentTarget.style.background = '#ffffff0a'; e.currentTarget.style.color = '#fff9'; }}>
+              ×
             </button>
           </div>
           {cart.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#fff8', fontWeight: 500 }}>No hay productos en el carrito.</div>
+            <div style={{ textAlign: 'center', color: '#fff6', fontWeight: 500, padding: '32px 18px' }}>
+              <div style={{ fontSize: 36, marginBottom: 8, opacity: 0.5 }}>🛒</div>
+              Tu carrito está vacío
+            </div>
           ) : (
             <>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              <ul style={{ listStyle: 'none', padding: '8px 14px', margin: 0, maxHeight: 280, overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#a259ff55 transparent' }}>
                 {cart.map(prod => {
                   let precio = null;
                   let detalle = null;
@@ -547,28 +566,32 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
                   }
                   if (prod[`price${moneda}`]) precio = prod[`price${moneda}`];
                   return (
-                    <li key={prod.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, background: '#ffffff0a', borderRadius: 10, padding: '7px 8px', boxShadow: '0 1px 6px #0002' }}>
-                      {prod.imageUrl && <img src={prod.imageUrl} alt={prod.name} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', border: '2px solid #a259ff', background: '#fff' }} />}
+                    <li key={prod.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, background: '#ffffff08', borderRadius: 12, padding: '8px 10px', transition: 'background .15s' }}>
+                      {prod.imageUrl && <img src={prod.imageUrl} alt={prod.name} style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover', border: '1.5px solid #a259ff55', background: '#18122b' }} />}
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 15 }}>{prod.name}</div>
-                        <div style={{ fontSize: 13, color: '#fff9', fontWeight: 500 }}>
+                        <div style={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 14 }}>{prod.name}</div>
+                        <div style={{ fontSize: 12, color: '#c4b5fd', fontWeight: 600 }}>
                           {precio ? `${moneda}: ${formatPrecio(precio, moneda)}` : 'Sin precio'}
-                          {detalle && <span style={{ marginLeft: 4 }}>({detalle})</span>}
+                          {detalle && <span style={{ marginLeft: 4, color: '#fff6' }}>({detalle})</span>}
                         </div>
                       </div>
-                      <button onClick={() => handleRemoveFromCart(prod.id)} aria-label="Eliminar del carrito" style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#ff5a5a', fontWeight: 700, borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background .18s' }} onMouseOver={e => e.currentTarget.style.background = '#ff5a5a22'} onMouseOut={e => e.currentTarget.style.background = 'none'}>✕</button>
+                      <button onClick={() => handleRemoveFromCart(prod.id)} aria-label="Eliminar del carrito" style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', color: '#ff6b6b', fontWeight: 700, borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .18s' }} onMouseOver={e => e.currentTarget.style.background = '#ff5a5a22'} onMouseOut={e => e.currentTarget.style.background = 'none'}>✕</button>
                     </li>
                   );
                 })}
               </ul>
-              <div className="header-navbar-cart-total" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, paddingTop: 8, borderTop: '1.5px solid #a259ff33', fontWeight: 700, fontSize: 17 }}>
-                <div style={{ color: '#fff' }}>Total: {formatPrecio(cart.reduce((acc, prod) => {
-                  let precio = 0;
-                  if (prod[`price${moneda}`]) {
-                    precio = Number(prod[`price${moneda}`]);
-                  }
-                  return acc + (precio || 0);
-                }, 0), moneda)}</div>
+              {/* Footer del carrito: Total + Botón */}
+              <div style={{ padding: '12px 18px 16px', borderTop: '1px solid #a259ff22', background: '#0002' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, fontWeight: 700, fontSize: 16 }}>
+                  <span style={{ color: '#c4b5fd' }}>Total</span>
+                  <span style={{ color: '#fff', fontSize: 18 }}>{formatPrecio(cart.reduce((acc, prod) => {
+                    let precio = 0;
+                    if (prod[`price${moneda}`]) {
+                      precio = Number(prod[`price${moneda}`]);
+                    }
+                    return acc + (precio || 0);
+                  }, 0), moneda)}</span>
+                </div>
                 <CartBuyButton user={user} setCartOpen={setCartOpen} />
               </div>
             </>

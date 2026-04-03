@@ -48,7 +48,7 @@ export default function BannerHeader({
       overflow: 'hidden',
       minHeight: 320,
       boxShadow: '0 2px 16px #0002',
-      background: 'rgba(30,0,50,0.98)',
+      background: '#4a1a8a',
       backdropFilter: 'blur(2px)',
       transition: 'box-shadow .2s',
     }}>
@@ -63,14 +63,14 @@ export default function BannerHeader({
         }
       `}</style>
       <img
-        src="/banner.jpg"
+        src="/banner.png"
         alt="Banner Panda Store"
         className="banner-header-img"
         style={{
           width: '100vw',
           height: '320px',
           objectFit: 'cover',
-          objectPosition: 'center top',
+          objectPosition: 'center center',
           display: 'block',
           position: 'absolute',
           top: 0,

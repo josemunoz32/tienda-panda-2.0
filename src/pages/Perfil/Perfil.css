@@ -1,184 +1,266 @@
-/* --- GALACTIC THEME PROFILE REFINED --- */
-.perfil-container {
-  min-height: 100vh;
-  width: 100vw;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 2.5rem 0 2.5rem 0;
-  background: linear-gradient(135deg, #1a102b 0%, #2d1846 60%, #4f46e5 100%) fixed;
-  position: relative;
-  z-index: 1;
-  overflow-x: hidden;
-}
-.perfil-container::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(circle at 70% 20%, #a084e822 0%, #4f46e511 60%, transparent 100%),
-              radial-gradient(circle at 20% 80%, #7c3aed33 0%, transparent 80%);
-  z-index: 0;
-}
+/* --- GALACTIC THEME PROFILE REDESIGNED --- */
 
-.perfil-card {
-  background: rgba(34, 24, 60, 0.92);
-  border-radius: 22px;
-  box-shadow: 0 8px 32px #7c3aed44, 0 1.5px 0 #a084e8;
-  padding: 2.5rem 2rem 2rem 2rem;
-  width: 100%;
-  max-width: 440px;
-  text-align: center;
-  border: 2.5px solid #a084e8;
-  backdrop-filter: blur(12px) saturate(1.3);
+.perfil-page {
+  max-width: 860px;
+  margin: 52px auto 72px auto;
+  padding: 0 16px 48px 16px;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  color: #f3e8ff;
   position: relative;
   z-index: 2;
-  margin: 0 auto;
 }
 
-.perfil-avatar {
-  margin-bottom: 1.5rem;
-  display: flex;
-  justify-content: center;
+.perfil-loading {
+  text-align: center;
+  padding: 80px 20px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #a084e8;
 }
-.perfil-avatar img {
+
+.perfil-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ── Tarjeta info ──────────────────────── */
+.perfil-info-card {
+  background: rgba(26,16,53,0.98);
+  border: 1.5px solid rgba(162,89,255,0.35);
+  border-radius: 20px;
+  padding: 32px 24px 28px 24px;
+  box-shadow: 0 4px 24px rgba(123,47,242,0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.perfil-avatar-wrap {
+  position: relative;
+  margin-bottom: 4px;
+}
+
+.perfil-avatar-img {
   width: 110px;
   height: 110px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3.5px solid #a084e8;
-  box-shadow: 0 2px 16px #7c3aed55, 0 0 0 6px #2d1846;
-  background: #fff;
-  transition: border 0.3s, box-shadow 0.3s;
-  animation: perfil-avatar-glow 2.5s infinite alternate;
-}
-@keyframes perfil-avatar-glow {
-  0% { box-shadow: 0 2px 16px #7c3aed55, 0 0 0 6px #2d1846; }
-  100% { box-shadow: 0 4px 32px #a084e8cc, 0 0 0 10px #4f46e555; }
+  border: 3px solid #a259ff;
+  box-shadow: 0 0 0 6px rgba(162,89,255,0.15), 0 4px 20px rgba(123,47,242,0.3);
+  animation: avatar-glow 2.5s ease-in-out infinite alternate;
 }
 
-.perfil-info {
-  text-align: left;
-  margin-bottom: 2rem;
-  background: rgba(60,40,100,0.55);
-  border-radius: 14px;
-  padding: 18px 18px 14px 18px;
-  box-shadow: 0 1px 8px #7b2ff211;
-  font-size: 1.08rem;
-  border: 1.5px solid #4f46e5;
-  color: #e0e0ff;
-}
-.perfil-info p {
-  margin: 0.7em 0 0.7em 0;
-  font-size: 1.08rem;
-  color: #e0e0ff;
-  letter-spacing: 0.01em;
-}
-.perfil-info strong {
-  color: #FFD600;
-  font-weight: 700;
-  min-width: 90px;
-  display: inline-block;
+.perfil-avatar-placeholder {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: rgba(162,89,255,0.12);
+  border: 3px solid #a259ff;
+  box-shadow: 0 0 0 6px rgba(162,89,255,0.15), 0 4px 20px rgba(123,47,242,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: avatar-glow 2.5s ease-in-out infinite alternate;
 }
 
-.title {
-  font-size: 1.6rem;
-  color: #FFD600;
-  margin-bottom: 1.1rem;
+@keyframes avatar-glow {
+  0% { box-shadow: 0 0 0 6px rgba(162,89,255,0.15), 0 4px 20px rgba(123,47,242,0.3); }
+  100% { box-shadow: 0 0 0 10px rgba(162,89,255,0.25), 0 6px 32px rgba(162,89,255,0.45); }
+}
+
+.perfil-name {
+  font-size: 1.3rem;
   font-weight: 800;
-  letter-spacing: 0.03em;
-  text-shadow: 0 2px 12px #7b2ff244, 0 1px 0 #18122B;
-  border-bottom: 2px solid #a084e8;
-  padding-bottom: 0.5rem;
-}
-
-.editar-perfil {
-  margin-top: 1.5rem;
-}
-
-/* Inputs y botones del editor */
-.perfil-card input[type="text"],
-.perfil-card input[type="email"],
-.perfil-card input[type="tel"] {
-  width: 100%;
-  padding: 0.7rem 0.9rem;
-  border: 1.5px solid #a084e8;
-  border-radius: 7px;
-  font-size: 1rem;
-  background: rgba(255,255,255,0.08);
   color: #fff;
-  margin-bottom: 1rem;
+  letter-spacing: 0.3px;
+  text-align: center;
+}
+
+.perfil-info-rows {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.perfil-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(162,89,255,0.07);
+  border: 1px solid rgba(162,89,255,0.18);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.perfil-info-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.perfil-info-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #a259ff;
+  margin-bottom: 2px;
+}
+
+.perfil-info-value {
+  font-size: 0.97rem;
+  color: #d4c8f0;
+  word-break: break-all;
+}
+
+/* ── Tarjeta edición ───────────────────── */
+.perfil-edit-card {
+  background: rgba(26,16,53,0.98);
+  border: 1.5px solid rgba(162,89,255,0.35);
+  border-radius: 20px;
+  padding: 28px 24px;
+  box-shadow: 0 4px 24px rgba(123,47,242,0.15);
+}
+
+.perfil-edit-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #c4b5fd;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(162,89,255,0.18);
+  padding-bottom: 14px;
+}
+
+/* ── Form sections (EditarPerfil) ───────── */
+.editar-perfil {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+.form-section label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #a259ff;
+}
+
+.form-section input[type="text"],
+.form-section input[type="email"],
+.form-section input[type="tel"] {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(162,89,255,0.07);
+  border: 1.5px solid rgba(162,89,255,0.30);
+  border-radius: 10px;
+  font-size: 0.97rem;
+  color: #f3e8ff;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
   transition: border 0.2s, background 0.2s;
+  box-sizing: border-box;
 }
-.perfil-card input:focus {
+
+.form-section input:focus {
   outline: none;
-  border-color: #FFD600;
-  background: rgba(76, 29, 149, 0.13);
+  border-color: #a259ff;
+  background: rgba(162,89,255,0.12);
 }
-.perfil-card input[disabled] {
-  background-color: #2d1846;
-  color: #aaa;
+
+.form-section input:disabled {
+  background: rgba(162,89,255,0.04);
+  color: #7a6a9a;
+  border-color: rgba(162,89,255,0.12);
   cursor: not-allowed;
 }
-.perfil-card button, .perfil-card .btn-guardar {
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(90deg, #4f46e5 60%, #a084e8 100%);
+
+/* Boton guardar */
+.btn-guardar {
+  width: 100%;
+  padding: 12px 0;
+  background: linear-gradient(90deg, #7b2ff2 0%, #a259ff 100%);
   color: #fff;
   border: none;
-  border-radius: 7px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 1.08rem;
-  font-weight: bold;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-  box-shadow: 0 2px 8px #7c3aed33;
-  transition: background 0.2s, box-shadow 0.2s;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  letter-spacing: 0.3px;
+  margin-top: 8px;
+  box-shadow: 0 4px 16px rgba(123,47,242,0.30);
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
 }
-.perfil-card button:disabled, .perfil-card .btn-guardar:disabled {
-  background: #393053;
-  color: #bbb;
+
+.btn-guardar:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(123,47,242,0.45);
+}
+
+.btn-guardar:disabled {
+  background: rgba(162,89,255,0.15);
+  color: #7a6a9a;
   cursor: not-allowed;
   box-shadow: none;
+  transform: none;
 }
-.perfil-card button:hover:not(:disabled), .perfil-card .btn-guardar:hover:not(:disabled) {
-  background: linear-gradient(90deg, #a084e8 0%, #4f46e5 100%);
-  box-shadow: 0 4px 16px #7c3aed55;
+
+/* Boton cambiar foto */
+.image-upload-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 10px 0;
+  background: rgba(162,89,255,0.10);
+  border: 1.5px solid rgba(162,89,255,0.40);
+  color: #c4b5fd;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.93rem;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  letter-spacing: 0.3px;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  box-sizing: border-box;
+  margin-bottom: 4px;
+}
+
+.image-upload-label:hover {
+  background: rgba(162,89,255,0.20);
+  border-color: #a259ff;
+  transform: translateY(-1px);
 }
 
 /* Responsive */
-@media (max-width: 600px) {
-  .perfil-container {
-    max-width: 99vw !important;
-    padding: 12px 0 !important;
-    margin: 18px auto !important;
-    border-radius: 10px !important;
+@media (max-width: 700px) {
+  .perfil-wrapper {
+    grid-template-columns: 1fr;
   }
-  .perfil-card {
-    padding: 12px 2vw 10px 2vw !important;
-    max-width: 99vw !important;
-  }
-  .perfil-avatar img {
-    width: 80px !important;
-    height: 80px !important;
-  }
-  .perfil-info {
-    padding: 8px 2px !important;
-    font-size: 14px !important;
-  }
-  .perfil-card form,
-  .perfil-card form > * {
-    max-width: 96vw !important;
-    width: 100% !important;
-    box-sizing: border-box;
-  }
-  .perfil-card input,
-  .perfil-card select,
-  .perfil-card button {
-    font-size: 0.97rem !important;
-    padding: 7px 8px !important;
+  .perfil-page {
+    padding: 0 8px 36px 8px;
+    margin-top: 28px;
   }
 }
 
-/* --- END GALACTIC THEME PROFILE REFINED --- */
+/* --- END GALACTIC THEME PROFILE REDESIGNED --- */
 
 /* Estilos para el modal de recorte */
 .cropper-modal {

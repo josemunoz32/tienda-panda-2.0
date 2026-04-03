@@ -1,75 +1,291 @@
-/* Terminos.css - Estilos profesionales y temáticos para la sección de Términos y Condiciones */
+/* Terminos.css - Galaxy dark theme profesional */
 
 .terminos-root {
-  max-width: 900px;
-  margin: 48px auto 64px auto;
-  padding: 36px 28px 44px 28px;
-  background: rgba(40,18,60,0.97);
-  border-radius: 18px;
-  box-shadow: 0 8px 32px 0 rgba(124,58,237,0.18);
+  max-width: 860px;
+  margin: 52px auto 72px auto;
+  padding: 0 16px 48px 16px;
   color: #f3e8ff;
   position: relative;
   z-index: 2;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
 }
 
+/* ── Título principal ─────────────────────── */
 .terminos-title {
-  font-size: 2.3rem;
-  font-weight: 800;
+  font-size: 2.4rem;
+  font-weight: 900;
   letter-spacing: 1px;
-  color: #a084e8;
   text-align: center;
-  margin-bottom: 36px;
-  text-shadow: 0 2px 16px #7c3aed;
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
   gap: 12px;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
-.terminos-section {
+.terminos-title-icon {
+  font-size: 2.2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.terminos-title-text {
+  background: linear-gradient(90deg, #FFD600 0%, #a259ff 60%, #7b2ff2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.terminos-title-sub {
+  text-align: center;
+  color: #a08ab8;
+  font-size: 0.98rem;
   margin-bottom: 36px;
-  background: rgba(124,58,237,0.10);
-  border-radius: 12px;
-  padding: 24px 22px 18px 22px;
-  box-shadow: 0 2px 8px 0 rgba(124,58,237,0.08);
+  letter-spacing: 0.3px;
 }
 
-.terminos-section h2 {
-  color: #a084e8;
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: 12px;
-  letter-spacing: 0.5px;
+.terminos-divider {
+  width: 80px;
+  height: 4px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #7b2ff2, #FFD600);
+  margin: 0 auto 40px auto;
+}
+
+/* ── Banner intro ─────────────────────────── */
+.terminos-banner {
+  background: rgba(255, 214, 0, 0.07);
+  border-left: 4px solid #FFD600;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 32px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: #ffe566;
 }
 
-.terminos-section ul {
-  color: #e0d7ff;
-  font-size: 1.08rem;
-  line-height: 1.7;
-  padding-left: 24px;
-  margin-bottom: 10px;
+.terminos-banner-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
 }
 
-.terminos-section li {
+/* ── Sección card ─────────────────────────── */
+.terminos-section {
+  margin-bottom: 28px;
+  background: rgba(26,16,53,0.98);
+  border: 1.5px solid rgba(162,89,255,0.28);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(123,47,242,0.13);
+}
+
+.terminos-section-header {
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.18rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  border-bottom: 1.5px solid rgba(162,89,255,0.18);
+}
+
+.terminos-section-body {
+  padding: 22px 24px 18px 24px;
+}
+
+/* header colors per platform */
+.terminos-section--nintendo .terminos-section-header {
+  background: linear-gradient(90deg, rgba(220,38,38,0.22) 0%, rgba(26,16,53,0.0) 100%);
+  color: #fca5a5;
+  border-bottom-color: rgba(220,38,38,0.22);
+}
+
+.terminos-section--playstation .terminos-section-header {
+  background: linear-gradient(90deg, rgba(59,130,246,0.22) 0%, rgba(26,16,53,0.0) 100%);
+  color: #93c5fd;
+  border-bottom-color: rgba(59,130,246,0.22);
+}
+
+.terminos-section--reembolso .terminos-section-header {
+  background: linear-gradient(90deg, rgba(251,146,60,0.22) 0%, rgba(26,16,53,0.0) 100%);
+  color: #fdba74;
+  border-bottom-color: rgba(251,146,60,0.22);
+}
+
+.terminos-section--footer .terminos-section-header {
+  background: linear-gradient(90deg, rgba(162,89,255,0.22) 0%, rgba(26,16,53,0.0) 100%);
+  color: #c4b5fd;
+  border-bottom-color: rgba(162,89,255,0.22);
+}
+
+/* ── Subsección label ─────────────────────── */
+.terminos-sub-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(162,89,255,0.12);
+  border: 1px solid rgba(162,89,255,0.28);
+  color: #c4b5fd;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin: 16px 0 10px 0;
+}
+
+.terminos-sub-label:first-child {
+  margin-top: 0;
+}
+
+/* ── Párrafo descriptivo ──────────────────── */
+.terminos-desc {
+  color: #d4c8f0;
+  font-size: 0.97rem;
+  line-height: 1.75;
+  margin-bottom: 4px;
+}
+
+/* ── Listas ───────────────────────────────── */
+.terminos-list {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 4px 0;
+}
+
+.terminos-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 0.97rem;
+  line-height: 1.65;
+  color: #d4c8f0;
+  border-bottom: 1px solid rgba(162,89,255,0.08);
+}
+
+.terminos-list li:last-child {
+  border-bottom: none;
+}
+
+.terminos-list .t-icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+  margin-top: 2px;
+}
+
+.terminos-list .t-indent {
+  padding-left: 28px;
+  color: #b8a8d8;
+}
+
+/* ── Tip / consejo ───────────────────────── */
+.terminos-tip {
+  background: rgba(99,190,123,0.08);
+  border-left: 3px solid #4ade80;
+  border-radius: 0 10px 10px 0;
+  padding: 12px 16px;
+  margin: 16px 0 4px 0;
+}
+
+.terminos-tip-title {
+  color: #86efac;
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   margin-bottom: 8px;
 }
 
-.terminos-icon {
-  font-size: 1.3em;
-  vertical-align: middle;
+.terminos-tip p {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: #bbf7d0;
+  margin: 0;
 }
 
+/* ── Bloque de alerta ─────────────────────── */
+.terminos-alert {
+  background: rgba(251,146,60,0.08);
+  border-left: 3px solid #fb923c;
+  border-radius: 0 10px 10px 0;
+  padding: 12px 16px;
+  margin: 16px 0 4px 0;
+}
+
+.terminos-alert-title {
+  color: #fdba74;
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.terminos-alert ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.terminos-alert li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: #fde68a;
+  padding: 3px 0;
+}
+
+/* ── Footer de aceptación ─────────────────── */
+.terminos-footer-card {
+  background: rgba(162,89,255,0.10);
+  border: 1.5px solid rgba(162,89,255,0.40);
+  border-radius: 14px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #c4b5fd;
+  line-height: 1.65;
+}
+
+.terminos-footer-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ── Responsive ───────────────────────────── */
 @media (max-width: 600px) {
   .terminos-root {
-    padding: 16px 4px 24px 4px;
+    padding: 0 4px 32px 4px;
+    margin-top: 28px;
   }
   .terminos-title {
-    font-size: 1.5rem;
+    font-size: 1.55rem;
   }
-  .terminos-section {
-    padding: 14px 6px 10px 6px;
+  .terminos-section-header {
+    font-size: 1.02rem;
+    padding: 14px 14px;
+  }
+  .terminos-section-body {
+    padding: 16px 14px 14px 14px;
+  }
+  .terminos-banner {
+    padding: 12px 14px;
+    font-size: 0.93rem;
   }
 }

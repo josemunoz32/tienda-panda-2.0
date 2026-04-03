@@ -1,3 +1,11 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin/
+Disallow: /perfil
+Disallow: /mispedidos
+Disallow: /checkoutcarrito
+Disallow: /comprar-ahora
+Disallow: /compra-confirmada
+
+Sitemap: https://pandastoreupdate.web.app/sitemap.xml

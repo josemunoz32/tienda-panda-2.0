@@ -1,14 +1,13 @@
-    // Cupones: solo admin puede crear, leer, actualizar y borrar
-    match /cupones/{cuponId} {
-      allow read, create, update, delete: if request.auth != null &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
-    }
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Permitir lectura global de reseñas (collectionGroup) solo a admin autenticados
     match /{document=**}/reviews/{reviewId} {
+      allow read: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    // Permitir lectura global de preguntas (collectionGroup) solo a admin autenticados
+    match /{document=**}/questions/{questionId} {
       allow read: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
 
@@ -23,8 +22,7 @@ service cloud.firestore {
 
     // Cualquier usuario autenticado puede crear categorías, solo admin puede editar/borrar
     match /categories/{categoryId} {
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null &&
+      allow create, update, delete: if request.auth != null &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
       allow read: if true;
     }
@@ -125,6 +123,12 @@ service cloud.firestore {
     match /packs_nintendo/{packId} {
       allow read: if true;
       allow create, update, delete: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    // Cupones: solo admin puede crear, leer, actualizar y borrar
+    match /cupones/{cuponId} {
+      allow read, create, update, delete: if request.auth != null &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
   }

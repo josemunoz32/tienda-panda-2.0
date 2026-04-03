@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { db, auth } from "../../firebase";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc } from "firebase/firestore";
 import { Link, useNavigate } from "react-router-dom";
+import { catUrl } from '../../utils/slugify';
 
 export default function CategoriasList() {
   const [categorias, setCategorias] = useState([]);
@@ -59,7 +60,7 @@ export default function CategoriasList() {
         setNombre("");
         setDescripcion("");
         fetchCategorias();
-        setTimeout(()=>navigate(`/categoria/${docRef.id}`), 1200);
+        setTimeout(()=>navigate(catUrl(nombre, docRef.id)), 1200);
       }
     } catch (err) {
       setMsg("Error al guardar. Intenta de nuevo."); setMsgType("error");
@@ -149,7 +150,7 @@ export default function CategoriasList() {
               <div style={{fontWeight:800,fontSize:'1.12rem',color:'#7b2ff2'}}>{cat.name}</div>
               <div style={{color:'#444',fontSize:'0.98rem',marginTop:2}}>{cat.description}</div>
             </div>
-            <Link to={`/categoria/${cat.id}`} style={{background:'#a084e8',color:'#fff',padding:'7px 16px',borderRadius:7,textDecoration:'none',fontWeight:700,marginRight:6}}>Ver</Link>
+            <Link to={catUrl(cat.name, cat.id)} style={{background:'#a084e8',color:'#fff',padding:'7px 16px',borderRadius:7,textDecoration:'none',fontWeight:700,marginRight:6}}>Ver</Link>
             <button onClick={() => handleEdit(cat)} style={{background:'#ffd600',color:'#222',fontWeight:700,padding:'7px 16px',border:'none',borderRadius:7,cursor:'pointer',marginRight:6}}>Editar</button>
             <button onClick={() => setConfirmDelete(cat.id)} style={{background:'#ff4d4f',color:'#fff',fontWeight:700,padding:'7px 16px',border:'none',borderRadius:7,cursor:'pointer'}}>Eliminar</button>
             {confirmDelete === cat.id && (

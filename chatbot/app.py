@@ -171,6 +171,22 @@ PROMPT_BASE = (
 "Tambien puedes sugerir el boton de packs de juegos Nintendo Switch si aplica.\n"
 "Estas promociones son principalmente para Nintendo Switch.\n\n"
 
+"PROMOCIONES ESPECIALES — COMBOS DE JUEGOS NINTENDO SWITCH:\n"
+"Panda Store tiene dos combos especiales de juegos digitales para Nintendo Switch:\n\n"
+"1) Promo 3x1 — $35.000 CLP:\n"
+"   El cliente elige 3 juegos cuyo precio individual sea de $20.000 o menos.\n"
+"   Los 3 juegos se entregan por $35.000 en total.\n\n"
+"2) Promo 2x1 — $25.000 CLP:\n"
+"   El cliente elige 2 juegos cuyo precio individual sea de $20.000 o menos.\n"
+"   Los 2 juegos se entregan por $25.000 en total.\n\n"
+"Reglas importantes de las promos:\n"
+"- Solo aplican para juegos de Nintendo Switch con precio igual o menor a $20.000 CLP.\n"
+"- La instalacion es la misma que cualquier juego de Nintendo Switch (puede abrir el boton de instalacion).\n"
+"- El cliente puede elegir los juegos que quiera dentro del rango de precio.\n"
+"- Si el cliente pregunta por estas promos, explica claramente las opciones y animalo a elegir sus juegos.\n"
+"- Si pregunta como funciona, detalla: elige los juegos, hace el pago y recibe la instalacion igual que siempre.\n"
+"- Si pregunta si puede mezclar juegos de otras consolas, responde que estas promos son exclusivas de Nintendo Switch.\n\n"
+
 "CATÁLOGOS Y PÁGINAS DE LA TIENDA:\n"
 "Si el cliente pregunta por catalogos, categorias o quiere ver productos, puedes indicarle que use los botones.\n"
 "La tienda tiene estas paginas principales:\n"
@@ -372,6 +388,21 @@ INTENCION_CATEGORIA = {
     },
 }
 
+PATRON_SEPARADOR_MULTI = re.compile(r'\b(?:y|o)\b|,')
+
+FILTRO_CATEGORIA_DIRECTA = {
+    'switch': ('switch', 'Nintendo Switch'),
+    'nintendo': ('switch', 'Nintendo Switch'),
+    'nintendo switch': ('switch', 'Nintendo Switch'),
+    'ps5': ('ps5', 'PS5'),
+    'playstation 5': ('ps5', 'PS5'),
+    'ps4': ('ps4', 'PS4'),
+    'playstation 4': ('ps4', 'PS4'),
+    'streaming': ('streaming', 'Streaming'),
+    'suscripciones': ('suscripciones', 'Suscripciones'),
+    'suscripcion': ('suscripciones', 'Suscripciones'),
+}
+
 PALABRAS_REFINAR_BUSQUEDA = {
     'otro', 'otra', 'busco', 'buscar', 'quiero', 'alguno', 'alguna', 'mas',
     'similar', 'parecido', 'parecida', 'opcion', 'opciones', 'de', 'del', 'el',
@@ -395,6 +426,15 @@ INFO_KEYWORDS = {
         'que promos tienen', 'que promos hay', 'que descuentos tienen',
         'ofertas disponibles', 'promos disponibles', 'descuentos disponibles',
         'hay promociones', 'tienen promociones',
+        '3x1', '2x1', '3 x 1', '2 x 1', '3por1', '2por1',
+        '3 por 1', '2 por 1', 'tres por uno', 'dos por uno',
+        'promo 3x1', 'promo 2x1', 'promocion 3x1', 'promocion 2x1',
+        'combo 3 juegos', 'combo 2 juegos', 'combo juegos',
+        'pack 3x1', 'pack 2x1', 'combo 3x1', 'combo 2x1',
+        'tres juegos', 'dos juegos por',
+        '35 mil', '25 mil', '35000', '25000', '35.000', '25.000',
+        'juegos baratos', 'juegos de 20 mil', 'juegos de 20000',
+        'juegos economicos', 'juegos de 20',
     },
     'instalacion': {'instalacion', 'instalar', 'instalo', 'guia', 'tutorial', 'como instalar', 'descargar', 'instalkacion'},
     'pagos': {'pago', 'pagos', 'medio de pago', 'medios de pago', 'como pagar', 'tarjeta', 'transferencia', 'paypal', 'crypto'},
@@ -1730,13 +1770,20 @@ def construir_respuesta_info(intencion, productos=None, categorias=None):
     if intencion == 'promociones':
         return {
             'respuesta': (
-                "Promociones Panda Store\n\n"
-                "Revisa las promos activas desde los botones de abajo.\n"
-                "Tambien puedes ver los packs de juegos de Nintendo Switch a precio especial."
+                "Promociones Panda Store 🎮🔥\n\n"
+                "Tenemos dos combos especiales de juegos Nintendo Switch:\n\n"
+                "🎯 Promo 3x1 — $35.000 CLP\n"
+                "Elige 3 juegos de $20.000 o menos y llevatelos por $35.000.\n\n"
+                "🎯 Promo 2x1 — $25.000 CLP\n"
+                "Elige 2 juegos de $20.000 o menos y llevatelos por $25.000.\n\n"
+                "La instalacion es la misma de siempre (Nintendo Switch).\n"
+                "Puedes elegir los juegos que quieras dentro del rango de precio.\n\n"
+                "Revisa el catalogo de Switch para elegir tus juegos, o revisa las promos activas desde los botones de abajo."
             ),
             'acciones': [
                 {'type': 'open_route', 'label': 'Ver promociones', 'route': '/promos'},
                 {'type': 'open_route', 'label': 'Packs de juegos Switch', 'route': '/packs-nintendo'},
+                {'type': 'open_route', 'label': 'Ver instalacion', 'route': '/instalacion-nintendo'},
             ],
         }
 
@@ -2223,6 +2270,84 @@ def build_fallback_response(productos_relevantes, categorias_relevantes, product
         )
     return 'Puedo ayudarte con juegos, suscripciones, streaming, precios, soporte, instalacion y promociones. Dime que necesitas.'
 
+
+def detectar_multi_entidad(mensaje):
+    if detectar_intencion_info(mensaje):
+        return None
+    texto = re.sub(r'\s+', ' ', mensaje.lower()).strip()
+    if not PATRON_SEPARADOR_MULTI.search(texto):
+        return None
+    partes = PATRON_SEPARADOR_MULTI.split(texto)
+    partes = [p.strip() for p in partes if p.strip()]
+    if len(partes) < 2:
+        return None
+    entidades = []
+    for parte in partes:
+        tokens = tokenizar_consulta(parte)
+        if tokens:
+            entidades.append(parte)
+    return entidades if len(entidades) >= 2 else None
+
+
+def buscar_multi_entidad(entidades, productos, categorias):
+    resultados = []
+    ids_vistos = set()
+    for entidad in entidades:
+        tokens = tokenizar_consulta(entidad)
+        clave = ' '.join(tokens) if tokens else normalizar_texto(entidad)
+        cat_match = FILTRO_CATEGORIA_DIRECTA.get(clave)
+        if cat_match:
+            filtro, label = cat_match
+            prods = [
+                p for p in productos
+                if filtro in normalizar_texto(obtener_categoria_nombre(p, categorias))
+                and p.get('id') not in ids_vistos
+            ][:6]
+            nombre_display = label
+        else:
+            prods = [
+                p for p in buscar_productos_relevantes(entidad, productos, limite=8)
+                if p.get('id') not in ids_vistos
+            ][:6]
+            nombre_display = clave.capitalize() if clave else entidad.capitalize()
+        for p in prods:
+            ids_vistos.add(p.get('id'))
+        resultados.append({'nombre': nombre_display, 'productos': prods})
+    if not any(r['productos'] for r in resultados):
+        return None
+    return resultados
+
+
+def construir_respuesta_multi_entidad(resultados, categorias):
+    bloques = []
+    todas_opciones = []
+    sin_resultados = []
+    for resultado in resultados:
+        nombre = resultado['nombre']
+        prods = resultado['productos']
+        if not prods:
+            sin_resultados.append(nombre)
+            continue
+        lineas = []
+        for i, p in enumerate(prods[:4], 1):
+            precio = formatear_precios_producto(p, categorias)
+            lineas.append(f"  {i}. {p.get('name', 'Sin nombre')} — {precio}")
+        bloque = f"\U0001f3ae {nombre} ({len(prods)}):\n" + '\n'.join(lineas)
+        if len(prods) > 4:
+            bloque += f"\n  ...y {len(prods) - 4} mas"
+        bloques.append(bloque)
+        todas_opciones.extend(prods[:4])
+    texto = "Aca te dejo lo que encontre:\n\n" + '\n\n'.join(bloques)
+    if sin_resultados:
+        texto += f"\n\nNo encontre resultados para: {', '.join(sin_resultados)}."
+    texto += "\n\nToca el + para agregar al carrito o escribeme cual te interesa."
+    return {
+        'respuesta': texto,
+        'opciones': construir_opciones_chat(todas_opciones, categorias),
+        'acciones': construir_acciones_contacto(),
+    }
+
+
 @app.route('/chat', methods=['POST'])
 def chat():
     client_id = get_client_identifier()
@@ -2267,6 +2392,14 @@ def chat():
     if es_consulta_fuera_de_tema(mensaje):
         log_chat_event('off_topic', client_id=client_id)
         return jsonify({'respuesta': RESPUESTA_FUERA_DE_TEMA, 'acciones': [], 'opciones': []})
+
+    # Multi-entity detection (e.g., "mario y pokemon", "switch y ps5")
+    entidades = detectar_multi_entidad(mensaje)
+    if entidades:
+        resultados_multi = buscar_multi_entidad(entidades, productos, categorias)
+        if resultados_multi:
+            log_chat_event('multi_entity_search', client_id=client_id, entities=len(entidades))
+            return jsonify(construir_respuesta_multi_entidad(resultados_multi, categorias))
 
     # Check category intents FIRST (packs, switch, streaming, etc.)
     intencion_cat = detectar_intencion_categoria(mensaje)

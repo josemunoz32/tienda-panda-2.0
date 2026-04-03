@@ -1,0 +1,336 @@
+/* ═══ AdminPreguntas – Galaxy Theme ═══ */
+
+.admpre-container {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 28px 24px 40px;
+  color: #e8e0f5;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+.admpre-title {
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, #a259ff, #7b2ff2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+
+.admpre-subtitle {
+  color: #9b8bb8;
+  font-size: 0.95rem;
+  margin-bottom: 28px;
+}
+
+/* ── Tabs ── */
+.admpre-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.admpre-tab {
+  padding: 8px 20px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(162, 89, 255, 0.25);
+  background: rgba(36, 0, 70, 0.45);
+  color: #c4b5fd;
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admpre-tab:hover {
+  background: rgba(162, 89, 255, 0.15);
+}
+
+.admpre-tab.active {
+  background: linear-gradient(135deg, rgba(123, 47, 242, 0.3), rgba(162, 89, 255, 0.2));
+  border-color: #a259ff;
+  color: #fff;
+}
+
+.admpre-tab .badge {
+  display: inline-block;
+  background: rgba(162, 89, 255, 0.3);
+  color: #d4c8f0;
+  font-size: 0.78rem;
+  padding: 1px 8px;
+  border-radius: 8px;
+  margin-left: 6px;
+  font-weight: 700;
+}
+
+.admpre-tab.active .badge {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+/* ── Search ── */
+.admpre-search {
+  width: 100%;
+  max-width: 420px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(162, 89, 255, 0.3);
+  background: rgba(30, 0, 60, 0.7);
+  color: #e8e0f5;
+  font-size: 0.95rem;
+  outline: none;
+  margin-bottom: 22px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.admpre-search:focus {
+  border-color: #a259ff;
+}
+
+/* ── Cards ── */
+.admpre-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admpre-card {
+  background: rgba(36, 0, 70, 0.55);
+  border: 1.5px solid rgba(162, 89, 255, 0.25);
+  border-radius: 16px;
+  padding: 18px 22px;
+  box-shadow: 0 2px 16px rgba(123, 47, 242, 0.08);
+  transition: border-color 0.2s;
+}
+
+.admpre-card:hover {
+  border-color: rgba(162, 89, 255, 0.5);
+}
+
+.admpre-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.admpre-product-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #a259ff;
+  background: rgba(162, 89, 255, 0.1);
+  padding: 3px 12px;
+  border-radius: 8px;
+  display: inline-block;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.admpre-product-name:hover {
+  background: rgba(162, 89, 255, 0.22);
+}
+
+.admpre-date {
+  font-size: 0.78rem;
+  color: #6b5e8a;
+}
+
+.admpre-status {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 8px;
+}
+
+.admpre-status.pending {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+}
+
+.admpre-status.answered {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.admpre-user {
+  font-size: 0.88rem;
+  color: #c4b5fd;
+  margin-bottom: 6px;
+}
+
+.admpre-user strong {
+  color: #e8e0f5;
+}
+
+.admpre-question-text {
+  font-size: 1rem;
+  color: #d4c8f0;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  padding-left: 4px;
+}
+
+/* ── Answer display ── */
+.admpre-answer-box {
+  margin-top: 8px;
+  padding: 10px 16px;
+  background: rgba(162, 89, 255, 0.1);
+  border-left: 3px solid #a259ff;
+  border-radius: 0 10px 10px 0;
+  color: #c4b5fd;
+  font-size: 0.95rem;
+}
+
+.admpre-answer-box strong {
+  color: #a259ff;
+}
+
+.admpre-answer-date {
+  font-size: 0.75rem;
+  color: #6b5e8a;
+  margin-top: 4px;
+}
+
+/* ── Reply form ── */
+.admpre-reply-form {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  align-items: stretch;
+}
+
+.admpre-reply-input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(162, 89, 255, 0.35);
+  background: rgba(30, 0, 60, 0.8);
+  color: #e8e0f5;
+  font-size: 0.95rem;
+  outline: none;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 42px;
+  transition: border-color 0.2s;
+}
+
+.admpre-reply-input:focus {
+  border-color: #a259ff;
+}
+
+.admpre-reply-btn {
+  padding: 10px 22px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(90deg, #7b2ff2, #a259ff);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+
+.admpre-reply-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.admpre-reply-btn:not(:disabled):hover {
+  opacity: 0.88;
+}
+
+/* ── Delete button ── */
+.admpre-delete-btn {
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.admpre-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: #ef4444;
+}
+
+/* ── Empty state ── */
+.admpre-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b5e8a;
+  font-size: 1.1rem;
+}
+
+.admpre-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+/* ── Loading ── */
+.admpre-loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: #9b8bb8;
+  font-size: 1rem;
+}
+
+/* ── Back link ── */
+.admpre-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #a259ff;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.92rem;
+  margin-bottom: 18px;
+  transition: color 0.2s;
+}
+
+.admpre-back:hover {
+  color: #c084fc;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .admpre-container {
+    padding: 16px 10px 32px;
+    margin: 20px auto;
+  }
+
+  .admpre-title {
+    font-size: 1.5rem;
+  }
+
+  .admpre-card {
+    padding: 14px 14px;
+  }
+
+  .admpre-reply-form {
+    flex-direction: column;
+  }
+
+  .admpre-search {
+    max-width: 100%;
+  }
+
+  .admpre-tabs {
+    gap: 6px;
+  }
+
+  .admpre-tab {
+    padding: 6px 14px;
+    font-size: 0.85rem;
+  }
+}

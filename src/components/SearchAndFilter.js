@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { prodUrl } from '../utils/slugify';
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { useMoneda } from "../context/MonedaContext";
@@ -89,7 +90,7 @@ export default function SearchAndFilter() {
             <div style={{ padding: 12, color: '#888' }}>No se encontraron productos.</div>
           ) : (
             searchResults.map(prod => (
-              <Link key={prod.id} to={`/producto/${prod.id}`} style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', textDecoration: 'none', color: '#fff', borderBottom: '1px solid #23272f', transition: 'background 0.18s' }}
+              <Link key={prod.id} to={prodUrl(prod.name, prod.id)} style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', textDecoration: 'none', color: '#fff', borderBottom: '1px solid #23272f', transition: 'background 0.18s' }}
                 onMouseOver={e => e.currentTarget.style.background = '#330066'}
                 onMouseOut={e => e.currentTarget.style.background = 'transparent'}
               >

@@ -211,7 +211,7 @@ exports.soporteResponder = functions.https.onRequest((req, res) => {
   });
 });
 const payPalClient = new paypal.core.PayPalHttpClient(
-    new paypal.core.SandboxEnvironment(
+    new paypal.core.LiveEnvironment(
         process.env.PAYPAL_CLIENT_ID,
         process.env.PAYPAL_CLIENT_SECRET,
     ),
@@ -393,21 +393,23 @@ exports.confirmarCompra = functions.https.onRequest(async (req, res) => {
         await batch.commit();
       }
 
-      // Enviar correo al cliente
-      await transporter.sendMail({
-        from: process.env.GMAIL_USER,
-        to: clienteEmail,
-        subject: "Confirmación de compra",
-        text: `¡Gracias por tu compra! Tu pedido ha sido recibido.`,
-      });
-
-      // Enviar correo al administrador
-      await transporter.sendMail({
-        from: process.env.GMAIL_USER,
-        to: process.env.ADMIN_EMAIL,
-        subject: "Nuevo pedido recibido",
-        text: `Se ha recibido un nuevo pedido de ${clienteEmail}.`,
-      });
+      // Enviar correos (no bloquea si falla)
+      try {
+        await transporter.sendMail({
+          from: process.env.GMAIL_USER,
+          to: clienteEmail,
+          subject: "Confirmación de compra",
+          text: `¡Gracias por tu compra! Tu pedido ha sido recibido.`,
+        });
+        await transporter.sendMail({
+          from: process.env.GMAIL_USER,
+          to: process.env.ADMIN_EMAIL,
+          subject: "Nuevo pedido recibido",
+          text: `Se ha recibido un nuevo pedido de ${clienteEmail}.`,
+        });
+      } catch (emailErr) {
+        console.error("Error enviando correos:", emailErr);
+      }
 
       res.json({success: true});
     } catch (error) {
@@ -496,34 +498,38 @@ async function processApprovedOrder(pendingOrder, orderId) {
     await batch.commit();
   }
 
-  // 4. Enviar correo al cliente
-  await transporter.sendMail({
-    from: process.env.GMAIL_USER,
-    to: email,
-    subject:
-      `¡Tu compra en PandaStore ha sido confirmada! #${confirmedOrderRef.id}`,
-    html:
-      `<p>Hola,</p>
-      <p>¡Gracias por tu compra! Tu pago ha sido aprobado y tu pedido 
-      #${confirmedOrderRef.id} está en preparación.</p>
-      <p>Te enviaremos los detalles de instalación.</p>
-      <p><strong>Total:</strong> CLP ${total.toFixed(0)}</p>
-      <p>Si tienes alguna duda, contáctanos.</p>
-      `,
-  });
+  // 4. Enviar correos (no bloquea el flujo si falla)
+  try {
+    await transporter.sendMail({
+      from: process.env.GMAIL_USER,
+      to: email,
+      subject:
+        `¡Tu compra en PandaStore ha sido confirmada! #${confirmedOrderRef.id}`,
+      html:
+        `<p>Hola,</p>
+        <p>¡Gracias por tu compra! Tu pago ha sido aprobado y tu pedido 
+        #${confirmedOrderRef.id} está en preparación.</p>
+        <p>Te enviaremos los detalles de instalación.</p>
+        <p><strong>Total:</strong> ` +
+        `${moneda || "USD"} ` +
+        `${total.toFixed(moneda === "CLP" ? 0 : 2)}</p>
+        <p>Si tienes alguna duda, contáctanos.</p>
+        `,
+    });
+    await transporter.sendMail({
+      from: process.env.GMAIL_USER,
+      to: ADMIN_EMAIL,
+      subject:
+        `NUEVO PEDIDO APROBADO: #${confirmedOrderRef.id}`,
+      text:
+        `Se ha recibido un nuevo pedido APROBADO de ${email}. ` +
+        `Referencia: ${orderId}.`,
+    });
+  } catch (emailErr) {
+    console.error("Error enviando correos (pedido guardado OK):", emailErr);
+  }
 
-  // 5. Enviar correo al administrador
-  await transporter.sendMail({
-    from: process.env.GMAIL_USER,
-    to: ADMIN_EMAIL,
-    subject:
-      `NUEVO PEDIDO APROBADO: #${confirmedOrderRef.id}`,
-    text:
-      `Se ha recibido un nuevo pedido APROBADO de ${email}. ` +
-      `Referencia MP: ${orderId}.`,
-  });
-
-  // 6. Eliminar el pedido pendiente
+  // 5. Eliminar el pedido pendiente
   await db.collection("pendingOrders").doc(orderId).delete();
 }
 
@@ -734,18 +740,23 @@ exports.sendConfirmationEmail = functions.https.onRequest(async (req, res) => {
           `Total: ${pedido.total} ${pedido.moneda || ""}\n` +
           `Método de pago: ${pedido.metodoPago}\n` +
           `Productos:\n${productosTxt}`;
-        await transporter.sendMail({
-          from: process.env.GMAIL_USER,
-          to: ADMIN_EMAIL,
-          subject: `NUEVO PEDIDO PENDIENTE: #${orderId}`,
-          text: adminText,
-        });
+        try {
+          await transporter.sendMail({
+            from: process.env.GMAIL_USER,
+            to: ADMIN_EMAIL,
+            subject: `NUEVO PEDIDO PENDIENTE: #${orderId}`,
+            text: adminText,
+          });
+        } catch (emailErr) {
+          console.error("Error enviando correo admin:",
+              emailErr);
+        }
       }
 
       res.json({success: true});
     } catch (error) {
       console.error("Error en sendConfirmationEmail:", error);
-      res.status(500).json({error: "No se pudo enviar el correo."});
+      res.status(500).json({error: error.message});
     }
   });
 });
