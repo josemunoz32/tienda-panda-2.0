@@ -74,7 +74,7 @@ namespace PandaStoreLauncher
             }
         }
 
-        private const string CurrentVersion = "2.4.23"; // Current client executable version
+        private const string CurrentVersion = "2.4.24"; // Current client executable version
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -428,6 +428,33 @@ namespace PandaStoreLauncher
                             _trialCountdownTimer?.Stop();
                             borderTrialNotice.Visibility = Visibility.Collapsed;
                             MessageBox.Show("¡Excelente! Tu licencia ha sido confirmada como PERMANENTE por el vendedor. Disfruta de tus juegos sin límite de tiempo.", "PandaStore - Pago Confirmado", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+
+                        // Auto-detect new games or DLCs added by admin in real time!
+                        var oldGames = _activeLicense.AllowedGames ?? new List<string>();
+                        var newGames = remoteLic.AllowedGames ?? new List<string>();
+                        bool gamesChanged = oldGames.Count != newGames.Count || !oldGames.SequenceEqual(newGames);
+
+                        if (gamesChanged)
+                        {
+                            _activeLicense = remoteLic;
+                            try
+                            {
+                                string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PandaStore");
+                                if (!Directory.Exists(appDataDir)) Directory.CreateDirectory(appDataDir);
+                                string licenseJson = System.Text.Json.JsonSerializer.Serialize(_activeLicense);
+                                await File.WriteAllTextAsync(Path.Combine(appDataDir, "license.json"), licenseJson);
+                            }
+                            catch { }
+
+                            // Refresh in-memory authorization and update list view
+                            bool fullAccess = newGames.Any(g => g == "*" || g.Equals("ALL", StringComparison.OrdinalIgnoreCase));
+                            foreach (var game in _allGames)
+                            {
+                                game.IsAuthorizedForClient = fullAccess || (newGames.Contains(game.AppId) || newGames.Contains(game.Name));
+                                game.RefreshDlcOwnership(_activeLicense.AllowedDlcs, fullAccess);
+                            }
+                            ApplyGameFilter();
                         }
                     }
 
@@ -1771,15 +1798,58 @@ namespace PandaStoreLauncher
             }
             try
             {
+                // 1. Si el cliente tiene una licencia activa, revalidarla directamente contra Firestore
+                // para detectar juegos, DLCs o cambios de plan que el admin acaba de asignarle.
+                if (_activeLicense != null && !string.IsNullOrEmpty(_activeLicense.Key))
+                {
+                    try
+                    {
+                        var refreshedLicense = await _firebaseService.ValidateLicenseAsync(_activeLicense.Key, _currentHwid);
+                        if (refreshedLicense != null)
+                        {
+                            _activeLicense = refreshedLicense;
+
+                            // Actualizar license.json localmente para el background checker
+                            try
+                            {
+                                string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PandaStore");
+                                if (!Directory.Exists(appDataDir)) Directory.CreateDirectory(appDataDir);
+                                string licenseJson = System.Text.Json.JsonSerializer.Serialize(_activeLicense);
+                                await File.WriteAllTextAsync(Path.Combine(appDataDir, "license.json"), licenseJson);
+                            }
+                            catch { }
+                        }
+                    }
+                    catch (Exception licEx)
+                    {
+                        Logger.LogError(licEx, "Error revalidando licencia en refresco");
+                    }
+                }
+
+                // 2. Refrescar el catálogo forzando actualización
                 var allowedGames = _activeLicense?.AllowedGames ?? new List<string>();
                 _allGames = await _firebaseService.GetAllGamesAsync(allowedGames, forceRefresh: true, allowedDlcs: _activeLicense?.AllowedDlcs);
                 ApplyGameFilter();
-                if (btn != null) btn.Content = "✔ Actualizado";
+
+                // 3. Feedback visual para el usuario
+                if (btn != null)
+                {
+                    if (_activeLicense != null)
+                    {
+                        btn.Content = $"✔ Sincronizado ({_activeLicense.AllowedGames.Count} juegos)";
+                    }
+                    else
+                    {
+                        btn.Content = "✔ Actualizado";
+                    }
+                }
                 await Task.Delay(1800);
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Error al sincronizar con Firestore");
+                if (btn != null) btn.Content = "❌ Error";
+                await Task.Delay(1500);
             }
             finally
             {
