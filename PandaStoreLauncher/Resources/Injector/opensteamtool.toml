@@ -1,0 +1,5 @@
+[lua]
+paths = ["plugins", "config/st-plugin", "config/stplug-in"]
+
+[cloud]
+enabled = true
