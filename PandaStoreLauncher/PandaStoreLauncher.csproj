@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <StartupObject>PandaStoreLauncher.Program</StartupObject>
+    <AssemblyTitle>PandaStore Launcher</AssemblyTitle>
+    <Product>PandaStore Launcher</Product>
+    <Description>Instalador de Fixes y Launcher Oficial de PandaStore</Description>
+    <Company>PandaStore Official</Company>
+    <Authors>PandaStore Team</Authors>
+    <Copyright>Copyright © PandaStore 2026</Copyright>
+    <AssemblyName>PandaStoreLauncher</AssemblyName>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+  </PropertyGroup>
+
+  <!-- Resource Assets -->
+  <ItemGroup>
+    <Resource Include="Assets\miicono.png" />
+    <Resource Include="Assets\logowsp.png" />
+    <Resource Include="Assets\logoig.png" />
+    <Resource Include="Assets\steam.png" />
+    <Resource Include="Assets\bg.jpg" />
+    <Resource Include="Assets\Pasos\*.png" />
+    <Resource Include="app.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="PandaChecker\**" />
+    <EmbeddedResource Remove="PandaChecker\**" />
+    <None Remove="PandaChecker\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- WMI Support for HWID extraction -->
+    <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Embedded Resources for Steam Injector DLLs -->
+    <EmbeddedResource Include="Resources\Injector\OpenSteamTool.dll" />
+    <EmbeddedResource Include="Resources\Injector\dwmapi.dll" />
+    <EmbeddedResource Include="Resources\Injector\xinput1_4.dll" />
+    <EmbeddedResource Include="Resources\Injector\opensteamtool.toml" />
+  </ItemGroup>
+
+</Project>
