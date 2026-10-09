@@ -503,7 +503,7 @@
                                                          Tag="{Binding}">
                                                      <Button.ContextMenu>
                                                          <ContextMenu Background="#16122C" Foreground="#FFFFFF" BorderBrush="#3B2E63">
-                                                             <MenuItem Header="🔄 Solicitar Actualización de Fix a Ryuu (Bot 1-5 min)" Click="MenuItemRequestFixUpdate_Click" Tag="{Binding}"/>
+                                                             <MenuItem Header="🧹 Reparar Descarga / Manifiestos" Click="MenuItemRepararDescarga_Click" Tag="{Binding}"/>
                                                              <MenuItem Header="📁 Abrir Carpeta de Instalación" Click="MenuItemOpenGameFolder_Click" Tag="{Binding}"/>
                                                              <MenuItem Header="📋 Copiar AppID de Steam" Click="MenuItemCopyAppId_Click" Tag="{Binding}"/>
                                                          </ContextMenu>
@@ -548,20 +548,6 @@
                                                         Margin="0,0,6,6"
                                                         Click="BtnActivarJuego_Click"/>
 
-                                                <!-- Botón Reparar Descarga / Manifiestos -->
-                                                <Button Content="🧹 Reparar Descarga" 
-                                                        Style="{StaticResource VacButtonStyle}"
-                                                        Foreground="#93C5FD"
-                                                        BorderBrush="#1E3A8A"
-                                                        Background="#0F172A"
-                                                        Visibility="{Binding RepairButtonVisibility}"
-                                                        IsEnabled="{Binding CanActivate}"
-                                                        Tag="{Binding}" 
-                                                        Padding="12,7"
-                                                        FontSize="12"
-                                                        Margin="0,0,6,6"
-                                                        ToolTip="Limpia descargas trabadas o corruptas en Steam y reinstala los manifiestos oficiales limpios de este juego"
-                                                        Click="BtnRepararDescarga_Click"/>
 
                                                 <!-- Botón VIP '🔑 Activar' exclusivo para juegos VIP (Denuvo / Ubisoft / EA) -->
                                                 <Button Content="🔑 Activar" 
