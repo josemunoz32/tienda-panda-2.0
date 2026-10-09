@@ -33,7 +33,7 @@ export default function LauncherDownloadPage() {
     setTimeout(() => setCopiedCmd(false), 2500);
   };
 
-  const WIN_GOFILE_URL = "https://github.com/josemunoz32/tienda-panda-2.0/releases/download/v2.4.23/PandaStoreSetup.exe"; // Instalador Todo en 1 v2.4.23 oficial (GitHub Releases CDN alta velocidad)
+  const WIN_GOFILE_URL = "https://github.com/josemunoz32/tienda-panda-2.0/releases/download/v2.4.25/PandaStoreSetup.exe"; // Instalador Todo en 1 v2.4.25 oficial (GitHub Releases CDN alta velocidad)
   const DECK_CARD_ELEMENT = (
     <div className="platform-card deck disabled">
       <div className="card-badge coming-soon">PRÓXIMAMENTE</div>
@@ -168,7 +168,7 @@ export default function LauncherDownloadPage() {
                   </div>
                   <div className="btn-download-text-wrap">
                     <span className="btn-download-title">Descargar Panda Launcher + Activador (109 MB)</span>
-                    <span className="btn-download-sub">Versión v2.4.22 oficial • Todo en 1 (Launcher + Activador) • Windows 10/11</span>
+                    <span className="btn-download-sub">Versión v2.4.24 oficial • Todo en 1 (Launcher + Activador) • Windows 10/11</span>
                   </div>
                 </button>
 

@@ -1381,7 +1381,13 @@ namespace PandaStoreLauncher.Helpers
                             }
                         }
 
-                        // 3. Delete lua files from plugins/config directories
+                        // 3. Collect target AppIDs from lua scripts before deletion, then delete lua files
+                        var allTargetIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                        if (targetAppIds != null)
+                        {
+                            foreach (var id in targetAppIds) allTargetIds.Add(id);
+                        }
+
                         string[] luaDirs = new[]
                         {
                             Path.Combine(sPath, "plugins"),
@@ -1396,46 +1402,83 @@ namespace PandaStoreLauncher.Helpers
 
                             try
                             {
-                                if (targetAppIds != null && targetAppIds.Any())
+                                foreach (var file in Directory.GetFiles(dir, "*.lua"))
                                 {
-                                    foreach (var appId in targetAppIds)
+                                    string fileName = Path.GetFileNameWithoutExtension(file);
+                                    if (fileName.All(char.IsDigit))
                                     {
-                                        string specificLua = Path.Combine(dir, $"{appId}.lua");
-                                        if (File.Exists(specificLua))
-                                        {
-                                            try { File.Delete(specificLua); } catch { }
-                                        }
+                                        allTargetIds.Add(fileName);
                                     }
-                                }
-                                else
-                                {
-                                    // Wipe all lua scripts
-                                    foreach (var file in Directory.GetFiles(dir, "*.lua"))
-                                    {
-                                        try { File.Delete(file); } catch { }
-                                    }
+                                    try { File.Delete(file); } catch { }
                                 }
                             }
                             catch { }
                         }
 
-                        // 4. Delete appmanifest files for the target appids (to remove from Steam library)
-                        if (targetAppIds != null)
+                        // 4. Delete INSTALLED GAME FOLDERS and appmanifest files for the target appids
+                        var libraryPaths = GetSteamLibraryFolders();
+                        foreach (var lib in libraryPaths)
                         {
-                            var libraryPaths = GetSteamLibraryFolders();
-                            foreach (var lib in libraryPaths)
-                            {
-                                string steamappsDir = Path.GetDirectoryName(lib) ?? "";
-                                if (string.IsNullOrEmpty(steamappsDir)) continue;
+                            string steamappsDir = Path.GetDirectoryName(lib) ?? "";
+                            if (string.IsNullOrEmpty(steamappsDir)) continue;
+                            string commonDir = lib; // GetSteamLibraryFolders returns paths to steamapps/common
 
-                                foreach (var appId in targetAppIds)
+                            foreach (var appId in allTargetIds)
+                            {
+                                string manifestPath = Path.Combine(steamappsDir, $"appmanifest_{appId}.acf");
+                                if (File.Exists(manifestPath))
                                 {
-                                    string manifestPath = Path.Combine(steamappsDir, $"appmanifest_{appId}.acf");
-                                    if (File.Exists(manifestPath))
+                                    // A. Read installdir to delete installed game directory completely
+                                    try
                                     {
-                                        try { File.Delete(manifestPath); } catch { }
+                                        string acfContent = File.ReadAllText(manifestPath);
+                                        var match = Regex.Match(acfContent, @"""installdir""\s+""([^""]+)""", RegexOptions.IgnoreCase);
+                                        if (match.Success)
+                                        {
+                                            string installDirName = match.Groups[1].Value.Trim();
+                                            if (!string.IsNullOrEmpty(installDirName))
+                                            {
+                                                string fullGameDir = Path.Combine(commonDir, installDirName);
+                                                if (Directory.Exists(fullGameDir))
+                                                {
+                                                    try { Directory.Delete(fullGameDir, true); } catch { }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    catch { }
+
+                                    // B. Delete downloading and temp folders
+                                    string downloadingDir = Path.Combine(steamappsDir, "downloading", appId);
+                                    if (Directory.Exists(downloadingDir)) try { Directory.Delete(downloadingDir, true); } catch { }
+
+                                    string tempDir = Path.Combine(steamappsDir, "temp", appId);
+                                    if (Directory.Exists(tempDir)) try { Directory.Delete(tempDir, true); } catch { }
+
+                                    // C. Delete appmanifest
+                                    try { File.Delete(manifestPath); } catch { }
+                                }
+                            }
+
+                            // Scan commonDir for matching steam_appid.txt
+                            if (Directory.Exists(commonDir))
+                            {
+                                try
+                                {
+                                    foreach (var gDir in Directory.GetDirectories(commonDir))
+                                    {
+                                        string appIdFile = Path.Combine(gDir, "steam_appid.txt");
+                                        if (File.Exists(appIdFile))
+                                        {
+                                            string fContent = File.ReadAllText(appIdFile).Trim();
+                                            if (allTargetIds.Contains(fContent))
+                                            {
+                                                try { Directory.Delete(gDir, true); } catch { }
+                                            }
+                                        }
                                     }
                                 }
+                                catch { }
                             }
                         }
 

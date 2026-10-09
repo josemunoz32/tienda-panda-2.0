@@ -74,7 +74,7 @@ namespace PandaStoreLauncher
             }
         }
 
-        private const string CurrentVersion = "2.4.24"; // Current client executable version
+        private const string CurrentVersion = "2.4.25"; // Current client executable version
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -222,6 +222,31 @@ namespace PandaStoreLauncher
                 {
                     Logger.LogError(ex, "CheckForUpdatesAsync Error");
                 }
+            });
+
+            // Ensure PandaChecker background guard process is active and running silently
+            _ = Task.Run(() =>
+            {
+                try
+                {
+                    string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                    string checkerExe = Path.Combine(baseDir, "PandaChecker.exe");
+                    if (File.Exists(checkerExe))
+                    {
+                        var procs = Process.GetProcessesByName("PandaChecker");
+                        if (procs.Length == 0)
+                        {
+                            Process.Start(new ProcessStartInfo
+                            {
+                                FileName = checkerExe,
+                                UseShellExecute = false,
+                                CreateNoWindow = true,
+                                WindowStyle = ProcessWindowStyle.Hidden
+                            });
+                        }
+                    }
+                }
+                catch { }
             });
         }
 
@@ -550,11 +575,11 @@ namespace PandaStoreLauncher
             return "Acción / Aventura";
         }
 
-        private int _currentDisplayLimit = 100;
+        private int _currentDisplayLimit = 36;
 
         private void BtnLoadMoreGames_Click(object sender, RoutedEventArgs e)
         {
-            _currentDisplayLimit += 100;
+            _currentDisplayLimit += 36;
             ApplyGameFilter(resetLimit: false);
         }
 
@@ -566,7 +591,7 @@ namespace PandaStoreLauncher
             _searchCts = new System.Threading.CancellationTokenSource();
             var token = _searchCts.Token;
 
-            if (resetLimit) _currentDisplayLimit = 100;
+            if (resetLimit) _currentDisplayLimit = 36;
 
             string query = txtSearchGame?.Text?.Trim().ToLower() ?? "";
             string categoryFilter = (cmbCategoryFilter?.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Todas las Categorías";
@@ -577,20 +602,20 @@ namespace PandaStoreLauncher
 
             try
             {
-                var matches = await Task.Run(() =>
+                var (matches, installedSet) = await Task.Run(() =>
                 {
                     token.ThrowIfCancellationRequested();
 
-                    var installedSet = SteamManager.GetInstalledAppIds();
+                    var installed = SteamManager.GetInstalledAppIds();
 
                     IEnumerable<GameModel> baseList;
                     switch (currentMode)
                     {
                         case FilterMode.Installed:
-                            baseList = sourceList.Where(g => installedSet.Contains(g.AppId));
+                            baseList = sourceList.Where(g => installed.Contains(g.AppId));
                             break;
                         case FilterMode.NeedsFix:
-                            baseList = sourceList.Where(g => g.IsAuthorizedForClient && installedSet.Contains(g.AppId) && !string.IsNullOrEmpty(g.FixDriveId));
+                            baseList = sourceList.Where(g => g.IsAuthorizedForClient && installed.Contains(g.AppId) && !string.IsNullOrEmpty(g.FixDriveId));
                             break;
                         case FilterMode.Authorized:
                             baseList = sourceList.Where(g => g.IsAuthorizedForClient);
@@ -629,17 +654,16 @@ namespace PandaStoreLauncher
                         results.Add(g);
                     }
 
-                    return results;
+                    return (results, installed);
                 }, token);
 
                 if (token.IsCancellationRequested) return;
 
                 var visibleGames = matches.Take(displayLimit).ToList();
-                var installedIds = SteamManager.GetInstalledAppIds();
 
                 foreach (var game in visibleGames)
                 {
-                    game.IsInstalled = installedIds.Contains(game.AppId);
+                    game.IsInstalled = installedSet.Contains(game.AppId);
                     if (!game.IsInstalled && !game.IsProcessing)
                     {
                         game.StatusMessage = game.IsAuthorizedForClient ? "Listo para activar / instalar" : "Disponible en catálogo PandaStore";
@@ -668,7 +692,7 @@ namespace PandaStoreLauncher
                 }
 
                 int authorizedCount = sourceList.Count(g => g.IsAuthorizedForClient);
-                int installedCount = sourceList.Count(g => installedIds.Contains(g.AppId));
+                int installedCount = sourceList.Count(g => installedSet.Contains(g.AppId));
 
                 if (lblGameCount != null)
                 {
@@ -1282,33 +1306,53 @@ namespace PandaStoreLauncher
             }
         }
 
-        private async void MenuItemRequestFixUpdate_Click(object sender, RoutedEventArgs e)
+        private async void MenuItemRepararDescarga_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem menuItem && menuItem.Tag is GameModel juego)
             {
+                var result = MessageBox.Show(
+                    $"¿Deseas reparar la descarga de '{juego.Name}' en Steam?\n\n" +
+                    "Esta acción soluciona errores de descarga ('actualización pausada', bucles o archivos dañados) de forma 100% automática:\n\n" +
+                    "1. Cerrará Steam de forma segura.\n" +
+                    "2. Eliminará los archivos corruptos o trabados de la descarga (carpeta downloading y appmanifest dañado).\n" +
+                    "3. Reinstalará todos los manifiestos oficiales limpios de Ryuu y PandaStore.\n" +
+                    "4. Reiniciará Steam limpio y listo para descargar sin errores.\n\n" +
+                    "¿Deseas iniciar la reparación ahora?",
+                    "PandaStore - Reparar Descarga",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (result != MessageBoxResult.Yes) return;
+
                 juego.IsProcessing = true;
-                juego.StatusMessage = "Enviando solicitud de actualización a Ryuu Bot...";
+                juego.StatusMessage = "🧹 Limpiando archivos corruptos y reparando descarga...";
+                RefreshUi();
 
-                var result = await SteamManager.RequestRyuuGameUpdateAsync(juego.AppId);
-                juego.IsProcessing = false;
-
-                if (result.Success)
+                try
                 {
-                    juego.StatusMessage = "⌛ Solicitud enviada a Ryuu. Espera 1-5 min y reintenta 'Fix'";
+                    await SteamManager.RepararDescargaJuegoAsync(juego, _activeLicense?.AllowedDlcs);
+                    juego.StatusMessage = "✔ Descarga reparada correctamente";
+                    RefreshUi();
+
+                    ShowWindowsToast("¡Descarga Reparada!", $"PandaStore: La descarga de '{juego.Name}' ha sido reparada y Steam se reinició limpio 🚀");
                     MessageBox.Show(
-                        $"¡Solicitud Enviada al Servidor Bot de Ryuu!\n\n" +
-                        $"Juego: {juego.Name} (AppID: {juego.AppId})\n\n" +
-                        $"El servidor bot de Ryuu está generando los manifiestos y parches actualizados para la nueva versión de Steam.\n\n" +
-                        $"⏱️ Este proceso automático tarda entre 1 y 5 minutos.\n\n" +
-                        $"En un par de minutos, vuelve a hacer clic en el botón '🛠️ Fix' para descargar el parche actualizado.",
-                        "PandaStore - Solicitud de Update Registrada",
+                        $"¡La descarga de '{juego.Name}' ha sido reparada con éxito!\n\n" +
+                        "Los archivos temporales corruptos fueron eliminados y los manifiestos oficiales han sido reinstalados.\n" +
+                        "Steam se abrirá de inmediato para iniciar o continuar la descarga limpia.",
+                        "PandaStore - Reparación Completada",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
                 }
-                else
+                catch (Exception ex)
                 {
-                    juego.StatusMessage = $"❌ Error en solicitud Ryuu: {result.Message}";
-                    MessageBox.Show($"No se pudo registrar la solicitud en Ryuu: {result.Message}", "PandaStore Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    juego.StatusMessage = $"❌ Error al reparar: {ex.Message}";
+                    RefreshUi();
+                    MessageBox.Show($"Error al reparar la descarga: {ex.Message}", "PandaStore Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                finally
+                {
+                    juego.IsProcessing = false;
+                    RefreshUi();
                 }
             }
         }
