@@ -209,6 +209,19 @@
                                 Margin="0,0,10,0"
                                 Click="BtnCheckUpdate_Click"/>
 
+                        <Button x:Name="btnOpenSaves" 
+                                Content="💾 Mis Partidas" 
+                                Style="{StaticResource VacButtonStyle}" 
+                                Foreground="#FBBF24"
+                                BorderBrush="#78350F"
+                                Background="#1A1108"
+                                Padding="13,9"
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Margin="0,0,10,0"
+                                ToolTip="Abre tu carpeta de respaldos locales de partidas guardadas en tu PC"
+                                Click="BtnOpenSaves_Click"/>
+
                         <Button x:Name="btnRefreshGames" 
                                 Content="🔄 Refrescar" 
                                 Style="{StaticResource VacButtonStyle}" 
@@ -375,7 +388,9 @@
                                     Margin="0,0,10,6" 
                                     Click="BtnTabAllCatalog_Click"/>
 
-                            <TextBlock x:Name="lblGameCount" Visibility="Collapsed"/>
+                            <Border Background="#120E24" BorderBrush="#2A1E4A" BorderThickness="1" CornerRadius="8" Padding="12,6" Margin="0,0,10,6">
+                                <TextBlock x:Name="lblGameCount" Text="Cargando catálogo..." Foreground="{StaticResource AccentCyanBrush}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </Border>
 
                             <Button x:Name="btnToggleVacSteam" 
                                     Content="🎮 MODO JUEGOS (ACTIVADO)" 

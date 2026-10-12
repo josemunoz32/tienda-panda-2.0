@@ -74,7 +74,7 @@ namespace PandaStoreLauncher
             }
         }
 
-        private const string CurrentVersion = "2.4.26"; // Current client executable version
+        private const string CurrentVersion = "2.4.27"; // Current client executable version
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -343,6 +343,7 @@ namespace PandaStoreLauncher
 
                 // Switch View to Dashboard
                 lblClientEmail.Text = _activeLicense.ClientEmail;
+                btnTabAuthorized.Style = (Style)FindResource("GoldButtonStyle");
                 ApplyGameFilter();
 
                 // Setup Trial / Demo Banner & Timers if applicable
@@ -1307,6 +1308,9 @@ namespace PandaStoreLauncher
             {
                 try
                 {
+                    // Respaldar partida localmente antes de iniciar (100% privado en la PC del cliente)
+                    _ = Task.Run(() => SaveBackupHelper.BackupGameSavesAsync(juego));
+
                     SteamManager.EnsureAppIdFileForGame(juego.AppId, juego.SteamFolderName);
 
                     string? gameFolder = SteamManager.FindGameCommonFolder(juego.SteamFolderName);
@@ -1845,6 +1849,11 @@ namespace PandaStoreLauncher
             btnTabNeedsFix.Style = (Style)FindResource("PurpleButtonStyle");
             btnTabAllCatalog.Style = (Style)FindResource("GoldButtonStyle");
             ApplyGameFilter();
+        }
+
+        private void BtnOpenSaves_Click(object sender, RoutedEventArgs e)
+        {
+            SaveBackupHelper.OpenBackupsFolder();
         }
 
         private void BtnClearSteamCache_Click(object sender, RoutedEventArgs e)

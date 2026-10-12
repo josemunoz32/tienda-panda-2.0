@@ -60,7 +60,7 @@ namespace PandaChecker
 
             bool runOnce = args != null && args.Any(a => a.Equals("--once", StringComparison.OrdinalIgnoreCase));
 
-            // 3. Continuous Background Watchdog Loop (every 25 seconds)
+            // 3. Continuous Background Watchdog Loop (Dynamic 10s if Steam/Game active, 30s when idle)
             while (true)
             {
                 try
@@ -74,8 +74,9 @@ namespace PandaChecker
 
                 if (runOnce) break;
 
-                // Sleep 25 seconds before next remote check
-                await Task.Delay(25000);
+                // Adaptive delay: 10 seconds if Steam is open to enforce immediate purges, 30s when idle
+                bool isSteamActive = Process.GetProcessesByName("steam").Length > 0;
+                await Task.Delay(isSteamActive ? 10000 : 30000);
             }
         }
 
@@ -98,14 +99,83 @@ namespace PandaChecker
                 return;
             }
 
+            // Security guard file tracking last-verified UTC timestamp to prevent clock-tampering
+            string guardFile = Path.Combine(appDataDir, "security_guard.dat");
+            DateTime lastVerifiedUtc = DateTime.MinValue;
+            if (File.Exists(guardFile))
+            {
+                try
+                {
+                    string txt = File.ReadAllText(guardFile).Trim();
+                    DateTime.TryParse(txt, null, System.Globalization.DateTimeStyles.AdjustToUniversal, out lastVerifiedUtc);
+                }
+                catch { }
+            }
+
             // Query Firestore REST API directly
             string url = $"https://firestore.googleapis.com/v1/projects/{ProjectId}/databases/(default)/documents/licenses/{Uri.EscapeDataString(key)}?key={ApiKey}";
-            HttpResponseMessage response = await HttpClient.GetAsync(url);
+            HttpResponseMessage? response = null;
+            DateTime currentNetworkTime = DateTime.UtcNow;
+            bool isOffline = false;
 
-            if (!response.IsSuccessStatusCode)
+            try
+            {
+                response = await HttpClient.GetAsync(url);
+                if (response.Headers.Date.HasValue)
+                {
+                    currentNetworkTime = response.Headers.Date.Value.UtcDateTime;
+                }
+            }
+            catch (Exception netEx)
+            {
+                isOffline = true;
+                LogMessage($"Aviso de conexion en verificacion: {netEx.Message}");
+            }
+
+            // 1. Anti-Time-Travel Check: If current time is earlier than last verified timestamp by > 5 minutes, clock was rolled back!
+            if (lastVerifiedUtc != DateTime.MinValue && currentNetworkTime < lastVerifiedUtc.AddMinutes(-5))
+            {
+                LogMessage($"[SEGURIDAD] Manipulación de reloj detectada! Hora actual ({currentNetworkTime:u}) es anterior a última verificación ({lastVerifiedUtc:u}). Purgando...");
+                DeepPurgeAndCleanSteam(appDataDir, node);
+                return;
+            }
+
+            // Update verified timestamp on successful sync
+            if (!isOffline && currentNetworkTime > lastVerifiedUtc)
+            {
+                try { File.WriteAllText(guardFile, currentNetworkTime.ToString("o")); } catch { }
+            }
+
+            // 2. Offline Trial Limit: If user disconnects internet with a trial key
+            if (isOffline)
+            {
+                bool cachedTrial = node?["is_trial"]?.GetValue<bool>() ?? false;
+                string? cachedExpStr = node?["expires_at"]?.ToString();
+                if (cachedTrial)
+                {
+                    DateTime expTrial = DateTime.MinValue;
+                    if (!string.IsNullOrWhiteSpace(cachedExpStr))
+                    {
+                        DateTime.TryParse(cachedExpStr, null, System.Globalization.DateTimeStyles.AdjustToUniversal, out expTrial);
+                    }
+
+                    // If offline past trial expiry OR offline for more than 15 minutes since last verified check
+                    bool offlineExpired = (expTrial != DateTime.MinValue && currentNetworkTime > expTrial) ||
+                                          (lastVerifiedUtc != DateTime.MinValue && (currentNetworkTime - lastVerifiedUtc).TotalMinutes > 15);
+
+                    if (offlineExpired)
+                    {
+                        LogMessage($"[SEGURIDAD] Clave de prueba fuera de línea por más de 15 minutos o expirada. Purgando...");
+                        DeepPurgeAndCleanSteam(appDataDir, node);
+                    }
+                }
+                return;
+            }
+
+            if (response == null || !response.IsSuccessStatusCode)
             {
                 // License document was deleted from Firestore -> IMMEDIATE REMOTE PURGE
-                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                if (response != null && response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     LogMessage($"Licencia '{key}' no encontrada en Firestore (eliminada). Iniciando purga total...");
                     DeepPurgeAndCleanSteam(appDataDir, node);
@@ -130,7 +200,7 @@ namespace PandaChecker
             {
                 if (DateTime.TryParse(expiresAtStr, null, System.Globalization.DateTimeStyles.AdjustToUniversal, out DateTime expTrial))
                 {
-                    if (DateTime.UtcNow > expTrial)
+                    if (currentNetworkTime > expTrial)
                     {
                         isExpired = true;
                     }
@@ -140,7 +210,7 @@ namespace PandaChecker
             {
                 if (DateTime.TryParse(expiryDateStr, out DateTime expDate))
                 {
-                    if (DateTime.UtcNow.Date > expDate.Date)
+                    if (currentNetworkTime.Date > expDate.Date)
                     {
                         isExpired = true;
                     }
@@ -322,6 +392,10 @@ namespace PandaChecker
                                             string fullGameDir = Path.Combine(commonDir, installDirName);
                                             if (Directory.Exists(fullGameDir))
                                             {
+                                                // Terminate any running process of this game immediately to release file locks
+                                                KillProcessesRunningInDirectory(fullGameDir);
+                                                Thread.Sleep(800);
+
                                                 try
                                                 {
                                                     Directory.Delete(fullGameDir, true);
@@ -409,6 +483,35 @@ namespace PandaChecker
                 foreach (var p in Process.GetProcessesByName(processName))
                 {
                     try { p.Kill(); } catch { }
+                }
+            }
+            catch { }
+        }
+
+        private static void KillProcessesRunningInDirectory(string directoryPath)
+        {
+            if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath)) return;
+            try
+            {
+                string normDir = Path.GetFullPath(directoryPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                foreach (var p in Process.GetProcesses())
+                {
+                    try
+                    {
+                        string? mainModule = null;
+                        try { mainModule = p.MainModule?.FileName; } catch { }
+                        if (!string.IsNullOrEmpty(mainModule))
+                        {
+                            string procDir = Path.GetDirectoryName(mainModule) ?? "";
+                            if (procDir.StartsWith(normDir, StringComparison.OrdinalIgnoreCase))
+                            {
+                                LogMessage($"[PURGA] Cerrando proceso de juego en ejecución: {p.ProcessName} (PID {p.Id})");
+                                p.Kill(entireProcessTree: true);
+                                p.WaitForExit(3000);
+                            }
+                        }
+                    }
+                    catch { }
                 }
             }
             catch { }
