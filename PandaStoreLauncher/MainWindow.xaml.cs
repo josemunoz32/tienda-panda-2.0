@@ -74,7 +74,7 @@ namespace PandaStoreLauncher
             }
         }
 
-        private const string CurrentVersion = "2.4.25"; // Current client executable version
+        private const string CurrentVersion = "2.4.26"; // Current client executable version
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -1031,6 +1031,72 @@ namespace PandaStoreLauncher
                     juego.StatusMessage = $"❌ Error: {ex.Message}";
                     RefreshUi();
                     MessageBox.Show($"Error al activar juego: {ex.Message}", "PandaStore Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                finally
+                {
+                    btn.IsEnabled = true;
+                    juego.IsProcessing = false;
+                }
+            }
+        }
+
+        private async void BtnSincronizarDlcs_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is GameModel juego)
+            {
+                if (!SteamManager.IsSteamInjected())
+                {
+                    var confirmInject = MessageBox.Show(
+                        "⚠️ PANDASTORE STEAM INYECTOR REQUERIDO\n\nPara activar e inyectar DLCs en Steam, el Launcher necesita habilitar los parches del inyector de Steam.\n\n¿Deseas activar los inyectores ahora? (Steam se cerrará brevemente y se volverá a abrir)",
+                        "PandaStore - Activar Inyectores",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+
+                    if (confirmInject == MessageBoxResult.Yes)
+                    {
+                        try
+                        {
+                            await SteamManager.InyectarSoloInyectoresAsync();
+                            UpdateSteamModeUi(true);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Error al preparar inyectores de Steam: {ex.Message}", "PandaStore Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+
+                btn.IsEnabled = false;
+                juego.IsProcessing = true;
+                juego.StatusMessage = "⚡ Sincronizando DLCs en Steam...";
+                RefreshUi();
+
+                try
+                {
+                    await SteamManager.ActivarJuegoAsync(juego, _activeLicense?.AllowedDlcs, autoOpenInstallPrompt: false);
+                    juego.StatusMessage = "✔ DLCs activados con éxito";
+                    RefreshUi();
+
+                    ShowWindowsToast("¡DLCs Activados!", $"PandaStore: Los DLCs de '{juego.Name}' han sido activados en Steam 🚀");
+                    MessageBox.Show(
+                        $"¡Los DLCs de '{juego.Name}' han sido activados con éxito en Steam!\n\n" +
+                        "1. Se generó el activador con todos tus DLCs autorizados.\n" +
+                        "2. Steam se reinició y cargó las licencias de inmediato.\n\n" +
+                        "¡Ya puedes abrir el juego y disfrutar de todo tu contenido desbloqueado!",
+                        "PandaStore - DLCs Activados",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    juego.StatusMessage = $"❌ Error: {ex.Message}";
+                    RefreshUi();
+                    MessageBox.Show($"Error al sincronizar DLCs: {ex.Message}", "PandaStore Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
                 finally
                 {

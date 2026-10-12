@@ -808,11 +808,15 @@ namespace PandaStoreLauncher.Helpers
                         continue;
                     }
 
+                    // Distinguish single-argument addappid(appId) (DLCs / sub-apps) from depot decryption keys / manifests
+                    // Single-argument addappid registers DLC ownership and NEVER has a separate .manifest file.
+                    bool isSingleAppId = Regex.IsMatch(trimmed, @"^addappid\(\s*\d+\s*\)", RegexOptions.IgnoreCase);
+
                     if (shouldFilterDlcs && allowedSet != null && !allowedSet.Contains(targetId) && targetId != appId)
                     {
                         lines[li] = "-- [NO_COMPRADO] " + line;
                     }
-                    else if (validDepotIds != null && validDepotIds.Count > 0 && !validDepotIds.Contains(targetId) && targetId != appId)
+                    else if (!isSingleAppId && validDepotIds != null && validDepotIds.Count > 0 && !validDepotIds.Contains(targetId) && targetId != appId)
                     {
                         lines[li] = "-- [NO_MANIFEST] " + line;
                     }

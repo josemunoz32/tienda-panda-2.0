@@ -291,6 +291,7 @@ namespace PandaStoreLauncher.Models
                     OnPropertyChanged(nameof(VipButtonToolTip));
                     OnPropertyChanged(nameof(CanLaunchGame));
                     OnPropertyChanged(nameof(PlayButtonVisibility));
+                    OnPropertyChanged(nameof(SyncDlcsButtonVisibility));
                 }
             }
         }
@@ -317,6 +318,7 @@ namespace PandaStoreLauncher.Models
                     OnPropertyChanged(nameof(RepairButtonVisibility));
                     OnPropertyChanged(nameof(RequestButtonVisibility));
                     OnPropertyChanged(nameof(DlcButtonVisibility));
+                    OnPropertyChanged(nameof(SyncDlcsButtonVisibility));
                 }
             }
         }
@@ -441,6 +443,10 @@ namespace PandaStoreLauncher.Models
         // Repair stuck/corrupted download button "🧹 Reparar Descarga"
         [JsonIgnore]
         public Visibility RepairButtonVisibility => IsAuthorizedForClient ? Visibility.Visible : Visibility.Collapsed;
+
+        // Button "⚡ Activar DLCs" to inject DLCs into already installed games
+        [JsonIgnore]
+        public Visibility SyncDlcsButtonVisibility => (IsAuthorizedForClient && IsInstalled && HasDlcs) ? Visibility.Visible : Visibility.Collapsed;
 
         [JsonIgnore]
         public Visibility RequestButtonVisibility => !IsAuthorizedForClient ? Visibility.Visible : Visibility.Collapsed;
