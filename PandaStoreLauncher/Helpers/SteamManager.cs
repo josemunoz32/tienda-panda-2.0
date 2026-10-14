@@ -1595,6 +1595,8 @@ namespace PandaStoreLauncher.Helpers
             if (string.IsNullOrWhiteSpace(steamFolderName)) return null;
 
             var libraries = GetSteamLibraryFolders();
+            string normTarget = Regex.Replace(steamFolderName, @"[^a-zA-Z0-9]", "");
+
             foreach (var lib in libraries)
             {
                 // Direct check first
@@ -1604,7 +1606,7 @@ namespace PandaStoreLauncher.Helpers
                     return targetDir;
                 }
 
-                // Case-insensitive fallback check
+                // Case-insensitive & normalized fallback check
                 if (Directory.Exists(lib))
                 {
                     try
@@ -1616,6 +1618,15 @@ namespace PandaStoreLauncher.Helpers
                             if (string.Equals(dirName, steamFolderName, StringComparison.OrdinalIgnoreCase))
                             {
                                 return dir;
+                            }
+
+                            if (!string.IsNullOrEmpty(normTarget))
+                            {
+                                string normDir = Regex.Replace(dirName, @"[^a-zA-Z0-9]", "");
+                                if (string.Equals(normDir, normTarget, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    return dir;
+                                }
                             }
                         }
                     }
@@ -1652,26 +1663,70 @@ namespace PandaStoreLauncher.Helpers
         }
 
         /// <summary>
-        /// Checks if an installed game folder contains a custom launcher/fix EXE (e.g. Launcher.exe, PlayGTAIV.exe, etc.)
+        /// Checks if an installed game folder contains a custom launcher/fix EXE (e.g. Launcher.exe, PlayRDR2.exe, PlayGTAV.exe, start.exe, etc.)
         /// </summary>
-        public static bool HasCustomFixLauncher(string steamFolderName)
+        public static bool HasCustomFixLauncher(string steamFolderName, string gameName = "", string appId = "")
         {
-            string? gameFolder = FindGameCommonFolder(steamFolderName);
+            string? gameFolder = null;
+            if (!string.IsNullOrEmpty(appId))
+            {
+                gameFolder = GetGameDirectoryByAppId(appId, steamFolderName);
+            }
+            if (string.IsNullOrEmpty(gameFolder) && !string.IsNullOrWhiteSpace(steamFolderName))
+            {
+                gameFolder = FindGameCommonFolder(steamFolderName);
+            }
+            if (string.IsNullOrEmpty(gameFolder) && !string.IsNullOrWhiteSpace(gameName))
+            {
+                gameFolder = FindGameCommonFolder(gameName);
+            }
             if (string.IsNullOrEmpty(gameFolder) || !Directory.Exists(gameFolder)) return false;
 
             string[] customLauncherNames = new[]
             {
                 "Launcher.exe",
-                "PlayGTAIV.exe",
+                "launcher.exe",
+                "PlayRDR2.exe",
+                "RDR2.exe",
                 "PlayGTAV.exe",
+                "PlayGTAIV.exe",
                 "PlayGTA3.exe",
                 "PlayGTAViceCity.exe",
-                "PlayGTASanAndreas.exe"
+                "PlayGTASanAndreas.exe",
+                "start.exe",
+                "Start.exe",
+                "launch.exe",
+                "Launch.exe",
+                "LaunchGame.exe",
+                "StartGame.exe",
+                "PlayGame.exe",
+                "game.exe",
+                "Game.exe",
+                "Play.exe",
+                "play.exe",
+                "run.exe",
+                "Run.exe",
+                "SmartSteamLoader.exe",
+                "SSELauncher.exe",
+                "Goldberg.exe",
+                "SteamClientLauncher.exe",
+                "BOOT.exe",
+                "boot.exe"
             };
 
             foreach (var name in customLauncherNames)
             {
                 if (File.Exists(Path.Combine(gameFolder, name))) return true;
+            }
+
+            // Check OnlineFix and crack fix indicators
+            if (File.Exists(Path.Combine(gameFolder, "OnlineFix.ini")) ||
+                File.Exists(Path.Combine(gameFolder, "OnlineFix64.dll")) ||
+                File.Exists(Path.Combine(gameFolder, "OnlineFix.dll")) ||
+                File.Exists(Path.Combine(gameFolder, "steam_emu.ini")) ||
+                Directory.Exists(Path.Combine(gameFolder, "steam_settings")))
+            {
+                return true;
             }
 
             return false;
@@ -1680,8 +1735,17 @@ namespace PandaStoreLauncher.Helpers
         private static HashSet<string>? _installedAppIdsCache;
         private static DateTime _lastInstalledCacheTime = DateTime.MinValue;
 
+        private static HashSet<string>? _installedFolderNamesCache;
+        private static DateTime _lastInstalledFoldersCacheTime = DateTime.MinValue;
+
         public static HashSet<string> GetInstalledAppIds(bool forceRefresh = false)
         {
+            if (forceRefresh)
+            {
+                _installedAppIdsCache = null;
+                _installedFolderNamesCache = null;
+            }
+
             // Evita volver a recorrer todos los appmanifest de Steam al cambiar
             // una categoría o escribir en el buscador. La vista se actualiza de
             // forma explícita al sincronizar o instalar un juego.
@@ -1717,14 +1781,88 @@ namespace PandaStoreLauncher.Helpers
             return set;
         }
 
-        public static bool IsGameInstalledFast(string appId, string steamFolderName)
+        /// <summary>
+        /// Devuelve un conjunto optimizado con todos los nombres de carpetas instaladas en steamapps/common
+        /// de todas las bibliotecas de Steam conectadas.
+        /// </summary>
+        public static HashSet<string> GetInstalledCommonFolderNames(bool forceRefresh = false)
         {
-            if (string.IsNullOrWhiteSpace(appId)) return false;
-            return GetInstalledAppIds().Contains(appId);
+            if (forceRefresh)
+            {
+                _installedFolderNamesCache = null;
+            }
+
+            if (_installedFolderNamesCache != null && !forceRefresh && (DateTime.Now - _lastInstalledFoldersCacheTime).TotalSeconds < 30)
+            {
+                return _installedFolderNamesCache;
+            }
+
+            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                var libraries = GetSteamLibraryFolders();
+                foreach (var lib in libraries)
+                {
+                    if (!Directory.Exists(lib)) continue;
+                    var dirs = Directory.GetDirectories(lib);
+                    foreach (var dir in dirs)
+                    {
+                        try
+                        {
+                            // Verificación ultra rápida: comprobar que la carpeta no esté vacía
+                            if (Directory.EnumerateFileSystemEntries(dir).Any())
+                            {
+                                string folderName = Path.GetFileName(dir);
+                                set.Add(folderName);
+
+                                string norm = Regex.Replace(folderName, @"[^a-zA-Z0-9]", "");
+                                if (!string.IsNullOrEmpty(norm))
+                                {
+                                    set.Add(norm);
+                                }
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+            catch { }
+
+            _installedFolderNamesCache = set;
+            _lastInstalledFoldersCacheTime = DateTime.Now;
+            return set;
+        }
+
+        public static bool IsFolderInInstalledCommonFolders(HashSet<string> installedFolders, string? folderName, string? gameName = null)
+        {
+            if (installedFolders == null || installedFolders.Count == 0) return false;
+
+            if (!string.IsNullOrWhiteSpace(folderName))
+            {
+                if (installedFolders.Contains(folderName)) return true;
+                string norm = Regex.Replace(folderName, @"[^a-zA-Z0-9]", "");
+                if (!string.IsNullOrEmpty(norm) && installedFolders.Contains(norm)) return true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(gameName))
+            {
+                if (installedFolders.Contains(gameName)) return true;
+                string norm = Regex.Replace(gameName, @"[^a-zA-Z0-9]", "");
+                if (!string.IsNullOrEmpty(norm) && installedFolders.Contains(norm)) return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsGameInstalledFast(string appId, string steamFolderName, string gameName = "")
+        {
+            if (!string.IsNullOrWhiteSpace(appId) && GetInstalledAppIds().Contains(appId)) return true;
+            var folders = GetInstalledCommonFolderNames();
+            return IsFolderInInstalledCommonFolders(folders, steamFolderName, gameName);
         }
 
         /// <summary>
-        /// Escanea inteligentemente la carpeta del juego para encontrar el ejecutable principal.
+        /// Escanea inteligentemente la carpeta del juego para encontrar el ejecutable principal o lanzador personalizado.
         /// Retorna la ruta completa al .exe más probable, o null si no encuentra ninguno.
         /// </summary>
         public static string? FindGameExecutable(string gameFolderPath, string gameName)
@@ -1732,29 +1870,40 @@ namespace PandaStoreLauncher.Helpers
             if (string.IsNullOrEmpty(gameFolderPath) || !Directory.Exists(gameFolderPath))
                 return null;
 
-            // Prioridades:
-            // 1. Archivos exactos conocidos para juegos rebeldes o de Fixes (incluyendo launchers Ryuu).
+            // Prioridad 1: Archivos exactos conocidos para lanzadores modificados / Ryuu / Online Fix / Repacks
             string[] customLauncherNames = new[]
             {
                 "Launcher.exe",
-                "PlayGTAIV.exe",
+                "launcher.exe",
+                "PlayRDR2.exe",
+                "RDR2.exe",
                 "PlayGTAV.exe",
+                "PlayGTAIV.exe",
                 "PlayGTA3.exe",
                 "PlayGTAViceCity.exe",
                 "PlayGTASanAndreas.exe",
-                "PlayRDR2.exe",
-                "RDR2.exe",
-                // Common Ryuu/CrackFix custom launchers
                 "start.exe",
                 "Start.exe",
                 "launch.exe",
                 "Launch.exe",
+                "LaunchGame.exe",
+                "StartGame.exe",
+                "PlayGame.exe",
                 "game.exe",
+                "Game.exe",
                 "Play.exe",
+                "play.exe",
                 "run.exe",
-                "Run.exe"
+                "Run.exe",
+                "SmartSteamLoader.exe",
+                "SSELauncher.exe",
+                "Goldberg.exe",
+                "SteamClientLauncher.exe",
+                "BOOT.exe",
+                "boot.exe"
             };
 
+            // Comprobación directa en la raíz (0ms)
             foreach (var customExeName in customLauncherNames)
             {
                 string customExePath = Path.Combine(gameFolderPath, customExeName);
@@ -1764,7 +1913,7 @@ namespace PandaStoreLauncher.Helpers
                 }
             }
 
-            // 2. Buscar ejecutables en la raíz y subcarpetas que tengan nombres que coincidan parcialmente con el nombre del juego
+            // Prioridad 2: Buscar ejecutables en la raíz y subcarpetas (Binaries/Win64, bin, etc.)
             try
             {
                 var allExecutables = Directory.GetFiles(gameFolderPath, "*.exe", SearchOption.AllDirectories);
@@ -1774,33 +1923,53 @@ namespace PandaStoreLauncher.Helpers
                 if (allExecutables.Length == 1)
                     return allExecutables[0];
 
-                // Filtrar basura conocida
-                var validExecutables = allExecutables.Where(e => 
+                // Buscar lanzadores modificados en subcarpetas
+                foreach (var customExeName in customLauncherNames)
+                {
+                    var match = allExecutables.FirstOrDefault(e => string.Equals(Path.GetFileName(e), customExeName, StringComparison.OrdinalIgnoreCase));
+                    if (match != null)
+                        return match;
+                }
+
+                // Patrones genéricos de lanzadores (*Launcher.exe o Play*.exe)
+                var launcherMatch = allExecutables.FirstOrDefault(e =>
+                {
+                    string fn = Path.GetFileName(e);
+                    return fn.EndsWith("Launcher.exe", StringComparison.OrdinalIgnoreCase) ||
+                           (fn.StartsWith("Play", StringComparison.OrdinalIgnoreCase) && fn.Length > 7);
+                });
+                if (launcherMatch != null)
+                    return launcherMatch;
+
+                // Filtrar instaladores, asistentes de fallos y redistribuibles
+                var validExecutables = allExecutables.Where(e =>
                     !e.Contains("CrashReport", StringComparison.OrdinalIgnoreCase) &&
                     !e.Contains("UnityCrashHandler", StringComparison.OrdinalIgnoreCase) &&
                     !e.Contains("unins", StringComparison.OrdinalIgnoreCase) &&
                     !e.Contains("setup", StringComparison.OrdinalIgnoreCase) &&
                     !e.Contains("redist", StringComparison.OrdinalIgnoreCase) &&
-                    !e.Contains("dxwebsetup", StringComparison.OrdinalIgnoreCase)
+                    !e.Contains("dxwebsetup", StringComparison.OrdinalIgnoreCase) &&
+                    !e.Contains("dotNetFx", StringComparison.OrdinalIgnoreCase) &&
+                    !e.Contains("vcredist", StringComparison.OrdinalIgnoreCase)
                 ).ToList();
 
                 if (validExecutables.Count == 0)
                     return allExecutables[0];
 
-                // Si hay varios, intentar buscar el que más se parezca al nombre o a la carpeta
                 string folderName = new DirectoryInfo(gameFolderPath).Name;
-                
-                // Primero, coincidencia con el nombre de la carpeta
-                var bestMatch = validExecutables.FirstOrDefault(e => Path.GetFileNameWithoutExtension(e).Contains(folderName, StringComparison.OrdinalIgnoreCase));
+
+                // Coincidencia con el nombre de la carpeta o nombre del juego
+                var bestMatch = validExecutables.FirstOrDefault(e =>
+                    Path.GetFileNameWithoutExtension(e).Contains(folderName, StringComparison.OrdinalIgnoreCase) ||
+                    (!string.IsNullOrEmpty(gameName) && Path.GetFileNameWithoutExtension(e).Contains(gameName, StringComparison.OrdinalIgnoreCase)));
                 if (bestMatch != null)
                     return bestMatch;
 
-                // Segundo, buscar el ejecutable más grande (suele ser el juego principal)
+                // Ejecutable más pesado (generalmente el binario principal del juego)
                 var largestExe = validExecutables.OrderByDescending(e => new FileInfo(e).Length).FirstOrDefault();
                 if (largestExe != null)
                     return largestExe;
 
-                // Fallback al primero de la lista válida
                 return validExecutables.First();
             }
             catch

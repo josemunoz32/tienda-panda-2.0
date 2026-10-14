@@ -331,7 +331,7 @@ namespace PandaStoreLauncher.Models
                 if (!IsAuthorizedForClient)
                     return "🔒 No Incluido en tu Licencia Actual";
                 if (IsInstalled)
-                    return "✔ Instalado 100% en Steam";
+                    return HasCustomLauncher ? "✔ Instalado con Launcher / Fix" : "✔ Instalado 100% en Steam";
                 return "⚠️ Debes instalar el juego en Steam primero";
             }
         }
@@ -407,10 +407,10 @@ namespace PandaStoreLauncher.Models
             : "⚠️ Debes instalar y descargar el juego al 100% en Steam primero antes de activar";
 
         [JsonIgnore]
-        public bool CanLaunchGame => IsAuthorizedForClient && IsInstalled && !IsProcessing;
+        public bool CanLaunchGame => IsAuthorizedForClient && (IsInstalled || HasCustomLauncher) && !IsProcessing;
 
         [JsonIgnore]
-        public Visibility PlayButtonVisibility => (IsAuthorizedForClient && IsInstalled) ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility PlayButtonVisibility => (IsAuthorizedForClient && (IsInstalled || HasCustomLauncher)) ? Visibility.Visible : Visibility.Collapsed;
 
         private bool _hasFix = false;
         [JsonPropertyName("has_fix")]

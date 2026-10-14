@@ -75,7 +75,7 @@ namespace PandaStoreLauncher
             }
         }
 
-        private const string CurrentVersion = "2.4.31"; // Current client executable version
+        private const string CurrentVersion = "2.4.32"; // Current client executable version
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -614,20 +614,27 @@ namespace PandaStoreLauncher
 
             try
             {
-                var (matches, installedSet) = await Task.Run(() =>
+                var (matches, installedSet, installedFoldersSet) = await Task.Run(() =>
                 {
                     token.ThrowIfCancellationRequested();
 
                     var installed = SteamManager.GetInstalledAppIds();
+                    var installedFolders = SteamManager.GetInstalledCommonFolderNames();
+
+                    bool IsGameInstalled(GameModel g)
+                    {
+                        return installed.Contains(g.AppId) ||
+                               SteamManager.IsFolderInInstalledCommonFolders(installedFolders, g.SteamFolderName, g.Name);
+                    }
 
                     IEnumerable<GameModel> baseList;
                     switch (currentMode)
                     {
                         case FilterMode.Installed:
-                            baseList = sourceList.Where(g => installed.Contains(g.AppId));
+                            baseList = sourceList.Where(g => IsGameInstalled(g));
                             break;
                         case FilterMode.NeedsFix:
-                            baseList = sourceList.Where(g => g.IsAuthorizedForClient && installed.Contains(g.AppId) && !string.IsNullOrEmpty(g.FixDriveId));
+                            baseList = sourceList.Where(g => g.IsAuthorizedForClient && IsGameInstalled(g) && !string.IsNullOrEmpty(g.FixDriveId));
                             break;
                         case FilterMode.Authorized:
                             baseList = sourceList.Where(g => g.IsAuthorizedForClient);
@@ -664,7 +671,7 @@ namespace PandaStoreLauncher
                         results.Add(g);
                     }
 
-                    return (results, installed);
+                    return (results, installed, installedFolders);
                 }, token);
 
                 if (token.IsCancellationRequested) return;
@@ -673,7 +680,10 @@ namespace PandaStoreLauncher
 
                 foreach (var game in visibleGames)
                 {
-                    game.IsInstalled = installedSet.Contains(game.AppId);
+                    bool isInst = installedSet.Contains(game.AppId) ||
+                                  SteamManager.IsFolderInInstalledCommonFolders(installedFoldersSet, game.SteamFolderName, game.Name);
+                    game.IsInstalled = isInst;
+                    game.HasCustomLauncher = isInst && SteamManager.HasCustomFixLauncher(game.SteamFolderName, game.Name, game.AppId);
                     if (!game.IsInstalled && !game.IsProcessing)
                     {
                         game.StatusMessage = game.IsAuthorizedForClient ? "Listo para activar / instalar" : "Disponible en catálogo PandaStore";
@@ -702,7 +712,8 @@ namespace PandaStoreLauncher
                 }
 
                 int authorizedCount = sourceList.Count(g => g.IsAuthorizedForClient);
-                int installedCount = sourceList.Count(g => installedSet.Contains(g.AppId));
+                int installedCount = sourceList.Count(g => installedSet.Contains(g.AppId) ||
+                                                           SteamManager.IsFolderInInstalledCommonFolders(installedFoldersSet, g.SteamFolderName, g.Name));
 
                 if (lblGameCount != null)
                 {
@@ -1307,7 +1318,8 @@ namespace PandaStoreLauncher
                     }
 
                     juego.IsFixInstalled = true;
-                    juego.HasCustomLauncher = SteamManager.HasCustomFixLauncher(juego.SteamFolderName);
+                    juego.IsInstalled = true;
+                    juego.HasCustomLauncher = SteamManager.HasCustomFixLauncher(juego.SteamFolderName, juego.Name, juego.AppId);
                     juego.StatusMessage = "✔ Fix e Inyección Listos";
                     ShowWindowsToast("¡Fix Aplicado!", $"PandaStore: El parche de '{juego.Name}' se ha instalado en la carpeta del juego 🎮");
                     MessageBox.Show(
@@ -1344,19 +1356,43 @@ namespace PandaStoreLauncher
 
                     SteamManager.EnsureAppIdFileForGame(juego.AppId, juego.SteamFolderName);
 
-                    string? gameFolder = SteamManager.FindGameCommonFolder(juego.SteamFolderName);
+                    // 1. Localizar la carpeta exacta del juego en cualquiera de las bibliotecas de Steam
+                    string? gameFolder = SteamManager.GetGameDirectoryByAppId(juego.AppId, juego.SteamFolderName);
+                    if (string.IsNullOrEmpty(gameFolder))
+                    {
+                        gameFolder = SteamManager.FindGameCommonFolder(juego.SteamFolderName);
+                    }
+                    if (string.IsNullOrEmpty(gameFolder))
+                    {
+                        gameFolder = SteamManager.FindGameCommonFolder(juego.Name);
+                    }
+
                     if (!string.IsNullOrEmpty(gameFolder) && Directory.Exists(gameFolder))
                     {
-                        // Priority 1: Smart Exe Scanner (Direct Launch)
-                        // This prevents Steam from intercepting and blocking Online Fixes (Spacewar).
+                        // Prioridad 1: Escáner inteligente de ejecutables y launchers modificados
+                        // Ejecución directa para evitar bloqueos de Steam con Online Fixes (Spacewar) o lanzadores alternativos
                         string? targetExe = SteamManager.FindGameExecutable(gameFolder, juego.Name);
 
                         if (!string.IsNullOrEmpty(targetExe) && File.Exists(targetExe))
                         {
+                            string? exeDir = Path.GetDirectoryName(targetExe);
+                            if (!string.IsNullOrEmpty(exeDir))
+                            {
+                                try
+                                {
+                                    string appIdFile = Path.Combine(exeDir, "steam_appid.txt");
+                                    if (!File.Exists(appIdFile))
+                                    {
+                                        File.WriteAllText(appIdFile, juego.AppId);
+                                    }
+                                }
+                                catch { }
+                            }
+
                             Process.Start(new ProcessStartInfo
                             {
                                 FileName = targetExe,
-                                WorkingDirectory = Path.GetDirectoryName(targetExe),
+                                WorkingDirectory = exeDir ?? gameFolder,
                                 UseShellExecute = true
                             });
 
@@ -1365,15 +1401,14 @@ namespace PandaStoreLauncher
                             return;
                         }
 
-                        // Priority 2: Fallback to Steam Launch if no .exe found
+                        // Prioridad 2: Lanzamiento a través del protocolo Steam si no se halló un .exe directo
                         Process.Start(new ProcessStartInfo($"steam://run/{juego.AppId}") { UseShellExecute = true });
                         juego.StatusMessage = "✔ Lanzando a través de Steam";
                         RefreshUi();
                         return;
                     }
 
-                    // Fallback Steam launch if game folder isn't found 
-                    // (maybe it's installed in a non-standard library)
+                    // Fallback a Steam si la carpeta no se encuentra en las rutas estándar
                     Process.Start(new ProcessStartInfo($"steam://run/{juego.AppId}") { UseShellExecute = true });
                     juego.StatusMessage = "✔ Lanzando a través de Steam";
                     RefreshUi();
@@ -1749,7 +1784,11 @@ namespace PandaStoreLauncher
 
         private async void BtnBatchFixAll_Click(object sender, RoutedEventArgs e)
         {
-            var installedGames = _allGames.Where(g => g.IsAuthorizedForClient && g.IsInstalled).ToList();
+            var installedAppIds = SteamManager.GetInstalledAppIds();
+            var installedFolders = SteamManager.GetInstalledCommonFolderNames();
+            var installedGames = _allGames.Where(g => g.IsAuthorizedForClient && 
+                (g.IsInstalled || installedAppIds.Contains(g.AppId) || SteamManager.IsFolderInInstalledCommonFolders(installedFolders, g.SteamFolderName, g.Name))
+            ).ToList();
             if (installedGames.Count == 0)
             {
                 MessageBox.Show("No se encontraron juegos instalados en tu PC.", "PandaStore", MessageBoxButton.OK, MessageBoxImage.Information);
