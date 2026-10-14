@@ -123,6 +123,18 @@ if (Test-Path $setupPath) {
     Copy-Item $setupPath -Destination "$publicSrcDir\PandaStoreDeckSetup.exe" -Force
     Copy-Item $setupPath -Destination "$publicBuildDir\PandaStoreDeckSetup.exe" -Force
     Write-Host "      Setup copiado a public y build: $publicSrcDir\PandaStoreSetup.exe y PandaStoreDeckSetup.exe" -ForegroundColor Green
+
+    # Sincronizar directorio de instalacion local del PC (para que el desarrollador siempre tenga la ultima version)
+    $localInstalledDir86 = "C:\Program Files (x86)\PandaStore"
+    $localInstalledDir = "C:\Program Files\PandaStore"
+    if (Test-Path $localInstalledDir86) {
+        Copy-Item "$scriptDir\Publish\*" -Destination $localInstalledDir86 -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Host "      Sincronizado con $localInstalledDir86 (PC Local)" -ForegroundColor Green
+    }
+    if (Test-Path $localInstalledDir) {
+        Copy-Item "$scriptDir\Publish\*" -Destination $localInstalledDir -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Host "      Sincronizado con $localInstalledDir (PC Local)" -ForegroundColor Green
+    }
 }
 
 Write-Host ""
