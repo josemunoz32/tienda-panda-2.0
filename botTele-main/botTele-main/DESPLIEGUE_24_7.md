@@ -18,7 +18,7 @@ En la pestaña **Environment** de tu servicio en Render, agrega las siguientes v
 
 | Variable | Valor |
 | :--- | :--- |
-| `TELEGRAM_TOKEN` | Tu token del bot (`7530668653:AAE...`) |
+| `TELEGRAM_TOKEN` | Tu token del bot de Telegram (`123456789:ABC...`) |
 | `CANAL_PUBLICO_ID` | `-1001553070593` (o el canal definitivo cuando termines pruebas) |
 | `CANAL_REVENDEDORES_ID` | `0` (o el ID del canal de revendedores) |
 | `ADMIN_ID` | `5158777962` |

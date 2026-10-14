@@ -4,7 +4,7 @@ if (!admin.apps.length) {
 }
 const fetch = (...args) => import("node-fetch").then(({default: f}) => f(...args));
 
-const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN || "7530668653:AAE377HbUhJwrt1RcD5mIG7Vu_khWcQnViw";
+const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN || "";
 const TELEGRAM_BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || "ninte2Bot";
 const CANAL_PUBLICO_ID = process.env.CANAL_PUBLICO_ID || "-1002444204789";
 const CANAL_REVENDEDORES_ID = process.env.CANAL_REVENDEDORES_ID || "-1004390385564";

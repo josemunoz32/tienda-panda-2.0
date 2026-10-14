@@ -41,7 +41,7 @@ def cargar_env():
 
 cargar_env()
 
-TOKEN = os.getenv("TELEGRAM_TOKEN", "7530668653:AAE377HbUhJwrt1RcD5mIG7Vu_khWcQnViw")
+TOKEN = os.getenv("TELEGRAM_TOKEN", "")
 CANAL_PUBLICO_ID = int(os.getenv("CANAL_PUBLICO_ID", os.getenv("CANAL_ID", "-1001553070593")))
 CANAL_REVENDEDORES_ID = int(os.getenv("CANAL_REVENDEDORES_ID", "0"))
 ADMIN_ID = int(os.getenv("ADMIN_ID", "5158777962"))
