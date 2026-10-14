@@ -1,9 +1,9 @@
 /* ====== ADMIN DASHBOARD — GALAXY PRO ====== */
 
 .adm-dash {
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 28px 18px 60px;
+  max-width: 100%;
+  margin: 0;
+  padding: 24px 28px 60px;
   font-family: 'Poppins', 'Montserrat', 'Segoe UI', sans-serif;
   position: relative;
   z-index: 1;
@@ -528,3 +528,185 @@
     font-size: 1.15rem;
   }
 }
+
+/* ══════════════════════════════════════════
+   ANALYTICS SECTION
+══════════════════════════════════════════ */
+.adm-analytics-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 32px 0 20px;
+}
+.adm-analytics-badge {
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  background: rgba(162,89,255,0.2);
+  border: 1px solid rgba(162,89,255,0.45);
+  color: #c084fc;
+  padding: 3px 10px;
+  border-radius: 20px;
+  animation: live-pulse 1.8s ease-in-out infinite;
+}
+@keyframes live-pulse {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
+
+.adm-section-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.adm-section-title span { font-weight: 500; text-transform: none; letter-spacing: 0; color: rgba(255,255,255,0.35); }
+
+/* ── Funnel ── */
+.adm-funnel-wrap {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 18px;
+  padding: 20px 22px;
+  margin-bottom: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.adm-funnel-step {
+  display: grid;
+  grid-template-columns: 130px 1fr 100px;
+  align-items: center;
+  gap: 14px;
+}
+.adm-funnel-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  white-space: nowrap;
+}
+.adm-funnel-bar-wrap {
+  background: rgba(255,255,255,0.06);
+  border-radius: 20px;
+  height: 10px;
+  overflow: hidden;
+}
+.adm-funnel-bar {
+  height: 100%;
+  border-radius: 20px;
+  transition: width 0.5s ease;
+}
+.adm-funnel-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.adm-funnel-count {
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+.adm-funnel-conv {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.35);
+  font-weight: 500;
+}
+
+/* ── Analytics 2-col row ── */
+.adm-analytics-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+@media (max-width: 700px) {
+  .adm-analytics-row { grid-template-columns: 1fr; }
+  .adm-funnel-step { grid-template-columns: 100px 1fr 80px; }
+}
+
+.adm-analytics-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 18px;
+  padding: 18px;
+}
+.adm-analytics-card-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* ── Event feed ── */
+.adm-event-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #a259ff44 transparent;
+}
+.adm-event-empty {
+  color: rgba(255,255,255,0.25);
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 24px 0;
+}
+.adm-event-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+  flex-wrap: wrap;
+  min-height: 30px;
+}
+.adm-event-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(162,89,255,0.15);
+  color: #c084fc;
+  white-space: nowrap;
+}
+.adm-event-badge.adm-event-purchase { background: rgba(34,197,94,0.15); color: #4ade80; }
+.adm-event-badge.adm-event-add-to-cart { background: rgba(245,158,11,0.15); color: #fbbf24; }
+.adm-event-badge.adm-event-begin-checkout { background: rgba(251,146,60,0.15); color: #fb923c; }
+.adm-event-page { font-size: 0.7rem; color: rgba(255,255,255,0.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px; }
+.adm-event-prod { font-size: 0.72rem; color: rgba(255,255,255,0.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
+.adm-event-val { font-size: 0.72rem; font-weight: 700; color: #4ade80; margin-left: auto; }
+
+/* ── Abandoned carts status ── */
+.adm-abandoned-stats {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.35);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 8px;
+}
+.adm-cart-status {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.adm-cart-status--converted { background: rgba(34,197,94,0.15); color: #4ade80; }
+.adm-cart-status--abandoned { background: rgba(245,158,11,0.15); color: #fbbf24; }
+.adm-cart-status--active    { background: rgba(96,165,250,0.15); color: #60a5fa; }

@@ -1,0 +1,291 @@
+/* DlcUpsellBanner.css - Diseño ultra compacto con tarjetas cuadradas */
+
+.dlc-upsell-container {
+  margin: 10px 0 14px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(30, 10, 60, 0.75) 0%, rgba(14, 6, 32, 0.85) 100%);
+  border: 1px solid rgba(162, 89, 255, 0.28);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.dlc-upsell-container::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(162, 89, 255, 0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.dlc-game-block {
+  position: relative;
+  z-index: 1;
+}
+
+.dlc-game-block:not(:last-child) {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(162, 89, 255, 0.15);
+}
+
+/* Header compacto */
+.dlc-upsell-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.dlc-upsell-title-box {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  flex: 1;
+}
+
+.dlc-upsell-icon {
+  font-size: 1.15rem;
+  animation: pulse-gift 2s infinite ease-in-out;
+  flex-shrink: 0;
+}
+
+@keyframes pulse-gift {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.dlc-upsell-title {
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #f1f5f9;
+  letter-spacing: -0.2px;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.dlc-upsell-subtitle {
+  font-size: 0.72rem;
+  color: #a08ab8;
+  margin-top: 1px;
+}
+
+/* Botón compacto de Pack Completo en Header */
+.dlc-pack-btn-compact {
+  background: linear-gradient(135deg, #059669 0%, #00f5d4 100%);
+  color: #042f2e;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.73rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 245, 212, 0.25);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.dlc-pack-btn-compact:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 245, 212, 0.4);
+}
+
+/* Tira de precios en una sola línea elegante */
+.dlc-upsell-promo-strip {
+  font-size: 0.71rem;
+  color: #cbd5e1;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px dashed rgba(162, 89, 255, 0.25);
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin-bottom: 9px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dlc-upsell-promo-strip strong {
+  color: #00f5d4;
+}
+
+/* Grid de cuadraditos pequeños */
+.dlc-upsell-grid-square {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+}
+
+@media (max-width: 520px) {
+  .dlc-upsell-grid-square {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 380px) {
+  .dlc-upsell-grid-square {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Tarjeta cuadrada pequeña */
+.dlc-card-square {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(162, 89, 255, 0.18);
+  border-radius: 8px;
+  padding: 6px;
+  box-sizing: border-box;
+  transition: all 0.18s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dlc-card-square:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(162, 89, 255, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(123, 47, 242, 0.2);
+}
+
+.dlc-card-square.is-added {
+  border-color: rgba(74, 222, 128, 0.4);
+  background: rgba(74, 222, 128, 0.05);
+}
+
+/* Thumbnail cuadrado */
+.dlc-sq-thumb-wrap {
+  width: 100%;
+  height: 52px;
+  border-radius: 5px;
+  position: relative;
+  overflow: hidden;
+  background: #110e1e;
+  margin-bottom: 5px;
+  flex-shrink: 0;
+}
+
+.dlc-sq-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.dlc-sq-thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  background: rgba(162, 89, 255, 0.12);
+}
+
+.dlc-sq-badge {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #00f5d4;
+  font-size: 8.5px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: 0.3px;
+  line-height: 1;
+}
+
+/* Nombre del DLC (compacto a 2 líneas) */
+.dlc-sq-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  line-height: 1.2;
+  margin-bottom: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 28px;
+}
+
+/* Footer de la tarjeta cuadrada */
+.dlc-sq-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dlc-sq-price {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #00f5d4;
+  white-space: nowrap;
+}
+
+/* Botón pequeño para añadir */
+.dlc-sq-btn {
+  background: linear-gradient(135deg, #7b2ff2 0%, #a259ff 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  padding: 3px 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.dlc-sq-btn:hover:not(:disabled) {
+  filter: brightness(1.15);
+  transform: scale(1.05);
+}
+
+.dlc-sq-btn.added,
+.dlc-sq-btn:disabled {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  cursor: default;
+}
+
+/* Botón toggle ver más / ver menos */
+.dlc-toggle-expand-btn {
+  background: rgba(162, 89, 255, 0.08);
+  border: 1px solid rgba(162, 89, 255, 0.22);
+  color: #c4b5fd;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dlc-toggle-expand-btn:hover {
+  background: rgba(162, 89, 255, 0.16);
+  color: #ffffff;
+  border-color: #a259ff;
+}

@@ -1,136 +1,286 @@
-.cupones-admin-container {
-  max-width: 800px;
-  margin: 40px auto;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 16px #0002;
-  padding: 32px 24px;
-  position: relative;
-  z-index: 10;
+/* ==========================================================================
+   ADMIN CUPONES - DATA TABLE 6 STYLES
+   ========================================================================== */
+
+.admin-cupones-page {
+  padding: 10px;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
-.cupones-title {
-  text-align: center;
-  margin-bottom: 24px;
-  color: #1976d2;
-}
-.cupones-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: flex-end;
-  margin-bottom: 32px;
-  justify-content: center;
-}
-.cupones-form input[type="text"],
-.cupones-form input[type="number"],
-.cupones-form input[type="date"] {
-  padding: 8px 12px;
-  border: 1px solid #bdbdbd;
-  border-radius: 6px;
-  font-size: 16px;
-  min-width: 160px;
-}
-.cupones-checkbox {
+
+.cup-btn-create {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 15px;
-}
-.cupones-btn {
-  background: #1976d2;
+  gap: 8px;
+  padding: 9px 18px;
+  background: linear-gradient(135deg, #a259ff, #7928ca);
   color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 18px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.cupones-btn:disabled {
-  background: #bdbdbd;
-  cursor: not-allowed;
-}
-.cupones-btn-edit {
-  background: #43a047;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 4px 12px;
-  margin-right: 6px;
-  cursor: pointer;
-  font-size: 15px;
-}
-.cupones-btn-delete {
-  background: #e53935;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 4px 12px;
-  cursor: pointer;
-  font-size: 15px;
-}
-.cupones-error {
-  color: #e53935;
-  margin-top: 8px;
-  width: 100%;
-  text-align: center;
-}
-.cupones-success {
-  color: #43a047;
-  margin-top: 8px;
-  width: 100%;
-  text-align: center;
-}
-.cupones-table-container {
-  overflow-x: auto;
-}
-.cupones-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  margin-top: 12px;
-  background: #fff;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px #0001;
-}
-.cupones-table th, .cupones-table td {
-  padding: 10px 8px;
-  text-align: left;
-  color: #222;
-  background: #fff;
-}
-.cupones-table th {
-  background: #1976d2;
-  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  font-size: 0.85rem;
   font-weight: 700;
-}
-.cupones-table tr:nth-child(even) td {
-  background: #f4f8fb;
-}
-.cupones-table tr:nth-child(odd) td {
-  background: #fff;
-}
-.cupones-btn-edit {
-  background: #43a047;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 4px 12px;
-  margin-right: 6px;
   cursor: pointer;
-  font-size: 15px;
-  font-weight: 600;
-  box-shadow: 0 1px 3px #0002;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(162, 89, 255, 0.35);
 }
-.cupones-btn-delete {
-  background: #e53935;
+
+.cup-btn-create:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(162, 89, 255, 0.5);
+}
+
+/* Master Table Cells */
+.cup-code-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cup-icon {
+  font-size: 1.1rem;
+}
+
+.cup-code-text {
+  font-family: 'JetBrains Mono', monospace, Consolas, sans-serif;
   color: #fff;
-  border: none;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+.cup-discount-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  background: rgba(162, 89, 255, 0.18);
+  border: 1px solid rgba(162, 89, 255, 0.4);
+  color: #c4b5fd;
   border-radius: 6px;
-  padding: 4px 12px;
+  font-weight: 800;
+  font-size: 0.8rem;
+}
+
+.cup-usage-text {
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+}
+
+/* ── DETAIL PANEL COMPONENTS ── */
+.cup-detail-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Hero Coupon Voucher Banner */
+.cup-hero-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, rgba(162, 89, 255, 0.2), rgba(6, 182, 212, 0.15));
+  border: 1px dashed rgba(162, 89, 255, 0.45);
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cup-hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cup-hero-tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: #38bdf8;
+  text-transform: uppercase;
+}
+
+.cup-hero-code {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace, Consolas, sans-serif;
+  letter-spacing: 1px;
+}
+
+.cup-hero-sub {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.cup-hero-disc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  background: rgba(162, 89, 255, 0.25);
+  border-radius: 10px;
+  border: 1px solid rgba(162, 89, 255, 0.4);
+}
+
+.cup-hero-disc span {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+}
+
+.cup-hero-disc small {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: #c4b5fd;
+  margin-top: 3px;
+}
+
+/* Quick Strip Actions */
+.cup-quick-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cup-quick-strip button.active {
+  background: rgba(162, 89, 255, 0.25);
+  border-color: #a259ff;
+  color: #c4b5fd;
+}
+
+/* Form */
+.cup-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: rgba(12, 7, 24, 0.4);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cup-form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.cup-form-row .cup-form-field {
+  flex: 1;
+}
+
+.cup-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cup-form-field label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.cup-form-field input {
+  padding: 9px 12px;
+  background: rgba(8, 4, 16, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.85rem;
+}
+
+.cup-form-field input:focus {
+  outline: none;
+  border-color: #a259ff;
+  box-shadow: 0 0 10px rgba(162, 89, 255, 0.3);
+}
+
+.cup-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
-  font-size: 15px;
+}
+
+.cup-checkbox-label input {
+  accent-color: #a259ff;
+  width: 16px;
+  height: 16px;
+}
+
+/* Alerts */
+.cup-alert {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
   font-weight: 600;
-  box-shadow: 0 1px 3px #0002;
+}
+
+.cup-alert-error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+.cup-alert-success {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #86efac;
+}
+
+/* Users List */
+.cup-empty-uses {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-style: italic;
+  padding: 8px 0;
+}
+
+.cup-users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cup-user-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  font-size: 0.78rem;
+}
+
+.cup-user-id {
+  font-family: monospace;
+  color: rgba(255, 255, 255, 0.8);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cup-user-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.cup-more-users {
+  font-size: 0.75rem;
+  color: #a259ff;
+  text-align: center;
+  margin-top: 4px;
 }

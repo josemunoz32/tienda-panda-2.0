@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Helmet } from "react-helmet-async";
 import { auth } from "../../firebase";
 
 export default function SoporteCliente() {
@@ -19,6 +20,16 @@ export default function SoporteCliente() {
   const [selected, setSelected] = useState(null);
   const [msg, setMsg] = useState("");
 
+  const authorizedFetch = async (url, options = {}) => {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Inicia sesión para acceder a tus tickets.");
+    const token = await user.getIdToken();
+    return fetch(url, {
+      ...options,
+      headers: { ...(options.headers || {}), Authorization: `Bearer ${token}` },
+    });
+  };
+
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -28,7 +39,7 @@ export default function SoporteCliente() {
     if (!form.email) return;
     setMsg("");
     try {
-  const res = await fetch("https://soportetickets-bdzwbdza3q-uc.a.run.app?email=" + encodeURIComponent(form.email));
+  const res = await authorizedFetch("https://soportetickets-bdzwbdza3q-uc.a.run.app");
       if (!res.ok) {
         setError("Error al cargar tickets (" + res.status + ")");
         setTickets([]);
@@ -51,7 +62,7 @@ export default function SoporteCliente() {
 
   // Cargar mensajes de un ticket
   const cargarMensajes = async (ticketId) => {
-  const res = await fetch(`https://soportemensajes-bdzwbdza3q-uc.a.run.app?ticketId=${ticketId}`);
+  const res = await authorizedFetch(`https://soportemensajes-bdzwbdza3q-uc.a.run.app?ticketId=${ticketId}`);
     const data = await res.json();
     setMensajes(m => ({...m, [ticketId]: data}));
   };
@@ -62,10 +73,10 @@ export default function SoporteCliente() {
     setError("");
     setMsg("");
     try {
-      const response = await fetch("https://soportemensaje-bdzwbdza3q-uc.a.run.app", {
+      const response = await authorizedFetch("https://soportemensaje-bdzwbdza3q-uc.a.run.app", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ticketId: ticket.id, autor: "cliente", texto: respuestas[ticket.id] })
+        body: JSON.stringify({ ticketId: ticket.id, texto: respuestas[ticket.id] })
       });
       const data = await response.json();
       if (!response.ok) {
@@ -89,7 +100,7 @@ export default function SoporteCliente() {
       return;
     }
     try {
-  const res = await fetch("https://soporte-bdzwbdza3q-uc.a.run.app", {
+  const res = await authorizedFetch("https://soporte-bdzwbdza3q-uc.a.run.app", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form)
@@ -130,6 +141,15 @@ export default function SoporteCliente() {
       flexDirection: "column",
       alignItems: "center"
     }}>
+      <Helmet>
+        <title>Centro de Ayuda y Soporte al Cliente | PandaStore</title>
+        <meta name="description" content="¿Necesitas ayuda con tu pedido o activación? Contacta al equipo de soporte de PandaStore. Atención personalizada 24/7 y resolución rápida de tickets." />
+        <meta name="keywords" content="soporte pandastore, ayuda juegos digitales, tickets pandastore, atencion al cliente pandastore, soporte tecnico steam ps5 switch" />
+        <meta property="og:title" content="Centro de Ayuda y Soporte al Cliente | PandaStore" />
+        <meta property="og:description" content="Atención al cliente 24/7 y soporte de activación garantizado en PandaStore." />
+        <meta property="og:url" content="https://pandastoreupdate.web.app/soporte" />
+        <link rel="canonical" href="https://pandastoreupdate.web.app/soporte" />
+      </Helmet>
       <h1 style={{
         textAlign: "center",
         color: "#FFD600",

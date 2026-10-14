@@ -1,0 +1,30 @@
+import React, { useEffect, useState } from "react";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "../../firebase";
+import { DEFAULT_PAYMENT_SETTINGS, normalizePaymentSettings, PAYMENT_SETTINGS_DOC } from "../../utils/paymentMethods";
+import "./AdminMetodosPago.css";
+
+const AUDIENCES = [["clients", "Clientes finales"], ["resellers", "Revendedores"], ["steamDistributors", "Distribuidores Steam"]];
+const clone = (value) => JSON.parse(JSON.stringify(value));
+
+function AudienceSwitches({ value, onChange }) {
+  return <div className="payment-audiences">{AUDIENCES.map(([key, label]) => <label key={key}><input type="checkbox" checked={Boolean(value?.[key])} onChange={(e) => onChange({ ...value, [key]: e.target.checked })} /> {label}</label>)}</div>;
+}
+
+export default function AdminMetodosPago() {
+  const [settings, setSettings] = useState(clone(DEFAULT_PAYMENT_SETTINGS));
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState("");
+  useEffect(() => { getDoc(doc(db, ...PAYMENT_SETTINGS_DOC)).then((snap) => setSettings(normalizePaymentSettings(snap.exists() ? snap.data() : {}))).catch(() => setNotice("No se pudo leer la configuración guardada; se muestran los valores actuales.")).finally(() => setLoading(false)); }, []);
+  const save = async () => { setSaving(true); setNotice(""); try { await setDoc(doc(db, ...PAYMENT_SETTINGS_DOC), { ...settings, mercadoPago: { ...settings.mercadoPago, enabled: true }, updatedAt: new Date().toISOString() }, { merge: true }); setNotice("Métodos de pago guardados y disponibles en los checkouts."); } catch { setNotice("No se pudo guardar. Verifica que tu cuenta sea Super Admin."); } finally { setSaving(false); } };
+  const updateAccount = (index, patch) => setSettings((current) => ({ ...current, transfer: { ...current.transfer, accounts: current.transfer.accounts.map((account, i) => i === index ? { ...account, ...patch } : account) } }));
+  const addAccount = () => setSettings((current) => ({ ...current, transfer: { ...current.transfer, accounts: [...current.transfer.accounts, { id: `cuenta_${Date.now()}`, enabled: false, name: "Nueva cuenta", type: "", holder: "", rut: "", number: "", email: "", logo: "", color: "#a259ff", audiences: { clients: false, resellers: true, steamDistributors: true } }] } }));
+  if (loading) return <div className="payment-admin"><p>Cargando métodos de pago…</p></div>;
+  return <main className="payment-admin"><header><div><h1>Gestión de <span>métodos de pago</span></h1><p>Activa sólo las cuentas y métodos que quieres mostrar. La visibilidad se aplica a clientes, revendedores y distribuidores Steam.</p></div><button className="payment-save" onClick={save} disabled={saving}>{saving ? "Guardando…" : "Guardar cambios"}</button></header>{notice && <div className="payment-notice">{notice}</div>}
+    <section className="payment-card fixed"><div><h2>Tarjeta débito / crédito (Chile)</h2><p>Siempre activo · Tarjetas de débito y crédito hasta 12 cuotas.</p></div><span className="payment-fixed">Siempre activo</span></section>
+    <section className="payment-card"><div className="payment-card-heading"><div><h2>Transferencia bancaria</h2><p>Las cuentas desactivadas no se muestran ni se pueden seleccionar al pagar.</p></div><label className="payment-toggle"><input type="checkbox" checked={settings.transfer.enabled !== false} onChange={(e) => setSettings({ ...settings, transfer: { ...settings.transfer, enabled: e.target.checked } })} /> Habilitar método</label></div><AudienceSwitches value={settings.transfer.audiences} onChange={(audiences) => setSettings({ ...settings, transfer: { ...settings.transfer, audiences } })}/>
+      <div className="payment-accounts">{settings.transfer.accounts.map((account, index) => <article className="payment-account" key={account.id || index}><div className="payment-account-top"><strong>Cuenta {index + 1}</strong><label className="payment-toggle"><input type="checkbox" checked={account.enabled !== false} onChange={(e) => updateAccount(index, { enabled: e.target.checked })} /> Visible</label><button className="payment-remove" onClick={() => setSettings((current) => ({ ...current, transfer: { ...current.transfer, accounts: current.transfer.accounts.filter((_, i) => i !== index) } }))}>Quitar</button></div><div className="payment-fields">{[["name", "Banco"], ["type", "Tipo de cuenta"], ["holder", "Titular"], ["rut", "RUT"], ["number", "Número de cuenta"], ["email", "Correo"], ["logo", "Ruta/logo (opcional)"]].map(([key, label]) => <label key={key}>{label}<input value={account[key] || ""} onChange={(e) => updateAccount(index, { [key]: e.target.value })}/></label>)}</div><AudienceSwitches value={account.audiences} onChange={(audiences) => updateAccount(index, { audiences })}/></article>)}</div><button className="payment-add" onClick={addAccount}>+ Agregar cuenta bancaria</button></section>
+    <section className="payment-card"><div className="payment-card-heading"><div><h2>Criptomonedas</h2><p>Visible por defecto sólo para Revendedores y Distribuidores Steam.</p></div><label className="payment-toggle"><input type="checkbox" checked={settings.crypto.enabled !== false} onChange={(e) => setSettings({ ...settings, crypto: { ...settings.crypto, enabled: e.target.checked } })} /> Habilitar método</label></div><div className="payment-fields crypto-fields"><label>Moneda<input value={settings.crypto.name || ""} onChange={(e) => setSettings({ ...settings, crypto: { ...settings.crypto, name: e.target.value } })}/></label><label>Red<input value={settings.crypto.network || ""} onChange={(e) => setSettings({ ...settings, crypto: { ...settings.crypto, network: e.target.value } })}/></label><label className="full">Dirección de wallet<input value={settings.crypto.address || ""} onChange={(e) => setSettings({ ...settings, crypto: { ...settings.crypto, address: e.target.value } })}/></label></div><AudienceSwitches value={settings.crypto.audiences} onChange={(audiences) => setSettings({ ...settings, crypto: { ...settings.crypto, audiences } })}/></section>
+  </main>;
+}

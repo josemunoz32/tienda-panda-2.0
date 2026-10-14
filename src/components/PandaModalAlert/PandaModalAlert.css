@@ -1,0 +1,165 @@
+/* ══════════════════════════════════════════════════════════════════════
+   PANDA MODAL ALERT & CONFIRM - REPLACES BROWSER ALERTS ("localhost dice")
+   Modern Dark Gamer Aesthetic, Neon Accents, Fluid Responsive Modal
+══════════════════════════════════════════════════════════════════════ */
+
+.panda-modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(8, 2, 18, 0.82) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  z-index: 999999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px !important;
+  box-sizing: border-box !important;
+  animation: pmaFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+@keyframes pmaFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.panda-modal-card {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 420px !important;
+  background: linear-gradient(150deg, #1b0e36 0%, #110724 100%) !important;
+  border: 1.5px solid rgba(162, 89, 255, 0.4) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.9), 0 0 30px rgba(123, 47, 242, 0.25) !important;
+  padding: 28px 24px 24px 24px !important;
+  box-sizing: border-box !important;
+  color: #fff !important;
+  text-align: center !important;
+  animation: pmaScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  font-family: 'Poppins', 'Segoe UI', -apple-system, sans-serif !important;
+}
+
+@keyframes pmaScaleIn {
+  from { opacity: 0; transform: scale(0.92) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Luminous top border shine */
+.panda-modal-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #a259ff, #f357a8, transparent);
+}
+
+.panda-modal-icon-wrap {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px auto;
+  box-shadow: 0 0 24px rgba(162, 89, 255, 0.35);
+  position: relative;
+}
+
+.panda-modal-icon-wrap.error {
+  background: rgba(239, 68, 68, 0.16);
+  border: 2px solid rgba(239, 68, 68, 0.5);
+  color: #f87171;
+  box-shadow: 0 0 24px rgba(239, 68, 68, 0.35);
+}
+
+.panda-modal-icon-wrap.success {
+  background: rgba(16, 185, 129, 0.16);
+  border: 2px solid rgba(16, 185, 129, 0.5);
+  color: #34d399;
+  box-shadow: 0 0 24px rgba(16, 185, 129, 0.35);
+}
+
+.panda-modal-icon-wrap.warning {
+  background: rgba(245, 158, 11, 0.16);
+  border: 2px solid rgba(245, 158, 11, 0.5);
+  color: #fbbf24;
+  box-shadow: 0 0 24px rgba(245, 158, 11, 0.35);
+}
+
+.panda-modal-icon-wrap.info,
+.panda-modal-icon-wrap.confirm {
+  background: rgba(162, 89, 255, 0.16);
+  border: 2px solid rgba(162, 89, 255, 0.5);
+  color: #c084fc;
+}
+
+.panda-modal-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.2px;
+}
+
+.panda-modal-message {
+  font-size: 0.88rem;
+  color: #c4b5fd;
+  line-height: 1.5;
+  margin: 0 0 22px 0;
+  word-break: break-word;
+}
+
+.panda-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.panda-modal-btn {
+  flex: 1;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.panda-modal-btn.primary {
+  background: linear-gradient(90deg, #7b2ff2, #f357a8);
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(123, 47, 242, 0.45);
+}
+.panda-modal-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(243, 87, 168, 0.55);
+}
+
+.panda-modal-btn.danger {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+.panda-modal-btn.danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(239, 68, 68, 0.55);
+}
+
+.panda-modal-btn.cancel {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #e2d9f3;
+}
+.panda-modal-btn.cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}

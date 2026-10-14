@@ -1,0 +1,7 @@
+firebase-admin==6.4.0
+firebase-functions==0.1.1
+openai==1.14.3
+python-telegram-bot==21.0.1
+pydantic==2.6.4
+google-cloud-secret-manager==2.16.2
+requests==2.31.0

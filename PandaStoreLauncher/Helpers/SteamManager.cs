@@ -19,7 +19,6 @@ namespace PandaStoreLauncher.Helpers
         {
             "OpenSteamTool.dll",
             "xinput1_4.dll",
-            "dwmapi.dll",
             "opensteamtool.toml"
         };
 
@@ -350,6 +349,8 @@ namespace PandaStoreLauncher.Helpers
             // Clean up any rogue/cached update files or duplicate hijackers
             string[] staleFiles = new[]
             {
+                "dwmapi.dll",
+                "cloud_redirect.dll",
                 "winmm.dll",
                 "winmm_real.dll",
                 "BetterSteamTools.dll",
@@ -1003,35 +1004,8 @@ namespace PandaStoreLauncher.Helpers
                 }
                 catch { }
 
-                // 7. Start Steam with clean environment
+                // 7. Start Steam cleanly so the user can open their library and install
                 StartSteam();
-
-                // 8. Auto-open Steam download prompt reliably across all Windows devices & ROG Ally
-                if (autoOpenInstallPrompt && !IsLinuxEnvironment() && !string.IsNullOrWhiteSpace(juego.AppId))
-                {
-                    _ = Task.Run(async () =>
-                    {
-                        try
-                        {
-                            // Esperar a que steam.exe esté en memoria y respondiendo
-                            for (int i = 0; i < 12; i++)
-                            {
-                                await Task.Delay(1000);
-                                var pList = Process.GetProcessesByName("steam");
-                                if (pList.Length > 0) break;
-                            }
-
-                            // Buffer de 2 segundos para asegurar que el socket de protocolo steam:// esté registrado y la UI cargada
-                            await Task.Delay(2000);
-
-                            Process.Start(new ProcessStartInfo($"steam://install/{juego.AppId}")
-                            {
-                                UseShellExecute = true
-                            });
-                        }
-                        catch { }
-                    });
-                }
             });
         }
 
@@ -1708,7 +1682,10 @@ namespace PandaStoreLauncher.Helpers
 
         public static HashSet<string> GetInstalledAppIds(bool forceRefresh = false)
         {
-            if (_installedAppIdsCache != null && !forceRefresh && (DateTime.Now - _lastInstalledCacheTime).TotalSeconds < 5)
+            // Evita volver a recorrer todos los appmanifest de Steam al cambiar
+            // una categoría o escribir en el buscador. La vista se actualiza de
+            // forma explícita al sincronizar o instalar un juego.
+            if (_installedAppIdsCache != null && !forceRefresh && (DateTime.Now - _lastInstalledCacheTime).TotalSeconds < 30)
             {
                 return _installedAppIdsCache;
             }

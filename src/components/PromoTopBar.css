@@ -1,0 +1,208 @@
+/* ==========================================================================
+   PromoTopBar.css - Barra Promocional Ultra Profesional & Sofisticada
+   ========================================================================== */
+
+.promo-topbar-root {
+  width: 100%;
+  background: linear-gradient(90deg, #0e0520 0%, #1e0942 25%, #381170 50%, #1e0942 75%, #0e0520 100%);
+  color: #ffffff;
+  padding: 6px 16px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1050;
+  border-bottom: 1px solid rgba(162, 89, 255, 0.25);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.5);
+  font-family: 'Poppins', 'Inter', -apple-system, sans-serif;
+  cursor: pointer;
+  user-select: none;
+  min-height: 38px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.promo-topbar-root:hover {
+  background: linear-gradient(90deg, #120628 0%, #260c52 25%, #421485 50%, #260c52 75%, #120628 100%);
+}
+
+.promo-topbar-glow {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  animation: promoShimmer 5s infinite;
+  pointer-events: none;
+}
+
+@keyframes promoShimmer {
+  0% { left: -100%; }
+  35% { left: 150%; }
+  100% { left: 150%; }
+}
+
+.promo-topbar-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Badge con degradado dorado/neón */
+.promo-topbar-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, #ffd700 0%, #ff9100 100%);
+  color: #120422;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 9px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.promo-sparkle {
+  animation: pulseRotate 2.5s infinite ease-in-out;
+}
+
+@keyframes pulseRotate {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.25) rotate(15deg); }
+}
+
+.promo-topbar-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+
+.promo-label {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+}
+
+/* Pastilla de código con borde neón */
+.coupon-code-pill {
+  background: rgba(162, 89, 255, 0.18);
+  border: 1px dashed rgba(196, 181, 253, 0.6);
+  padding: 2px 9px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  box-shadow: inset 0 0 8px rgba(162, 89, 255, 0.2);
+}
+
+.coupon-highlight {
+  color: #ffd700;
+  font-family: 'SF Mono', Consolas, Monaco, monospace;
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+/* Botón de Copiar */
+.promo-topbar-copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #ffffff;
+  color: #2e1065;
+  border: none;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 11px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+.promo-topbar-copy-btn:hover {
+  background: #ffd700;
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.35);
+}
+
+.promo-topbar-copy-btn.copied {
+  background: #00e676;
+  color: #0c0418;
+  box-shadow: 0 0 12px rgba(0, 230, 118, 0.4);
+}
+
+/* Botón cerrar discreto */
+.promo-topbar-close {
+  position: absolute;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.promo-topbar-close:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.18);
+  transform: scale(1.1);
+}
+
+/* ==========================================================================
+   Responsivo Móvil
+   ========================================================================== */
+@media (max-width: 650px) {
+  .promo-topbar-root {
+    padding: 5px 32px 5px 8px;
+    min-height: 34px;
+  }
+
+  .promo-topbar-content {
+    gap: 7px;
+    font-size: 0.75rem;
+  }
+
+  .promo-topbar-badge {
+    font-size: 9.5px;
+    padding: 2px 6px;
+    gap: 3px;
+  }
+
+  .promo-label {
+    display: none; /* Simplificar texto en móvil para dar espacio */
+  }
+
+  .coupon-code-pill {
+    padding: 1px 6px;
+  }
+
+  .coupon-highlight {
+    font-size: 0.8rem;
+  }
+
+  .promo-topbar-copy-btn {
+    font-size: 9.5px;
+    padding: 3px 8px;
+    gap: 4px;
+  }
+
+  .promo-topbar-close {
+    right: 6px;
+    padding: 3px;
+  }
+}

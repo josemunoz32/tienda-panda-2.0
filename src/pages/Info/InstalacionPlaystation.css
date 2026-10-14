@@ -1,0 +1,512 @@
+/* InstalacionPlaystation.css - Premium Dark Glassmorphism for PandaStore */
+
+.install-ps-root {
+  max-width: 960px;
+  margin: 36px auto 80px auto;
+  padding: 0 20px 60px 20px;
+  color: #f8fafc;
+  font-family: 'Poppins', -apple-system, sans-serif !important;
+  position: relative;
+  z-index: 2;
+  box-sizing: border-box;
+}
+
+/* ── HEADER ── */
+.install-ps-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.install-ps-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  padding: 6px 16px;
+  border-radius: 999px;
+  margin-bottom: 16px;
+}
+
+.ps-badge-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.install-ps-title {
+  font-size: 2.3rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0 0 10px 0;
+  line-height: 1.2;
+}
+
+.title-accent {
+  background: linear-gradient(135deg, #60a5fa 0%, #a259ff 50%, #00f5d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.install-ps-subtitle {
+  max-width: 620px;
+  margin: 0 auto;
+  font-size: 0.98rem;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+/* ── SELECTOR DE MODALIDAD (TABS) ── */
+.install-ps-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.ps-tab-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  font-size: 0.93rem;
+  font-weight: 700;
+  padding: 12px 24px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.ps-tab-btn:hover {
+  background: rgba(96, 165, 250, 0.15);
+  border-color: rgba(96, 165, 250, 0.4);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.ps-tab-btn.active {
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  border-color: #60a5fa;
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+}
+
+/* ── CARD PRINCIPAL DE GUÍA ── */
+.install-ps-content-card {
+  background: linear-gradient(145deg, rgba(20, 18, 42, 0.88) 0%, rgba(12, 10, 26, 0.94) 100%);
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(14px);
+  margin-bottom: 36px;
+}
+
+.card-top-header {
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.card-top-header h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+}
+
+.mode-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 14px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.mode-primaria {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.mode-secundaria {
+  background: rgba(96, 165, 250, 0.15);
+  color: #93c5fd;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+.card-guide-body {
+  padding: 28px;
+}
+
+.guide-intro {
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: #cbd5e1;
+  margin-bottom: 24px;
+}
+
+.guide-image-wrapper {
+  width: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  margin-bottom: 28px;
+  background: #090812;
+}
+
+.guide-infographic-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+/* ── PASOS RESUMEN ── */
+.steps-summary-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  padding: 22px;
+}
+
+.steps-summary-box h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #93c5fd;
+  margin: 0 0 14px 0;
+}
+
+.ps-steps-list {
+  padding-left: 20px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ps-steps-list li {
+  font-size: 0.94rem;
+  line-height: 1.6;
+  color: #e2e8f0;
+}
+
+/* ── REGLAS DE SEGURIDAD ── */
+.install-ps-important {
+  background: rgba(245, 158, 11, 0.07);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  border-radius: 20px;
+  padding: 24px 28px;
+  margin-bottom: 36px;
+}
+
+.important-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.important-title-row h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #fcd34d;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.imp-icon {
+  font-size: 1.3rem;
+}
+
+.important-rules-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.important-rules-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.94rem;
+  line-height: 1.6;
+  color: #e2e8f0;
+}
+
+.rule-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── FOOTER SOPORTE ── */
+.install-ps-footer {
+  background: linear-gradient(135deg, rgba(30, 24, 60, 0.9) 0%, rgba(14, 10, 32, 0.95) 100%);
+  border: 1px solid rgba(162, 89, 255, 0.35);
+  border-radius: 24px;
+  padding: 32px 28px;
+  text-align: center;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+}
+
+.install-ps-footer h3 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+}
+
+.install-ps-footer p {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  max-width: 520px;
+  margin: 0 auto 24px auto;
+}
+
+.ps-footer-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.ps-btn {
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 0.94rem;
+  font-weight: 800;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ps-btn-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.ps-btn.btn-wsp {
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px rgba(37, 211, 102, 0.5);
+  }
+}
+
+.ps-btn.btn-ig {
+  background: linear-gradient(135deg, #f09433 0%, #dc2743 50%, #bc1888 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(220, 39, 67, 0.4);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px rgba(220, 39, 67, 0.6);
+  }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .install-ps-root {
+    padding: 0 12px 40px 12px;
+    margin-top: 20px;
+  }
+
+  .install-ps-title {
+    font-size: 1.8rem;
+  }
+
+  .card-top-header {
+    padding: 16px 20px;
+  }
+
+  .card-guide-body {
+    padding: 20px 16px;
+  }
+}
+
+/* ── ZOOMABLE WRAPPER & BADGE ── */
+.guide-image-wrapper.zoomable {
+  position: relative;
+  cursor: zoom-in;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.guide-image-wrapper.zoomable:hover {
+  transform: scale(1.01);
+  box-shadow: 0 14px 40px rgba(162, 89, 255, 0.35);
+}
+
+.image-zoom-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(15, 12, 30, 0.85);
+  border: 1px solid rgba(162, 89, 255, 0.4);
+  color: #c4b5fd;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  z-index: 5;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+/* ── MODAL FULLSCREEN ZOOM ── */
+.img-modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(4, 2, 12, 0.96) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 16px !important;
+  box-sizing: border-box !important;
+  animation: modalFadeIn 0.2s ease;
+}
+
+.toolbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.img-modal-toolbar {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 10px 18px;
+  border-radius: 16px;
+  box-sizing: border-box;
+  backdrop-filter: blur(10px);
+  gap: 12px;
+}
+
+.modal-img-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal-zoom-toggle-btn {
+  background: rgba(162, 89, 255, 0.2);
+  border: 1px solid rgba(162, 89, 255, 0.4);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: rgba(162, 89, 255, 0.4);
+  }
+}
+
+.img-modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.4);
+  }
+}
+
+.img-modal-scroll-area {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  margin: 12px 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal-fullscreen-img {
+  max-width: 95vw;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 12px;
+  cursor: zoom-in;
+  transition: transform 0.25s ease;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.8);
+}
+
+.modal-fullscreen-img.is-zoomed {
+  max-width: none;
+  max-height: none;
+  width: 180vw;
+  transform: scale(1.4);
+  cursor: zoom-out;
+}
+
+.img-modal-hint {
+  font-size: 12px;
+  font-weight: 600;
+  color: #a78bfa;
+  background: rgba(167, 139, 250, 0.1);
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  text-align: center;
+}

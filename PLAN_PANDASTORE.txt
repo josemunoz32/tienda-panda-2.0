@@ -1,0 +1,95 @@
+================================================================================
+🐼 PLAN MAESTRO DE DESARROLLO - PANDASTORE
+================================================================================
+Fecha de actualización: 28 de Septiembre, 2026
+Estado general: Sistema Nintendo y Precios completados. Próximos focos: Pagos Binance Pay, Limpieza Admin y Launcher.
+
+--------------------------------------------------------------------------------
+PARTE 1: TAREAS COMPLETADAS Y FUNCIONANDO AL 100% (✅ HECHO)
+--------------------------------------------------------------------------------
+
+1. [✅] LIMPIEZA DE DUPLICADOS EN CATÁLOGO Y STEAM
+   - Eliminados juegos duplicados en la base de datos de productos.
+   - En el panel de Juegos Sin Publicar se agruparon todas las variantes en una
+     sola ficha canónica con selector de variantes (Juego Base, Juego + DLC, Solo DLC).
+
+2. [✅] SISTEMA Y MÁRGENES DE REVENDEDOR (B2B)
+   - Piso inquebrantable de seguridad PandaStore: Costo + $5.000 CLP netos garantizados.
+   - El descuento al revendedor no genera pérdidas. Si el precio sube (ej. $18.990),
+     tu ganancia con el revendedor sube correspondientemente (+$8.990).
+   - Selector de opciones en la página de producto ahora muestra claramente la
+     insignia '(💎 Revendedor)' en Switch, Steam, PlayStation y suscripciones.
+   - El bloque de precio principal ahora destaca el precio revendedor en celeste neón
+     y tacha el precio público, evitando confusiones al cliente mayorista.
+   - Integrado en Checkout Carrito y Compra Directa con el precio mayorista correcto.
+
+3. [✅] PACKS DE NINTENDO CONECTADOS AL CATÁLOGO (TELEGRAM + FIREBASE)
+   - Sincronización en tiempo real con la colección 'packs_nintendo' del bot.
+   - Si no hay packs para un juego, el stock cuantitativo pasa a 0 y se marca agotado.
+   - Detección precisa de '[DLC Only]' (no se confunde con juego base).
+   - Soporte multilingüe en títulos de packs: Chino, Ruso, Japonés (Unicode).
+   - En el dashboard se muestra el Nickname exacto de la cuenta de Telegram de cada pack.
+   - Botón 'Sincronizar Stock en Tienda' para actualizar stock masivamente en un clic.
+
+4. [✅] VALOR DEL DÓLAR FIJO Y EDITABLE ($900)
+   - MonedaContext configurado con tasa fija controlada desde el panel admin.
+   - Conversión en tiempo real para todos los clientes internacionales.
+
+5. [✅] MEJORA DEL CRUD DE PRODUCTOS (SOLO CLP -> AUTO USD)
+   - En la creación y edición de productos, solo se ingresa el monto en CLP y el
+     sistema calcula automáticamente el equivalente en USD según la tasa fija.
+
+6. [✅] DEPURACIÓN DE JUEGOS INVIABLES
+   - Retirados del catálogo juegos que requieren conexión/verificación online forzosa
+     (NBA 2K25, FC 25, TopSpin 2K25, etc.) asegurando que solo se venda lo que tiene
+     soporte funcional en el Launcher/Offline.
+
+7. [✅] LIMPIEZA Y REESTRUCTURACIÓN DEL PANEL DE ADMINISTRADOR
+   - Menú lateral reestructurado en 5 secciones claras y profesionales:
+     1. Analítica & Métricas (Tablero Pro, Carritos en vivo)
+     2. Catálogo & Productos (Juegos, Switch Bot Packs, Carga masiva, Promos)
+     3. Launcher & Licencias (Claves Steam PANDA-XXXX)
+     4. Ventas, B2B & Pagos (Revendedores, Distribuidores, Pasarelas)
+     5. Clientes & Marketing (Usuarios, Cupones, Reseñas, Campañas de Email)
+   - Eliminados módulos obsoletos: Soporte/Reclamos y Preguntas de Productos.
+   - Rediseño de la barra del Dólar Fijo estilo Glassmorphism con indicador
+     en vivo, presets rápidos ($850, $900, $920, $950, $1.000) y soporte móvil.
+
+--------------------------------------------------------------------------------
+PARTE 2: TAREAS PENDIENTES PRIORITARIAS (⏳ POR HACER)
+--------------------------------------------------------------------------------
+
+8. [⏳] INTEGRACIÓN DE BINANCE PAY EN LAS 4 PANTALLAS DE PAGO
+   - Objetivo: Automatizar cobro con criptomonedas (USDT/BUSD) mediante API oficial.
+   - Ubicaciones a integrar:
+     a) Checkout del Carrito de compras (`CheckoutCarrito.js`).
+     b) Checkout de Compra Directa (`CheckoutCompraDirecta.js`).
+     c) Compra rápida de DLCs / Addons desde la página del juego.
+     d) Página de Custom Packs / Recarga de saldo en Perfil.
+   - Flujo: Generación de QR dinámico o redirección a Binance Pay y confirmación
+     automática vía Webhook para activar la orden y generar la licencia al instante.
+
+
+9. [⏳] REDISEÑO Y MEJORA VISUAL DE LICENCIAS (WEB Y CLIENTE)
+   - Mejorar la presentación visual de las licencias `PANDA-XXXX-YYYY` en `MisPedidos.js`.
+   - Nueva tarjeta premium estilo VIP con botón de 'Copiar Clave' de un toque y
+     acceso directo guiado a la descarga e instalación del Launcher.
+   - Pulir `AdminLicencias.js` para buscar, filtrar y reasignar licencias con rapidez.
+
+10. [⏳] MEJORAS DEL LAUNCHER PANDASTORE (C# / WPF)
+    - a) Fusión Tienda + Launcher para DLCs:
+         Si el usuario tiene el juego base y no tiene los DLCs, el Launcher le
+         muestra el banner para adquirirlos. Al pagar con Mercado Pago / Binance Pay
+         (o WhatsApp), se vinculan automáticamente a su licencia sin reinstalar.
+    - b) Perfil con estadísticas dentro del Launcher:
+         Pestaña de perfil mostrando antigüedad de la cuenta, cantidad de juegos
+         adquiridos, estado de la licencia y beneficios por fidelidad (regalos).
+
+11. [⏳] PREGUNTAS FRECUENTES (FAQ) Y DETALLES MÓVIL
+    - Actualizar `/faq` con las preguntas reales de los clientes: cómo usar el Launcher,
+      claves de Steam, instalación de cuentas Nintendo Switch y beneficios de revendedor.
+    - Ajustes finales de diseño responsivo en móvil para botones y selectores.
+
+================================================================================
+FIN DEL REPORTE - GUARDADO PERMANENTE EN EL PROYECTO
+================================================================================

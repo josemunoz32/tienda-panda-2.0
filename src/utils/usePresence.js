@@ -3,13 +3,18 @@ import { database, auth } from "../firebase";
 import { ref, set, onDisconnect, serverTimestamp, onValue } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
 
-let initialized = false;
+// Generate or retrieve unique session key for anonymous users
+const getSessionKey = () => {
+  let key = sessionStorage.getItem('ps_presence_key');
+  if (!key) {
+    key = 'sess_' + Math.random().toString(36).slice(2, 10);
+    sessionStorage.setItem('ps_presence_key', key);
+  }
+  return key;
+};
 
 export default function usePresence() {
   useEffect(() => {
-    if (initialized) return;
-    initialized = true;
-
     const connectedRef = ref(database, ".info/connected");
     let currentRef = null;
     let disconnectRef = null;
@@ -20,7 +25,7 @@ export default function usePresence() {
         set(currentRef, null);
       }
 
-      const key = uid || "anon_" + Math.random().toString(36).slice(2, 8);
+      const key = uid || getSessionKey();
       currentRef = ref(database, `presence/${key}`);
 
       onValue(connectedRef, (snap) => {

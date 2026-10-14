@@ -629,13 +629,15 @@ namespace PandaStoreLauncher.Services
                         var rawCached = await Task.Run(() => JsonSerializer.Deserialize<List<GameModel>>(cachedJson));
                         if (rawCached != null && rawCached.Count > 0)
                         {
-                            var cleanCached = rawCached.Where(g => IsCleanPlayableGame(g.AppId, g.Name)).ToList();
-                            foreach (var game in cleanCached)
+                            // El caché se escribe sólo después del filtro de juegos base; repetir
+                            // expresiones regulares sobre decenas de miles de registros en cada
+                            // inicio provocaba una pausa perceptible antes de mostrar la biblioteca.
+                            foreach (var game in rawCached)
                             {
                                 game.IsAuthorizedForClient = fullAccess || (hasLicense && (allowedGames!.Contains(game.AppId) || allowedGames!.Contains(game.Name)));
                                 game.RefreshDlcOwnership(allowedDlcs, fullAccess);
                             }
-                            return cleanCached;
+                            return rawCached;
                         }
                     }
                 }

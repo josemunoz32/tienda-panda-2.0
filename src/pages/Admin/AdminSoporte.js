@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { db } from "../../firebase";
-import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
+import { auth } from "../../firebase";
 
 export default function AdminSoporte() {
   const [tickets, setTickets] = useState([]);
@@ -10,11 +9,17 @@ export default function AdminSoporte() {
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
   const [finalizando, setFinalizando] = useState({});
+  const authorizedFetch = async (url, options = {}) => {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Sesión requerida");
+    const token = await user.getIdToken();
+    return fetch(url, { ...options, headers: { ...(options.headers || {}), Authorization: `Bearer ${token}` } });
+  };
 
   useEffect(() => {
     async function fetchTickets() {
       setLoading(true);
-  const res = await fetch("https://soportetickets-bdzwbdza3q-uc.a.run.app?admin=1");
+  const res = await authorizedFetch("https://soportetickets-bdzwbdza3q-uc.a.run.app?admin=1");
       const data = await res.json();
       setTickets(Array.isArray(data.tickets) ? data.tickets : []);
       setLoading(false);
@@ -24,7 +29,7 @@ export default function AdminSoporte() {
 
   // Cargar historial de mensajes al seleccionar ticket
   const cargarMensajes = async (ticketId) => {
-  const res = await fetch(`https://soportemensajes-bdzwbdza3q-uc.a.run.app?ticketId=${ticketId}`);
+  const res = await authorizedFetch(`https://soportemensajes-bdzwbdza3q-uc.a.run.app?ticketId=${ticketId}`);
     const data = await res.json();
     setMensajes(m => ({...m, [ticketId]: data}));
   };
@@ -37,16 +42,16 @@ export default function AdminSoporte() {
     setMsg("");
     if (!respuestas[ticket.id]) return;
     // Agregar mensaje como admin
-    await fetch("https://soportemensaje-bdzwbdza3q-uc.a.run.app", {
+    await authorizedFetch("https://soportemensaje-bdzwbdza3q-uc.a.run.app", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ticketId: ticket.id, autor: "admin", texto: respuestas[ticket.id] })
+      body: JSON.stringify({ ticketId: ticket.id, texto: respuestas[ticket.id] })
     });
     // Enviar correo al cliente
-    await fetch("https://soporteresponder-bdzwbdza3q-uc.a.run.app", {
+    await authorizedFetch("https://soporteresponder-bdzwbdza3q-uc.a.run.app", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: ticket.email, respuesta: respuestas[ticket.id] })
+      body: JSON.stringify({ ticketId: ticket.id, respuesta: respuestas[ticket.id] })
     });
     setMsg("Respuesta enviada");
     setRespuestas({ ...respuestas, [ticket.id]: "" });
@@ -55,7 +60,7 @@ export default function AdminSoporte() {
 
   const finalizar = async (ticket) => {
     setFinalizando(f => ({...f, [ticket.id]: true}));
-  await fetch("https://soportefinalizar-bdzwbdza3q-uc.a.run.app", {
+  await authorizedFetch("https://soportefinalizar-bdzwbdza3q-uc.a.run.app", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ticketId: ticket.id })

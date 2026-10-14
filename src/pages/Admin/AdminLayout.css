@@ -1,0 +1,701 @@
+/* ====== ADMIN LAYOUT — SAAS SIDEBAR ====== */
+
+/* ── Sidebar ── */
+.adm-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(12, 9, 29, 0.96) 0%, rgba(15, 10, 38, 0.98) 48%, rgba(8, 10, 28, 0.98) 100%);
+  border-right: 1px solid rgba(167, 139, 250, 0.3);
+  display: flex;
+  flex-direction: column;
+  z-index: 1200;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(162, 89, 255, 0.3) transparent;
+  transition: transform 0.3s ease;
+  box-shadow: 12px 0 40px rgba(3, 0, 18, 0.35);
+}
+
+.adm-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+.adm-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(162, 89, 255, 0.3);
+  border-radius: 4px;
+}
+
+/* Brand / Logo area */
+.adm-sidebar-brand {
+  padding: 20px 16px 17px;
+  border-bottom: 1px solid rgba(167, 139, 250, 0.18);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.16), rgba(6, 182, 212, 0.05));
+  flex-shrink: 0;
+}
+.adm-sidebar-brand-row,
+.adm-sidebar-brand-identity {
+  display: flex;
+  align-items: center;
+}
+.adm-sidebar-brand-row { justify-content: space-between; gap: 8px; }
+.adm-sidebar-brand-identity { gap: 10px; min-width: 0; }
+.adm-sidebar-panda {
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+  border-radius: 13px;
+  padding: 3px;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.2), rgba(124,58,237,0.16));
+  border: 1px solid rgba(196,181,253,0.45);
+  box-shadow: 0 0 18px rgba(139,92,246,0.35);
+}
+.adm-sidebar-logo {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.01em;
+  background: linear-gradient(135deg, #a259ff, #7b2ff2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+  display: block;
+}
+.adm-sidebar-subtitle {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.35);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: block;
+  margin-top: 1px;
+}
+.adm-sidebar-brand-description {
+  display: block;
+  margin-top: 12px;
+  color: rgba(226, 232, 240, 0.58);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+.adm-sidebar-pill-v2 {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #a259ff, #06b6d4);
+  color: #fff;
+  letter-spacing: 0.05em;
+}
+
+/* Mode Switcher Tabs */
+.adm-sidebar-mode-switcher {
+  display: flex;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(162, 89, 255, 0.15);
+  border-radius: 8px;
+  padding: 3px;
+  margin-top: 14px;
+  gap: 3px;
+}
+.adm-mode-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 6px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.adm-mode-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+.adm-mode-btn.active {
+  background: rgba(162, 89, 255, 0.25);
+  color: #a78bfa;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Nav Groups */
+.adm-nav-group {
+  margin-bottom: 14px;
+  padding: 7px 6px 5px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.adm-nav-group:hover {
+  background: rgba(139, 92, 246, 0.05);
+  border-color: rgba(167, 139, 250, 0.1);
+}
+.adm-nav-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 7px 7px;
+  margin-bottom: 4px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #c4b5fd;
+  border-bottom: 1px dashed rgba(162, 89, 255, 0.15);
+}
+.adm-nav-group-icon {
+  font-size: 0.85rem;
+}
+.adm-nav-group-title {
+  flex: 1;
+}
+.adm-nav-group-badge {
+  background: rgba(162, 89, 255, 0.2);
+  color: #a78bfa;
+  border: 1px solid rgba(162, 89, 255, 0.3);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+.adm-nav-group-count {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+.adm-nav-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.adm-item-live-badge {
+  margin-left: auto;
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(34, 197, 94, 0.18);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.adm-item-live-badge.live {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.4);
+  animation: adm-pulse 1.5s infinite;
+}
+
+.adm-item-live-badge.pro {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+.adm-item-live-badge.bot {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.adm-item-live-badge.b2b {
+  background: rgba(14, 165, 233, 0.2);
+  color: #38bdf8;
+  border-color: rgba(14, 165, 233, 0.4);
+}
+
+.adm-item-live-badge.keys,
+.adm-item-live-badge.steam {
+  background: rgba(99, 102, 241, 0.2);
+  color: #818cf8;
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.adm-item-live-badge.mail {
+  background: rgba(236, 72, 153, 0.2);
+  color: #f472b6;
+  border-color: rgba(236, 72, 153, 0.4);
+}
+
+.adm-user-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  display: inline-block;
+  margin-right: 6px;
+  box-shadow: 0 0 6px #10b981;
+}
+
+/* Nav */
+.adm-sidebar-nav {
+  flex: 1;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.adm-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.18s ease;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+.adm-nav-item:hover {
+  background: linear-gradient(90deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.08));
+  color: #f8fafc;
+  text-decoration: none;
+}
+
+.adm-nav-item.active {
+  background: linear-gradient(90deg, rgba(139, 92, 246, 0.32), rgba(6, 182, 212, 0.12));
+  border-left: 3px solid #c4b5fd;
+  color: #fff;
+  padding-left: 9px;
+}
+
+.adm-nav-item .material-icons {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.adm-nav-item.active .material-icons {
+  opacity: 1;
+  color: #a259ff;
+}
+
+.adm-nav-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Sidebar bottom */
+.adm-sidebar-bottom {
+  padding: 14px 10px 20px;
+  border-top: 1px solid rgba(162, 89, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.adm-sidebar-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.18s ease;
+}
+.adm-sidebar-back:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+}
+.adm-sidebar-back .material-icons {
+  font-size: 1rem;
+}
+
+.adm-sidebar-user {
+  padding: 6px 12px;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.25);
+  font-weight: 500;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+/* ── Main content area ── */
+.adm-layout-main {
+  margin-left: 240px;
+  background-color: #080817;
+  background-image:
+    linear-gradient(90deg, rgba(8, 8, 23, 0.9) 0%, rgba(8, 8, 23, 0.76) 50%, rgba(8, 8, 23, 0.58) 100%),
+    url("../../assets/admin/pandastore-admin-backdrop.png");
+  background-position: center, center right;
+  background-size: cover, cover;
+  background-attachment: fixed, fixed;
+  min-height: 100vh;
+  overflow-y: auto;
+}
+
+/* ── Hamburger button (mobile only) ── */
+.adm-hamburger {
+  display: none;
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 1300;
+  background: #0f0d1a;
+  border: 1px solid rgba(162, 89, 255, 0.35);
+  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  transition: background 0.18s;
+}
+.adm-hamburger:hover {
+  background: rgba(162, 89, 255, 0.15);
+}
+.adm-hamburger .material-icons {
+  font-size: 1.3rem;
+}
+
+/* ── Mobile overlay ── */
+.adm-sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1100;
+  backdrop-filter: blur(2px);
+}
+.adm-sidebar-overlay.open {
+  display: block;
+}
+
+/* ── Responsive ── */
+@media (max-width: 767px) {
+  .adm-hamburger {
+    display: flex;
+  }
+
+  .adm-sidebar {
+    transform: translateX(-100%);
+  }
+  .adm-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .adm-layout-main {
+    margin-left: 0;
+    padding-top: 60px;
+  }
+}
+
+/* ====== BARRA GLOBAL DE CONTROL DE DÓLAR Y DIVISAS ====== */
+
+.adm-sidebar-dolar-pill {
+  margin-top: 10px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  border-radius: 8px;
+  padding: 5px 9px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.adm-global-dolar-bar {
+  background: linear-gradient(135deg, rgba(20, 16, 36, 0.98) 0%, rgba(13, 26, 36, 0.98) 100%);
+  border-bottom: 1.5px solid rgba(16, 185, 129, 0.28);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+.adm-dolar-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.adm-dolar-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1.5px solid rgba(16, 185, 129, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.adm-dolar-icon {
+  font-size: 1.6rem;
+  color: #10b981;
+}
+
+.adm-dolar-live-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulse-dot 1.8s infinite;
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.8; }
+}
+
+.adm-dolar-text-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.adm-dolar-tagline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adm-dolar-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  padding: 1px 7px;
+  border-radius: 4px;
+}
+
+.adm-dolar-status-live {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.05em;
+}
+
+.adm-dolar-rate-headline {
+  font-size: 1rem;
+  color: #e2e8f0;
+  font-weight: 600;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.adm-dolar-headline-val {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #10b981;
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+}
+
+.adm-dolar-scope-desc {
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 400;
+}
+
+.adm-dolar-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.adm-dolar-presets-wrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.adm-dolar-presets-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  margin-right: 2px;
+}
+
+.adm-dolar-preset-pill {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.adm-dolar-preset-pill:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.45);
+  color: #10b981;
+}
+
+.adm-dolar-preset-pill.active {
+  background: rgba(16, 185, 129, 0.22);
+  border-color: #10b981;
+  color: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+}
+
+.adm-dolar-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adm-dolar-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1.5px solid rgba(16, 185, 129, 0.35);
+  border-radius: 8px;
+  padding: 2px 8px;
+  transition: border-color 0.18s;
+}
+
+.adm-dolar-input-wrapper:focus-within {
+  border-color: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
+}
+
+.adm-dolar-currency-prefix,
+.adm-dolar-currency-suffix {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #10b981;
+}
+
+.adm-dolar-number-input {
+  width: 72px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-align: center;
+  padding: 4px 2px;
+}
+
+.adm-dolar-number-input::-webkit-inner-spin-button,
+.adm-dolar-number-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.adm-dolar-update-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 15px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.18s;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+}
+
+.adm-dolar-update-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #34d399, #10b981);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45);
+}
+
+.adm-dolar-update-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.adm-dolar-floating-alert {
+  position: absolute;
+  bottom: -36px;
+  left: 24px;
+  background: #064e3b;
+  border: 1px solid #10b981;
+  color: #d1fae5;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.25s ease-out;
+  z-index: 1000;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsividad para barra de dólar y layouts móviles */
+@media (max-width: 992px) {
+  .adm-global-dolar-bar {
+    padding: 12px 18px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .adm-dolar-bar-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 640px) {
+  .adm-dolar-bar-right {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .adm-dolar-presets-wrap {
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .adm-dolar-form {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .adm-dolar-input-wrapper {
+    flex: 1;
+  }
+}
+

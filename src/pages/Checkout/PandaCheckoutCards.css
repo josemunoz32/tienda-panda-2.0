@@ -1,0 +1,820 @@
+/* PandaCheckoutCards.css - Rediseño estilo 3 tarjetas con estética PandaStore */
+
+.panda-checkout-page {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  padding: 110px 16px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #e8e0f5;
+  z-index: 2;
+}
+
+.panda-checkout-header {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.panda-checkout-header h1 {
+  font-size: clamp(1.4rem, 2.5vw, 1.85rem);
+  font-weight: 800;
+  margin: 0 0 6px 0;
+  background: linear-gradient(135deg, #ffffff 30%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+
+.panda-checkout-header p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #a08ab8;
+}
+
+.panda-checkout-wrapper {
+  width: 100%;
+  max-width: 1180px;
+}
+
+.panda-master-container {
+  display: grid;
+  grid-template-columns: minmax(0, 1.36fr) minmax(350px, 0.84fr);
+  grid-template-rows: auto auto;
+  gap: 14px;
+  align-items: start;
+  width: 100%;
+}
+
+/* En escritorio el pedido queda como una mesa de compra real: catálogo a la
+   izquierda y las decisiones de pago siempre visibles a la derecha. */
+.panda-master-container > .panda-card.cart {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  border-radius: 22px;
+}
+
+.panda-master-container > .panda-card.coupons {
+  grid-column: 2;
+  grid-row: 1;
+  border-radius: 18px;
+}
+
+.panda-master-container > .panda-card.checkout {
+  grid-column: 2;
+  grid-row: 2;
+  border-radius: 18px;
+  position: sticky;
+  top: 92px;
+}
+
+/* Las cuentas B2B no usan cupón: el resumen sube y no deja un hueco vacío. */
+.panda-master-container:not(:has(> .panda-card.coupons)) > .panda-card.checkout {
+  grid-row: 1;
+}
+
+.panda-checkout-header {
+  position: relative;
+  width: min(1180px, 100%);
+  min-height: 70px;
+  padding: 6px 92px 6px 0;
+  box-sizing: border-box;
+}
+
+.panda-checkout-header::after {
+  content: '';
+  position: absolute;
+  right: 8px;
+  bottom: -10px;
+  width: 92px;
+  height: 92px;
+  pointer-events: none;
+  background: url('../../assets/halloween/panda-bienvenida-halloween.png') center / contain no-repeat;
+  filter: drop-shadow(0 8px 14px rgba(0,0,0,.38));
+}
+
+/* Tarjetas */
+.panda-card {
+  width: 100%;
+  box-sizing: border-box;
+  background: linear-gradient(165deg, rgba(26, 16, 53, 0.95) 0%, rgba(38, 20, 75, 0.95) 60%, rgba(22, 12, 44, 0.97) 100%);
+  border: 1.5px solid rgba(162, 89, 255, 0.22);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45), 0 0 25px rgba(123, 47, 242, 0.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  overflow: hidden;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.panda-card:hover {
+  border-color: rgba(162, 89, 255, 0.35);
+}
+
+.panda-card.cart {
+  border-radius: 19px 19px 8px 8px;
+}
+
+.panda-card.coupons {
+  border-radius: 8px;
+}
+
+.panda-card.checkout {
+  border-radius: 8px 8px 19px 19px;
+}
+
+/* Título de cada tarjeta */
+.panda-card .title {
+  width: 100%;
+  height: 42px;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  border-bottom: 1px solid rgba(162, 89, 255, 0.16);
+  font-weight: 700;
+  font-size: 12px;
+  color: #c4b5fd;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  background: rgba(162, 89, 255, 0.05);
+}
+
+.panda-card .title-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(162, 89, 255, 0.2);
+  color: #e8e0f5;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Lista de productos compacta con scroll automático para listas largas */
+.panda-card .products {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px;
+  gap: 8px;
+  max-height: 510px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(162, 89, 255, 0.4) rgba(255, 255, 255, 0.03);
+}
+
+.panda-card .products::-webkit-scrollbar {
+  width: 5px;
+}
+
+.panda-card .products::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+.panda-card .products::-webkit-scrollbar-thumb {
+  background: rgba(162, 89, 255, 0.35);
+  border-radius: 4px;
+}
+
+.panda-card .products::-webkit-scrollbar-thumb:hover {
+  background: #a259ff;
+}
+
+.panda-card .product {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr) auto auto auto;
+  gap: 13px;
+  align-items: center;
+  padding: 9px 4px;
+  border-bottom: 1px solid rgba(162, 89, 255, 0.08);
+}
+
+.panda-card .product:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.panda-card .product-thumb {
+  width: 62px;
+  height: 62px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1.2px solid rgba(162, 89, 255, 0.25);
+  background: rgba(162, 89, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.panda-card .product-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.panda-card .product-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.panda-card .product-info span {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 3px;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.panda-card .product-info p {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #a08ab8;
+  margin: 0;
+  line-height: 1.3;
+}
+
+/* Cantidad */
+.panda-card .quantity {
+  height: 30px;
+  display: inline-grid;
+  grid-template-columns: 28px 24px 28px;
+  align-items: center;
+  justify-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(162, 89, 255, 0.25);
+  border-radius: 7px;
+  filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.2));
+  flex-shrink: 0;
+}
+
+.panda-card .quantity label {
+  width: 24px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  user-select: none;
+}
+
+.panda-card .quantity button {
+  width: 28px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  outline: none;
+  background-color: transparent;
+  cursor: pointer;
+  color: #c4b5fd;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.panda-card .quantity button:hover:not(:disabled) {
+  background-color: rgba(162, 89, 255, 0.2);
+  color: #ffffff;
+}
+
+.panda-card .quantity button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.panda-card .quantity button svg {
+  stroke: currentColor;
+}
+
+/* Precio producto */
+.panda-card .product-price {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #4ade80;
+  text-align: right;
+  white-space: nowrap;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Botón eliminar */
+.panda-card .remove-btn {
+  background: transparent;
+  border: none;
+  color: #ff6b6b;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.15s;
+  margin-left: 4px;
+}
+
+.panda-card .remove-btn:hover {
+  background: rgba(255, 107, 107, 0.15);
+}
+
+/* Tarjeta Cupones - Diseño Moderno & Elegante */
+.panda-card.coupons {
+  position: relative;
+  overflow: hidden;
+}
+
+.coupon-card-body {
+  padding: 12px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.coupon-form-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.coupon-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(162, 89, 255, 0.22);
+  border-radius: 10px;
+  padding: 0 12px;
+  height: 42px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.coupon-input-wrapper:focus-within {
+  border-color: #a259ff;
+  box-shadow: 0 0 0 3px rgba(162, 89, 255, 0.2), 0 4px 14px rgba(123, 47, 242, 0.15);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.coupon-input-icon {
+  font-size: 15px;
+  margin-right: 8px;
+  user-select: none;
+}
+
+.coupon-modern-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-family: inherit;
+  padding: 0;
+  min-width: 0;
+}
+
+.coupon-modern-input::placeholder {
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: #7e6c98;
+  font-size: 12.5px;
+}
+
+.coupon-clear-input {
+  background: none;
+  border: none;
+  color: #a08ab8;
+  cursor: pointer;
+  padding: 4px 6px;
+  font-size: 12px;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coupon-clear-input:hover {
+  color: #ffffff;
+}
+
+.coupon-submit-btn {
+  height: 42px;
+  padding: 0 18px;
+  background: linear-gradient(135deg, #7b2ff2 0%, #a259ff 100%);
+  border: none;
+  border-radius: 10px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(123, 47, 242, 0.35);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coupon-submit-btn:hover:not(:disabled) {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(123, 47, 242, 0.45);
+}
+
+.coupon-submit-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Badge de Cupón Activo */
+.coupon-active-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(74, 222, 128, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+  border: 1.5px solid rgba(74, 222, 128, 0.35);
+  border-radius: 11px;
+  box-sizing: border-box;
+}
+
+.coupon-active-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.coupon-tag-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(74, 222, 128, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.coupon-active-code {
+  font-weight: 800;
+  color: #ffffff;
+  font-size: 13.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.5px;
+}
+
+.coupon-active-tag {
+  background: #22c55e;
+  color: #052e16;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 5px;
+}
+
+.coupon-active-desc {
+  font-size: 11.5px;
+  color: #86efac;
+  margin-top: 2px;
+}
+
+.coupon-remove-btn {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  font-size: 11.5px;
+  font-weight: 700;
+  border-radius: 7px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.coupon-remove-btn:hover {
+  background: rgba(239, 68, 68, 0.3);
+  color: #ffffff;
+}
+
+.coupon-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 9px;
+  color: #fca5a5;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Tarjeta Checkout / Resumen */
+.panda-card.checkout .details {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  padding: 16px 20px;
+  gap: 9px 12px;
+  box-sizing: border-box;
+}
+
+.panda-card.checkout .details span:nth-child(odd) {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #a08ab8;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.panda-card.checkout .details span:nth-child(even) {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #e8e0f5;
+  text-align: right;
+}
+
+/* Fila especial IVA chileno */
+.panda-card.checkout .details .iva-label {
+  color: #38bdf8 !important;
+  font-weight: 700 !important;
+}
+
+.panda-card.checkout .details .iva-value {
+  color: #38bdf8 !important;
+  font-weight: 800 !important;
+}
+
+/* Fila descuento */
+.panda-card.checkout .details .discount-label,
+.panda-card.checkout .details .discount-value {
+  color: #4ade80 !important;
+}
+
+/* Separador sutil */
+.panda-card.checkout .details-divider {
+  grid-column: 1 / -1;
+  height: 1px;
+  background: rgba(162, 89, 255, 0.12);
+  margin: 4px 0;
+}
+
+/* Sección métodos de pago en Tarjeta 3 */
+.panda-checkout-section {
+  padding: 14px 20px;
+  border-top: 1px solid rgba(162, 89, 255, 0.12);
+  box-sizing: border-box;
+}
+
+.panda-checkout-section-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #c4b5fd;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Footer de checkout */
+.panda-card .checkout--footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: rgba(14, 7, 30, 0.9);
+  border-top: 1.5px solid rgba(162, 89, 255, 0.2);
+  box-sizing: border-box;
+  gap: 12px;
+}
+
+.panda-card .checkout-price-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.panda-card .checkout-price-box .price-label {
+  font-size: 10.5px;
+  color: #a08ab8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.panda-card .checkout-price-box .price {
+  position: relative;
+  font-size: 22px;
+  color: #ffffff;
+  font-weight: 900;
+  line-height: 1.1;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.panda-card .checkout-price-box .price sup {
+  font-size: 13px;
+  color: #a259ff;
+  font-weight: 700;
+}
+
+.panda-card .checkout-price-box .iva-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.panda-card .checkout-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 164px;
+  height: 46px;
+  padding: 0 18px;
+  background: linear-gradient(135deg, #7b2ff2 0%, #a259ff 100%);
+  box-shadow: 0 4px 16px rgba(123, 47, 242, 0.4);
+  border-radius: 9px;
+  border: 0;
+  outline: none;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  letter-spacing: 0.3px;
+}
+
+.panda-card .checkout-btn:hover:not(:disabled) {
+  filter: brightness(1.15);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(123, 47, 242, 0.55);
+}
+
+.panda-card .checkout-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+@media (max-width: 900px) {
+  .panda-checkout-wrapper { max-width: 680px; }
+  .panda-master-container { display: flex; flex-direction: column; gap: 9px; }
+  .panda-master-container > .panda-card.cart,
+  .panda-master-container > .panda-card.coupons,
+  .panda-master-container > .panda-card.checkout {
+    width: 100%;
+    position: static;
+    border-radius: 16px;
+  }
+  .panda-checkout-header { padding-right: 74px; }
+  .panda-checkout-header::after { width: 76px; height: 76px; right: 0; bottom: -6px; }
+  .panda-card .products { max-height: 390px; }
+}
+
+/* Guest form inputs */
+.panda-guest-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.panda-guest-grid.full {
+  grid-template-columns: 1fr;
+}
+
+.panda-guest-input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 7px;
+  border: 1px solid rgba(162, 89, 255, 0.25);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 12.5px;
+  outline: none;
+}
+
+.panda-guest-input:focus {
+  border-color: #a259ff;
+  box-shadow: 0 0 0 2px rgba(162, 89, 255, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 540px) {
+  .panda-checkout-page {
+    padding: 88px 10px 36px;
+  }
+
+  .panda-checkout-header {
+    min-height: 62px;
+    margin-bottom: 16px;
+    padding: 2px 62px 2px 2px;
+    text-align: left;
+  }
+  .panda-checkout-header h1 { font-size: 1.45rem; }
+  .panda-checkout-header p { font-size: 0.78rem; line-height: 1.35; }
+  .panda-checkout-header::after { width: 64px; height: 64px; bottom: -2px; opacity: 0.9; }
+
+  .panda-card .title { height: 46px; padding: 0 14px; font-size: 11px; }
+  .panda-card .products { padding: 9px 12px; gap: 5px; max-height: none; }
+
+  .panda-card .product {
+    position: relative;
+    grid-template-columns: 50px minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    gap: 5px 9px;
+    padding: 10px 29px 10px 2px;
+  }
+
+  .panda-card .product-thumb {
+    width: 50px;
+    height: 50px;
+    grid-row: 1 / span 2;
+  }
+
+  .panda-card .product-info { grid-column: 2; grid-row: 1; }
+  .panda-card .product-info span { font-size: 12.5px; white-space: normal; line-height: 1.2; margin-bottom: 2px; }
+  .panda-card .product-info p { font-size: 10.5px; }
+  .panda-card .quantity { grid-column: 2; grid-row: 2; justify-self: start; }
+
+  .panda-card .product-price { grid-column: 3; grid-row: 2; justify-self: end; font-size: 13px; }
+  .panda-card .remove-btn { position: absolute; top: 5px; right: 0; margin: 0; min-width: 26px; min-height: 26px; }
+
+  .coupon-card-body { padding: 12px 14px 14px; }
+  .coupon-form-group { flex-direction: column; align-items: stretch; }
+  .coupon-submit-btn { width: 100%; }
+  .coupon-active-badge { align-items: flex-start; gap: 8px; padding: 10px; }
+  .coupon-active-left { min-width: 0; gap: 8px; }
+  .coupon-active-code { flex-wrap: wrap; font-size: 12.5px; }
+  .coupon-active-desc { line-height: 1.25; }
+
+  .panda-card.checkout .details { padding: 14px; gap: 10px 8px; }
+  .panda-card.checkout .details span:nth-child(odd) { font-size: 11.5px; min-width: 0; }
+  .panda-card.checkout .details span:nth-child(even) { font-size: 12.5px; }
+  .panda-checkout-section { padding: 14px; }
+  .panda-checkout-section-title { font-size: 12px; }
+  .panda-guest-grid { grid-template-columns: 1fr; gap: 8px; margin-bottom: 8px; }
+  .panda-guest-input { height: 42px; font-size: 13px; padding: 0 12px; }
+  .panda-checkout-section pre { max-width: 100%; overflow-wrap: anywhere; word-break: break-word; font-size: 0.75rem !important; }
+
+  .panda-card .checkout--footer {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .panda-card .checkout-price-box .price { justify-content: space-between; font-size: 20px; }
+
+  .panda-card .checkout-btn {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 390px) {
+  .panda-checkout-page { padding: 82px 8px 28px; }
+  .panda-checkout-header { margin-bottom: 14px; }
+  .panda-checkout-header p { font-size: 0.78rem; }
+  .panda-card .product { grid-template-columns: 42px minmax(0, 1fr) auto; gap: 5px 7px; padding-right: 27px; }
+  .panda-card .product-thumb { width: 42px; height: 42px; }
+  .panda-card .product-info { min-width: 0; }
+  .panda-card .product-price { grid-column: 3; justify-self: end; font-size: 12px; }
+  .panda-card .quantity { grid-template-columns: 24px 20px 24px; height: 28px; }
+  .panda-card .quantity button { width: 24px; height: 28px; }
+  .panda-card .quantity label { width: 20px; height: 28px; font-size: 12px; }
+  .panda-card .remove-btn { margin-left: 0; padding: 5px; min-width: 26px; min-height: 28px; }
+  .panda-card .checkout--footer { gap: 8px; }
+  .panda-card .checkout-btn { min-width: 0; }
+}

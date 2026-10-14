@@ -33,7 +33,7 @@ const styles = {
     position: 'fixed',
     left: 16,
     bottom: 20,
-    zIndex: 9999,
+    zIndex: 9998,
     minWidth: 200,
     maxWidth: 270,
     width: '60vw',

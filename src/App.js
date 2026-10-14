@@ -1,58 +1,89 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, lazy, Suspense } from "react";
 import { useLocation } from 'react-router-dom';
-// GalaxyBackground desactivado
-import nuevoFondo from "./assets/nuevo fondo 2.0/fondo nuevo.png";
-import HalloweenOverlay from "./components/HalloweenOverlay";
+import { HelmetProvider, Helmet } from 'react-helmet-async';
+import nuevoFondo from "./assets/halloween/fondo-halloween.png";
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Registro from './pages/Registro/Registro';
-import IniciarSesion from './pages/IniciarSesion/IniciarSesion';
-import Home from './pages/Home/Home';
-import Perfil from './pages/Perfil/Perfil';
+
 import Header from './components/Header';
 import Footer from './pages/Footer/Footer';
-import AdminDashboard from "./pages/Admin/AdminDashboard";
+import Home from './pages/Home/Home';
+import WhatsappButton from './components/WhatsappButton';
+import InstagramFloatingBadge from './components/InstagramFloatingBadge/InstagramFloatingBadge';
 import { auth } from './firebase';
-import SalesNotification from './components/SalesNotification';
-import CategoriaPage from "./pages/Categorias/CategoriaPage";
-import ProductoForm from "./pages/Productos/ProductoForm";
-import CategoriasList from "./pages/Categorias/CategoriasList";
-import ProductosList from "./pages/Productos/ProductosList";
-import ProductDetail from "./pages/Productos/ProductDetail";
-import ConfirmacionExitosa from './pages/Info/ConfirmacionExitosa';
-import ConfirmacionPendiente from './pages/Info/ConfirmacionPendiente';
-import FAQ from './pages/Info/FAQ';
-import Terminos from './pages/Info/Terminos';
-import SobreNosotros from './pages/Info/SobreNosotros';
-import AdminUsuarios from './pages/Admin/AdminUsuarios';
-import AdminResenas from './pages/Admin/AdminResenas';
-import AdminPreguntas from './pages/Admin/AdminPreguntas';
-import CheckoutCompraDirecta from './pages/Checkout/CheckoutCompraDirecta';
-import TestimoniosPage from "./pages/Testimonios/TestimoniosPage";
-import CheckoutCarrito from "./pages/Checkout/CheckoutCarrito";
-import MisPedidos from "./pages/Checkout/MisPedidos";
-import CompraConfirmada from "./pages/Checkout/CompraConfirmada";
-import InstalacionNintendo from "./pages/Info/InstalacionNintendo";
-import SoporteCliente from "./pages/Soporte/SoporteCliente";
-import AdminSoporte from "./pages/Admin/AdminSoporte";
-
-import AdminCupones from './pages/Admin/AdminCupones';
-import PromosList from './pages/Promos/PromosList';
-import PacksNintendo from './pages/Packs/PacksNintendo';
-import GlobalChatbot from './components/GlobalChatbot';
 import usePresence from './utils/usePresence';
+import { trackPageView } from './utils/analytics';
+import { captureReferralFromUrl } from './utils/referralHelper';
+import Loader from './components/Loader';
+import PandaModalAlert from './components/PandaModalAlert/PandaModalAlert';
+import ErrorBoundary from './components/ErrorBoundary';
+
+// Lazy-loaded pages (Code Splitting para carga ultra-rápida)
+const Registro = lazy(() => import('./pages/Registro/Registro'));
+const IniciarSesion = lazy(() => import('./pages/IniciarSesion/IniciarSesion'));
+const Perfil = lazy(() => import('./pages/Perfil/Perfil'));
+const CategoriaPage = lazy(() => import('./pages/Categorias/CategoriaPage'));
+const CategoriasList = lazy(() => import('./pages/Categorias/CategoriasList'));
+const ProductosList = lazy(() => import('./pages/Productos/ProductosList'));
+const ProductDetail = lazy(() => import('./pages/Productos/ProductDetail'));
+const ConfirmacionExitosa = lazy(() => import('./pages/Info/ConfirmacionExitosa'));
+const ConfirmacionPendiente = lazy(() => import('./pages/Info/ConfirmacionPendiente'));
+const FAQ = lazy(() => import('./pages/Info/FAQ'));
+const Terminos = lazy(() => import('./pages/Info/Terminos'));
+const SobreNosotros = lazy(() => import('./pages/Info/SobreNosotros'));
+const CheckoutCompraDirecta = lazy(() => import('./pages/Checkout/CheckoutCompraDirecta'));
+const TestimoniosPage = lazy(() => import('./pages/Testimonios/TestimoniosPage'));
+const CheckoutCarrito = lazy(() => import('./pages/Checkout/CheckoutCarrito'));
+const MisPedidos = lazy(() => import('./pages/Checkout/MisPedidos'));
+const CompraConfirmada = lazy(() => import('./pages/Checkout/CompraConfirmada'));
+const InstalacionNintendo = lazy(() => import('./pages/Info/InstalacionNintendo'));
+const InstalacionPlaystation = lazy(() => import('./pages/Info/InstalacionPlaystation'));
+const InstalacionActivador = lazy(() => import('./pages/Info/InstalacionActivador'));
+const SoporteCliente = lazy(() => import('./pages/Soporte/SoporteCliente'));
+const PromosList = lazy(() => import('./pages/Promos/PromosList'));
+const ProvedoresPage = lazy(() => import('./pages/Provedores/ProvedoresPage'));
+const PacksNintendo = lazy(() => import('./pages/Packs/PacksNintendo'));
+const SagasPage = lazy(() => import('./pages/Sagas/SagasPage'));
+
+// Lazy-loaded Admin Pages
+const AdminLayout = lazy(() => import('./pages/Admin/AdminLayout'));
+const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'));
+const ProductoForm = lazy(() => import('./pages/Productos/ProductoForm'));
+const AdminUsuarios = lazy(() => import('./pages/Admin/AdminUsuarios'));
+const AdminResenas = lazy(() => import('./pages/Admin/AdminResenas'));
+const AdminPreguntas = lazy(() => import('./pages/Admin/AdminPreguntas'));
+const AdminSoporte = lazy(() => import('./pages/Admin/AdminSoporte'));
+const AdminUserActivity = lazy(() => import('./pages/Admin/AdminUserActivity'));
+const AdminExportEmails = lazy(() => import('./pages/Admin/AdminExportEmails'));
+const AdminAutoImport = lazy(() => import('./pages/Admin/AdminAutoImport'));
+const AdminCupones = lazy(() => import('./pages/Admin/AdminCupones'));
+const AdminCorreos = lazy(() => import('./pages/Admin/AdminCorreos'));
+const AdminArmarPack = lazy(() => import('./pages/Admin/AdminArmarPack'));
+const AdminLicencias = lazy(() => import('./pages/Admin/AdminLicencias'));
+const AdminRevendedores = lazy(() => import('./pages/Admin/AdminRevendedores'));
+const AdminDistribuidores = lazy(() => import('./pages/Admin/AdminDistribuidores'));
+const AdminJuegosSinPublicar = lazy(() => import('./pages/Admin/AdminJuegosSinPublicar'));
+const AdminMetodosPago = lazy(() => import('./pages/Admin/AdminMetodosPago'));
+const PortalDistribuidor = lazy(() => import('./pages/PortalDistribuidor/PortalDistribuidor'));
+const CustomPackDetail = lazy(() => import('./pages/Packs/CustomPackDetail'));
+const LauncherDownloadPage = lazy(() => import('./pages/Info/LauncherDownloadPage'));
+const MiRutinaPage = lazy(() => import('./pages/Fitness/MiRutinaPage'));
 
 const MOBILE_LAYOUT_BREAKPOINT = 700;
 const VIEWPORT_MODE_STORAGE_KEY = 'pandaViewportMode';
-const VIEWPORT_RELOAD_TIME_KEY = 'pandaViewportReloadAt';
+
+// Fallback de carga elegante
+const PageFallback = () => <Loader text="Cargando..." subtext="PandaStore" fullScreen={true} />;
 
 // Rutas protegidas
-function PrivateRoute({ user, children }) {
+function PrivateRoute({ user, authLoading, children }) {
+  if (authLoading) return <PageFallback />;
   if (!user) return <Navigate to="/iniciar-sesion" replace />;
   return children;
 }
 
-function AdminRoute({ user, role, children }) {
+function AdminRoute({ user, role, authLoading, children }) {
+  if (authLoading) return <PageFallback />;
   if (!user) return <Navigate to="/iniciar-sesion" replace />;
   if (role !== "admin") return <Navigate to="/home" replace />;
   return children;
@@ -60,37 +91,101 @@ function AdminRoute({ user, role, children }) {
 
 function App() {
   usePresence();
-  // Scroll al top al cambiar de ruta
+  
   function ScrollToTop() {
     const { pathname } = useLocation();
     useEffect(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      trackPageView(pathname);
+      captureReferralFromUrl();
     }, [pathname]);
     return null;
   }
+
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Global styled modal alert replacing browser "localhost dice" alerts
+  const [globalModal, setGlobalModal] = useState({
+    isOpen: false,
+    type: "info",
+    title: "PandaStore",
+    message: "",
+    confirmText: "Entendido",
+    cancelText: "Cancelar",
+    danger: false,
+    onConfirm: null,
+    onCancel: null,
+  });
+
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (u) => {
-      setUser(u);
-      if (u) {
-        // Obtener rol del usuario
-        const { getDoc, doc } = await import("firebase/firestore");
-        const { db } = await import("./firebase");
-        const userDoc = await getDoc(doc(db, "users", u.uid));
-        setRole(userDoc.exists() ? userDoc.data().role : null);
-      } else {
-        setRole(null);
+    const originalAlert = window.alert;
+    window.alert = (msg) => {
+      const text = typeof msg === "string" ? msg : JSON.stringify(msg);
+      let type = "info";
+      let title = "Notificación PandaStore";
+      const lower = text.toLowerCase();
+      if (lower.includes("error") || lower.includes("falló") || lower.includes("problema") || lower.includes("detalle")) {
+        type = "error";
+        title = "Atención Gamer";
+      } else if (lower.includes("éxito") || lower.includes("exitoso") || lower.includes("aprobado") || lower.includes("completad")) {
+        type = "success";
+        title = "¡Excelente!";
+      } else if (lower.includes("debes") || lower.includes("por favor") || lower.includes("campo") || lower.includes("requerid")) {
+        type = "warning";
+        title = "Aviso importante";
       }
-    });
-    return () => unsubscribe();
+
+      setGlobalModal({
+        isOpen: true,
+        type,
+        title,
+        message: text,
+        confirmText: "Entendido",
+        onConfirm: () => setGlobalModal(prev => ({ ...prev, isOpen: false })),
+        onCancel: null,
+      });
+    };
+
+    return () => {
+      window.alert = originalAlert;
+    };
   }, []);
 
-  // Cargar PayPal JS SDK dinámicamente usando el client-id del .env
   useEffect(() => {
-    // Evita cargar el script si ya existe
+    let mounted = true;
+    const unsubscribe = auth.onAuthStateChanged(async (u) => {
+      if (!mounted) return;
+      setUser(u);
+      if (u) {
+        try {
+          const { getDoc, doc } = await import("firebase/firestore");
+          const { db } = await import("./firebase");
+          let userDoc;
+          try {
+            userDoc = await getDoc(doc(db, "users", u.uid));
+          } catch (e) {
+            userDoc = await getDoc(doc(db, "users", u.uid), { source: 'cache' });
+          }
+          if (mounted) setRole(userDoc && userDoc.exists() ? userDoc.data().role : null);
+        } catch (err) {
+          console.error("Error al obtener rol:", err);
+          if (mounted) setRole(null);
+        }
+      } else {
+        if (mounted) setRole(null);
+      }
+      if (mounted) setAuthLoading(false);
+    });
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
     if (document.getElementById("paypal-sdk")) return;
     if (process.env.REACT_APP_PAYPAL_CLIENT_ID) {
       const script = document.createElement("script");
@@ -108,14 +203,12 @@ function App() {
 
   useEffect(() => {
     const root = document.getElementById('root');
-    // Aplicar fondo global directamente al body y root
     document.body.style.backgroundImage = `url("${nuevoFondo}")`;
     document.body.style.backgroundRepeat = 'no-repeat';
     document.body.style.backgroundSize = 'cover';
     document.body.style.backgroundPosition = 'center';
     document.body.style.backgroundAttachment = (typeof window !== 'undefined' && window.innerWidth < 600) ? 'scroll' : 'fixed';
 
-    // También en <html> por si algún contenedor deja ver el fondo del documento
     document.documentElement.style.backgroundImage = `url("${nuevoFondo}")`;
     document.documentElement.style.backgroundRepeat = 'no-repeat';
     document.documentElement.style.backgroundSize = 'cover';
@@ -127,6 +220,27 @@ function App() {
     }
   }, []);
 
+  // Mantiene la escala visual de la tienda al usar los atajos de zoom más comunes.
+  // El menú y los ajustes propios del navegador siempre prevalecen por accesibilidad.
+  useEffect(() => {
+    const preventKeyboardZoom = (event) => {
+      if (!(event.ctrlKey || event.metaKey)) return;
+      if (["+", "-", "=", "0"].includes(event.key)) event.preventDefault();
+    };
+
+    const preventWheelZoom = (event) => {
+      if (event.ctrlKey || event.metaKey) event.preventDefault();
+    };
+
+    window.addEventListener("keydown", preventKeyboardZoom);
+    window.addEventListener("wheel", preventWheelZoom, { passive: false });
+
+    return () => {
+      window.removeEventListener("keydown", preventKeyboardZoom);
+      window.removeEventListener("wheel", preventWheelZoom);
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
@@ -134,137 +248,198 @@ function App() {
     const getViewportMode = () => (mediaQuery.matches ? 'mobile' : 'desktop');
 
     const syncViewportMode = () => {
-      sessionStorage.setItem(VIEWPORT_MODE_STORAGE_KEY, getViewportMode());
-    };
-
-    const handleViewportModeChange = () => {
-      const nextMode = getViewportMode();
-      const previousMode = sessionStorage.getItem(VIEWPORT_MODE_STORAGE_KEY);
-
-      if (!previousMode) {
-        syncViewportMode();
-        return;
+      try {
+        sessionStorage.setItem(VIEWPORT_MODE_STORAGE_KEY, getViewportMode());
+      } catch (e) {
+        /* ignore */
       }
-
-      if (previousMode === nextMode) return;
-
-      const now = Date.now();
-      const lastReloadAt = Number(sessionStorage.getItem(VIEWPORT_RELOAD_TIME_KEY) || '0');
-
-      sessionStorage.setItem(VIEWPORT_MODE_STORAGE_KEY, nextMode);
-
-      if (now - lastReloadAt < 2000) return;
-
-      sessionStorage.setItem(VIEWPORT_RELOAD_TIME_KEY, String(now));
-      window.location.reload();
     };
 
     syncViewportMode();
 
     if (typeof mediaQuery.addEventListener === 'function') {
-      mediaQuery.addEventListener('change', handleViewportModeChange);
-      return () => mediaQuery.removeEventListener('change', handleViewportModeChange);
+      mediaQuery.addEventListener('change', syncViewportMode);
+      return () => mediaQuery.removeEventListener('change', syncViewportMode);
     }
 
-    mediaQuery.addListener(handleViewportModeChange);
-    return () => mediaQuery.removeListener(handleViewportModeChange);
+    mediaQuery.addListener(syncViewportMode);
+    return () => mediaQuery.removeListener(syncViewportMode);
   }, []);
 
   return (
-  <Router>
-    <ScrollToTop />
-    <div
-      aria-hidden="true"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 0,
-        pointerEvents: 'none',
-        backgroundImage: `url("${nuevoFondo}")`,
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-    />
-    <div
-      className="main-bg-container"
-      style={{
-        minHeight: '100vh',
-        width: '100%',
-        background: 'transparent',
-      }}
-    >
-      <Header user={user} onRoleChange={setRole} onSidebarChange={setIsMenuOpen} />
-      <div style={{ background: 'transparent' }}>
-        <Routes>
-          <Route path="/" element={<Navigate to="/home" />} />
-          <Route path="/registro" element={<Registro />} />
-          <Route path="/iniciar-sesion" element={<IniciarSesion />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/categorias" element={<CategoriasList />} />
-          <Route path="/productos" element={<ProductosList />} />
-          <Route path="/categoria/:id" element={<CategoriaPage />} />
-          <Route path="/testimonios" element={<TestimoniosPage />} />
-          <Route path="/producto/:id" element={<ProductDetail />} />
-          <Route path="/preguntas-frecuentes" element={<FAQ />} />
-          <Route path="/terminos" element={<Terminos />} />
-          <Route path="/sobre-nosotros" element={<SobreNosotros />} />
-          <Route path="/instalacion-nintendo" element={<InstalacionNintendo />} />
-          <Route path="/soporte" element={<SoporteCliente />} />
-          <Route path="/promos" element={<PromosList />} />
-          <Route path="/packs-nintendo" element={<PacksNintendo />} />
-          <Route path="/confirmacion-exitosa" element={<ConfirmacionExitosa/>} />
-          <Route path="/confirmacion-pendiente" element={<ConfirmacionPendiente/>} />
+    <HelmetProvider>
+      <Router>
+        <Helmet>
+          <title>PandaStore | Tienda de Videojuegos Digitales • Steam PC, Nintendo Switch, PS5 y PS4 Baratos</title>
+          <meta name="description" content="Compra videojuegos digitales baratos para Steam PC con Activador oficial, Nintendo Switch 1 y 2, PlayStation 5 y PS4. Packs 2x1 y 3x1, cuentas primarias y entrega inmediata 24/7 con garantía total." />
+          <meta name="keywords" content="comprar juegos digitales, juegos steam baratos, juegos pc baratos, activador steam pc, pandastore launcher, juegos ps4 baratos, juegos ps5 digitales, cuentas primarias ps5, cuentas secundarias ps4, juegos nintendo switch baratos, nintendo switch 2 juegos digitales, ofertas videojuegos steam, tienda gamer online, comprar juegos digitales chile argentina mexico colombia, black myth wukong pc barato, ea sports fc 25 barato, elden ring pc barato, silent hill 2 remake barato, dragon ball sparking zero steam, gta v pc barato, pandastore" />
+          <link rel="canonical" href="https://pandastoreupdate.web.app/" />
 
-          {/* Rutas solo para usuarios logueados */}
-          <Route path="/perfil" element={
-            <PrivateRoute user={user}><Perfil /></PrivateRoute>
-          } />
-          <Route path="/mispedidos" element={
-            <PrivateRoute user={user}><MisPedidos /></PrivateRoute>
-          } />
-          <Route path="/checkoutcarrito" element={
-            <PrivateRoute user={user}><CheckoutCarrito /></PrivateRoute>
-          } />
-          <Route path="/comprar-ahora" element={
-            <PrivateRoute user={user}><CheckoutCompraDirecta /></PrivateRoute>
-          } />
-          <Route path="/compra-confirmada" element={
-            <PrivateRoute user={user}><CompraConfirmada /></PrivateRoute>
-          } />
+          {/* Open Graph */}
+          <meta property="og:type" content="website" />
+          <meta property="og:site_name" content="PandaStore" />
+          <meta property="og:locale" content="es_CL" />
+          <meta property="og:url" content="https://pandastoreupdate.web.app/" />
+          <meta property="og:title" content="PandaStore | Tienda #1 de Videojuegos Digitales • Steam PC, Nintendo Switch, PS5 y PS4" />
+          <meta property="og:description" content="La tienda líder en videojuegos digitales: Steam PC con activador oficial, Nintendo Switch 1 y 2, PlayStation 5 y PS4. Precios imbatibles, packs 2x1 y entrega inmediata 24/7." />
+          <meta property="og:image" content="https://pandastoreupdate.web.app/banner.png" />
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="630" />
+          <meta property="og:image:alt" content="PandaStore — Tu tienda de videojuegos digitales" />
 
-          {/* Rutas de gestión de productos solo para admin */}
-          <Route path="/producto/nuevo" element={
-            <AdminRoute user={user} role={role}><ProductoForm /></AdminRoute>
-          } />
-          <Route path="/producto/editar/:id" element={
-            <AdminRoute user={user} role={role}><ProductoForm /></AdminRoute>
-          } />
-          <Route path="/admin/usuarios" element={
-            <AdminRoute user={user} role={role}><AdminUsuarios user={user} role={role} /></AdminRoute>
-          } />
-          <Route path="/admin/resenas" element={
-            <AdminRoute user={user} role={role}><AdminResenas user={user} role={role} /></AdminRoute>
-          } />
-          <Route path="/admin/dashboard" element={
-            <AdminRoute user={user} role={role}><AdminDashboard /></AdminRoute>
-          } />
-          <Route path="/admin/soporte" element={
-            <AdminRoute user={user} role={role}><AdminSoporte /></AdminRoute>
-          } />
-          <Route path="/admin/cupones" element={
-            <AdminRoute user={user} role={role}><AdminCupones /></AdminRoute>
-          } />
-          <Route path="/admin/preguntas" element={
-            <AdminRoute user={user} role={role}><AdminPreguntas user={user} role={role} /></AdminRoute>
-          } />
-        </Routes>
-        <Footer />
-        <SalesNotification isMenuOpen={isMenuOpen} />
-        <GlobalChatbot user={user} />
-      </div>
-    </div>
-    </Router>
+          {/* Twitter Card */}
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:site" content="@pandastoreapp" />
+          <meta name="twitter:title" content="PandaStore | Tienda #1 de Videojuegos Digitales" />
+          <meta name="twitter:description" content="Steam PC, Nintendo Switch, PS5 y PS4 al mejor precio. Activación inmediata 24/7." />
+          <meta name="twitter:image" content="https://pandastoreupdate.web.app/banner.png" />
+        </Helmet>
+
+        <ScrollToTop />
+        <ErrorBoundary>
+          <Suspense fallback={<PageFallback />}>
+            <Routes>
+            {/* Rutas admin anidadas bajo AdminLayout */}
+            <Route path="/admin" element={
+              <AdminRoute user={user} role={role} authLoading={authLoading}>
+                <AdminLayout user={user} role={role} />
+              </AdminRoute>
+            }>
+              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="usuarios" element={<AdminUsuarios user={user} role={role} />} />
+              <Route path="resenas" element={<AdminResenas user={user} role={role} />} />
+              <Route path="cupones" element={<AdminCupones />} />
+              <Route path="correos" element={<AdminCorreos user={user} role={role} />} />
+              <Route path="preguntas" element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="soporte" element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="actividad" element={<AdminUserActivity user={user} role={role} />} />
+              <Route path="exportar-correos" element={<Navigate to="/admin/correos" replace />} />
+              <Route path="auto-import" element={<AdminAutoImport />} />
+              <Route path="armar-pack" element={<AdminArmarPack />} />
+              <Route path="licencias" element={<AdminLicencias />} />
+              <Route path="revendedores" element={<AdminRevendedores user={user} role={role} />} />
+              <Route path="distribuidores" element={<AdminDistribuidores user={user} role={role} />} />
+              <Route path="juegos-sin-publicar" element={<AdminJuegosSinPublicar />} />
+              <Route path="metodos-pago" element={<AdminMetodosPago />} />
+            </Route>
+            
+            {/* Rutas Privadas de Entrenamiento PandaFit (URL Oculta) */}
+            <Route path="/mi-rutina-fit" element={<MiRutinaPage />} />
+            <Route path="/rutina-gym" element={<MiRutinaPage />} />
+            <Route path="/pandafit" element={<MiRutinaPage />} />
+
+            {/* Todas las demás rutas con Header/Footer */}
+            <Route path="*" element={
+              <>
+                <div
+                  aria-hidden="true"
+                  style={{
+                    position: 'fixed',
+                    inset: 0,
+                    width: '100%',
+                    maxWidth: '100%',
+                    zIndex: 0,
+                    pointerEvents: 'none',
+                    backgroundImage: `url("${nuevoFondo}")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center top',
+                    backgroundColor: '#120526'
+                  }}
+                />
+                <div
+                  className="main-bg-container"
+                  style={{
+                    minHeight: '100vh',
+                    width: '100%',
+                    background: 'transparent',
+                  }}
+                >
+                  <Header user={user} onRoleChange={setRole} onSidebarChange={setIsMenuOpen} />
+                  <div style={{ background: 'transparent' }}>
+                    <Suspense fallback={<PageFallback />}>
+                      <Routes>
+                        <Route path="/" element={<Navigate to="/home" />} />
+                        <Route path="/registro" element={<Registro />} />
+                        <Route path="/iniciar-sesion" element={<IniciarSesion />} />
+                        <Route path="/home" element={<Home />} />
+                        <Route path="/categorias" element={<CategoriasList />} />
+                        <Route path="/productos" element={<ProductosList />} />
+                        <Route path="/categoria/:id" element={<CategoriaPage />} />
+                        <Route path="/testimonios" element={<TestimoniosPage />} />
+                        <Route path="/producto/:id" element={<ProductDetail />} />
+                        <Route path="/preguntas-frecuentes" element={<FAQ />} />
+                        <Route path="/terminos" element={<Terminos />} />
+                        <Route path="/sobre-nosotros" element={<SobreNosotros />} />
+                        <Route path="/instalacion-nintendo" element={<InstalacionNintendo />} />
+                        <Route path="/instalacion-playstation" element={<InstalacionPlaystation />} />
+                        <Route path="/instalacion-activador" element={<Navigate to="/descargar-launcher" replace />} />
+                        <Route path="/instalacion-activador-steam" element={<Navigate to="/descargar-launcher" replace />} />
+                        <Route path="/soporte" element={<SoporteCliente />} />
+                        <Route path="/promos" element={<PromosList />} />
+                        <Route path="/sagas" element={<SagasPage />} />
+                        <Route path="/sagas-legendarias" element={<SagasPage />} />
+                        <Route path="/packs-nintendo" element={<PacksNintendo />} />
+                        <Route path="/pack/:packId" element={<CustomPackDetail />} />
+                        <Route path="/provedores" element={<ProvedoresPage />} />
+                        <Route path="/proveedores" element={<ProvedoresPage />} />
+                        <Route path="/emprendedores" element={<ProvedoresPage />} />
+                        <Route path="/revendedores" element={<Navigate to="/iniciar-sesion?mode=revendedor" replace />} />
+                        <Route path="/revendedor" element={<Navigate to="/iniciar-sesion?mode=revendedor" replace />} />
+                        <Route path="/registro-revendedor" element={<Navigate to="/iniciar-sesion?mode=revendedor" replace />} />
+                        <Route path="/descargar-launcher" element={<LauncherDownloadPage />} />
+                        <Route path="/portal-distribuidor" element={<PortalDistribuidor />} />
+                        <Route path="/confirmacion-exitosa" element={<ConfirmacionExitosa/>} />
+                        <Route path="/success" element={<ConfirmacionExitosa/>} />
+                        <Route path="/confirmacion-pendiente" element={<ConfirmacionPendiente/>} />
+                        <Route path="/pending" element={<ConfirmacionPendiente/>} />
+
+                        {/* Rutas solo para usuarios logueados */}
+                        <Route path="/perfil" element={
+                          <PrivateRoute user={user} authLoading={authLoading}><Perfil user={user} /></PrivateRoute>
+                        } />
+                        <Route path="/mispedidos" element={
+                          <PrivateRoute user={user} authLoading={authLoading}><MisPedidos /></PrivateRoute>
+                        } />
+                        <Route path="/checkoutcarrito" element={<CheckoutCarrito user={user} />} />
+                        <Route path="/comprar-ahora" element={<CheckoutCompraDirecta user={user} />} />
+                        <Route path="/compra-confirmada" element={<CompraConfirmada user={user} />} />
+
+                        {/* Rutas de gestión de productos solo para admin */}
+                        <Route path="/producto/nuevo" element={
+                          <AdminRoute user={user} role={role} authLoading={authLoading}><ProductoForm /></AdminRoute>
+                        } />
+                        <Route path="/producto/editar/:id" element={
+                          <AdminRoute user={user} role={role} authLoading={authLoading}><ProductoForm /></AdminRoute>
+                        } />
+                      </Routes>
+                    </Suspense>
+                    <Footer />
+                    <InstagramFloatingBadge />
+                    <WhatsappButton />
+                  </div>
+                </div>
+              </>
+            } />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
+
+        {/* Global Gamer Modal Alert (Zero "localhost dice" dialogs) */}
+        <PandaModalAlert
+          isOpen={globalModal.isOpen}
+          type={globalModal.type}
+          title={globalModal.title}
+          message={globalModal.message}
+          confirmText={globalModal.confirmText}
+          cancelText={globalModal.cancelText}
+          danger={globalModal.danger}
+          onConfirm={globalModal.onConfirm}
+          onCancel={globalModal.onCancel}
+        />
+      </Router>
+    </HelmetProvider>
   );
 }
 

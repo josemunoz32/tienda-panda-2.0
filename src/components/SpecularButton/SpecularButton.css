@@ -1,0 +1,104 @@
+.specular-btn,
+.specular-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(162, 89, 255, 0.35);
+  margin: 0;
+  font-family: inherit;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(35, 24, 65, 0.9) 0%, rgba(18, 12, 38, 0.95) 100%);
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  text-decoration: none;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.specular-btn:hover,
+.specular-button:hover {
+  transform: translateY(-3px) scale(1.02);
+  border-color: rgba(162, 89, 255, 0.75);
+  background: linear-gradient(135deg, rgba(50, 32, 92, 0.95) 0%, rgba(26, 16, 52, 0.98) 100%);
+  box-shadow: 0 10px 28px rgba(162, 89, 255, 0.4), 0 0 12px rgba(162, 89, 255, 0.2);
+}
+
+.specular-btn:active,
+.specular-button:active {
+  transform: scale(0.96);
+}
+
+.specular-btn-sm,
+.specular-button--sm {
+  font-size: 0.85rem;
+  padding: 8px 18px;
+}
+
+.specular-btn-md,
+.specular-button--md {
+  font-size: 0.95rem;
+  padding: 12px 24px;
+}
+
+.specular-btn-lg,
+.specular-button--lg {
+  font-size: 1.05rem;
+  padding: 14px 32px;
+}
+
+.specular-btn-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.specular-btn-fx,
+.specular-button__fx {
+  position: absolute;
+  inset: -20px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.specular-btn-fx canvas,
+.specular-button__fx canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.specular-btn-content,
+.specular-button__label {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Fallback metálico CSS para renderizado limpio sin canvas WebGL */
+.specular-btn-fallback {
+  border: 1.5px solid rgba(162, 89, 255, 0.4) !important;
+  background: linear-gradient(135deg, rgba(30, 18, 55, 0.95) 0%, rgba(14, 8, 30, 0.98) 100%) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+.specular-btn-fallback:hover {
+  border-color: rgba(0, 245, 212, 0.7) !important;
+  background: linear-gradient(135deg, rgba(42, 26, 76, 0.95) 0%, rgba(18, 10, 42, 0.98) 100%) !important;
+  box-shadow: 0 8px 25px rgba(0, 245, 212, 0.3), 0 0 14px rgba(162, 89, 255, 0.3) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+}

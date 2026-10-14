@@ -67,6 +67,23 @@ namespace PandaStoreLauncher
                     }
                 }
 
+                // Validar que el archivo descargado sea un ejecutable PE de Windows valido (y no un HTML de error)
+                var fileInfo = new FileInfo(tempSetupExe);
+                if (fileInfo.Length < 1024 * 1024)
+                {
+                    throw new Exception("El archivo descargado está incompleto o dañado.");
+                }
+
+                using (var fsCheck = new FileStream(tempSetupExe, FileMode.Open, FileAccess.Read))
+                {
+                    byte[] magic = new byte[2];
+                    fsCheck.Read(magic, 0, 2);
+                    if (magic[0] != 0x4D || magic[1] != 0x5A) // 'MZ'
+                    {
+                        throw new Exception("El archivo descargado no es un instalador válido de Windows.");
+                    }
+                }
+
                 lblStatus.Text = "Instalando...";
                 pbDownload.IsIndeterminate = true;
 
