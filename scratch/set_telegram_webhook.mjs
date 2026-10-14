@@ -1,6 +1,6 @@
 const fetch = (...args) => import("node-fetch").then(({default: f}) => f(...args));
 
-const TELEGRAM_TOKEN = "7530668653:AAE377HbUhJwrt1RcD5mIG7Vu_khWcQnViw";
+const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN || "";
 const PROJECT_ID = "pandastoreupdate";
 const REGION = "us-central1"; // Región predeterminada de tus Cloud Functions
 const WEBHOOK_URL = `https://${REGION}-${PROJECT_ID}.cloudfunctions.net/telegramBotWebhook`;

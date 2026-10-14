@@ -3,13 +3,17 @@
  * Envía alertas en tiempo real al chat privado del administrador (ADMIN_ID).
  */
 
-const TELEGRAM_TOKEN = "7530668653:AAE377HbUhJwrt1RcD5mIG7Vu_khWcQnViw";
-const ADMIN_CHAT_ID = "5158777962";
+const TELEGRAM_TOKEN = process.env.REACT_APP_TELEGRAM_TOKEN || "";
+const ADMIN_CHAT_ID = process.env.REACT_APP_TELEGRAM_ADMIN_CHAT_ID || "5158777962";
 
 /**
  * Función base para enviar mensajes formateados con HTML al chat privado del admin
  */
 export async function sendTelegramMessage(htmlMessage) {
+  if (!TELEGRAM_TOKEN) {
+    console.warn("[TelegramNotification] Token no configurado en REACT_APP_TELEGRAM_TOKEN.");
+    return null;
+  }
   try {
     const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
     const res = await fetch(url, {
