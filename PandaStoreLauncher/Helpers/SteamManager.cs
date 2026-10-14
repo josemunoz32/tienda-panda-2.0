@@ -18,6 +18,7 @@ namespace PandaStoreLauncher.Helpers
         private static readonly string[] InjectorFiles = new[]
         {
             "OpenSteamTool.dll",
+            "xinput1_4.dll",
             "dwmapi.dll",
             "opensteamtool.toml"
         };
@@ -354,8 +355,7 @@ namespace PandaStoreLauncher.Helpers
                 "BetterSteamTools.dll",
                 "BetterSteamTools.exe",
                 "opensteamtool_update.dll",
-                "cloud_redirect_update.dll",
-                "xinput1_4.dll"
+                "cloud_redirect_update.dll"
             };
             foreach (var stale in staleFiles)
             {
