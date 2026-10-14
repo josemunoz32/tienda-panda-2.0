@@ -38,9 +38,9 @@ async function run() {
 
   const db = admin.firestore();
   await db.collection("system_config").doc("launcher").set({
-    latest_version: "2.4.31",
+    latest_version: "2.4.32",
     download_url: publicUrl,
-    changelog: "v2.4.31 - Rediseño de interfaz visual, mejoras en botones de biblioteca, catálogo y estado de cuenta."
+    changelog: "v2.4.32 - Detección universal de launchers y ejecutables modificados (Red Dead Redemption 2, GTA, fixes online y parches), ejecución directa y botón de jugar optimizado."
   }, { merge: true });
 
   console.log("✅ Firestore system_config/launcher actualizado con URL de Storage.");
