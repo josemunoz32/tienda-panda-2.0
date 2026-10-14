@@ -1,5 +1,13 @@
+[launch]
+skip_appinfo_wait = true
+
 [lua]
 paths = ["plugins", "config/st-plugin", "config/stplug-in"]
 
 [cloud]
 enabled = true
+
+[update]
+auto = false
+check_on_start = false
+manifest_url = ""
