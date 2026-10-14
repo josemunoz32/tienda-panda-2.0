@@ -2148,6 +2148,25 @@ namespace PandaStoreLauncher.Helpers
                     // 4. Re-extraer inyectores limpios (por si Antivirus los corrompió)
                     ExtractInjectorComponents(steamPath);
 
+                    // 4.1 Reparar / Reinstalar Steam Service automáticamente
+                    try
+                    {
+                        string steamServiceExe = Path.Combine(steamPath, "bin", "SteamService.exe");
+                        if (File.Exists(steamServiceExe))
+                        {
+                            using var sProc = Process.Start(new ProcessStartInfo
+                            {
+                                FileName = steamServiceExe,
+                                Arguments = "/install",
+                                CreateNoWindow = true,
+                                UseShellExecute = true,
+                                Verb = "runas"
+                            });
+                            sProc?.WaitForExit(3000);
+                        }
+                    }
+                    catch { }
+
                     // 5. Aplicar exclusión de Defender automática para Steam y AppData
                     if (!IsLinuxEnvironment())
                     {
