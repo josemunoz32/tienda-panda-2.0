@@ -1,0 +1,99 @@
+.tilted-card-figure {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  perspective: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  cursor: pointer;
+}
+
+.tilted-card-mobile-alert {
+  display: none !important;
+}
+
+.tilted-card-mobile {
+  perspective: none !important;
+}
+
+.tilted-card-mobile .tilted-card-inner {
+  transform: none !important;
+  will-change: auto;
+}
+
+@media (max-width: 640px) {
+  .tilted-card-caption {
+    display: none;
+  }
+}
+
+.tilted-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.tilted-card-bg-blur {
+  position: absolute;
+  top: -15%;
+  left: -15%;
+  width: 130%;
+  height: 130%;
+  object-fit: cover;
+  filter: blur(18px) brightness(0.45) saturate(1.4);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tilted-card-img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: 12px;
+  will-change: transform;
+  transform: translateZ(0);
+  display: block;
+}
+
+.tilted-card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  will-change: transform;
+  transform: translateZ(30px);
+  pointer-events: none;
+}
+
+.tilted-card-caption {
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 6px;
+  background-color: rgba(18, 20, 30, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  opacity: 0;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+}

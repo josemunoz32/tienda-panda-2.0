@@ -1,601 +1,411 @@
-.moneda-select {
-  background: #1a093b;
-  color: #fff;
-  border: 1.5px solid #a259ff;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: bold;
-  padding: 4px 16px;
-  outline: none;
-  box-shadow: 0 2px 8px #0007;
-  transition: border 0.2s, box-shadow 0.2s;
-}
-.moneda-select:focus {
-  border: 1.5px solid var(--secondary-accent);
-  box-shadow: 0 0 8px #a259ff88;
-}
-.moneda-select option {
-  background: #1a093b;
-  color: #fff;
-}
-@media (max-width: 700px) {
-  .banner-header-right {
-    grid-column: 3;
-    justify-self: end;
-    margin-right: 0 !important;
-  }
-}
-@media (max-width: 700px) {
-  .banner-header-inner {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    align-items: start;
-    justify-items: center;
-    padding: 2px 0 0 0;
-    height: 0;
-    gap: 0;
-    position: relative;
-  }
-  .banner-header-left {
-    grid-column: 1;
-    justify-self: start;
-    padding-left: 2vw;
-  }
-  .banner-header-center {
-    grid-column: 2;
-    justify-self: center;
-    margin: 0;
-    flex: none;
-  }
-  .banner-header-right {
-    grid-column: 3;
-    justify-self: end;
-    margin-right: 2vw;
-    position: static;
-    top: unset;
-    right: unset;
-  }
-  .banner-header-actions {
-    margin-right: 0;
-    gap: 6px;
-    padding: 2px 4px;
-    border-radius: 10px;
-    background: rgba(20,10,40,0.82);
-    box-shadow: 0 2px 8px #0007;
-  }
-}
-@media (max-width: 700px) {
-  .banner-header-right {
-    position: absolute;
-    right: 0;
-    top: 2px;
-    margin-right: 0;
-    z-index: 4;
-  }
-  .banner-header-actions {
-    margin-right: 0;
-  }
-}
-@media (max-width: 700px) {
-  .banner-header-right {
-    justify-content: flex-end;
-    margin-right: 0;
-  }
-  .banner-header-actions {
-    margin-right: 0;
-  }
-}
-/* --- HEADER MOBILE PROFESIONAL --- */
-@media (max-width: 700px) {
-  .banner-header-inner {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-    padding: 2px 2vw 0 2vw;
-    height: 0;
-    gap: 0;
-  }
-  .banner-header-left {
-    padding-right: 0;
-  }
-  .banner-header-hamburger {
-    font-size: 22px;
-    padding: 4px;
-    border-radius: 8px;
-    background: rgba(20,10,40,0.82);
-    box-shadow: 0 2px 8px #0007;
-  }
-  .banner-header-center {
-    min-width: 0;
-    margin: 0;
-    flex: 1;
-    display: flex;
-    justify-content: center;
-  }
-  .banner-header-currency {
-    padding: 2px 10px;
-    border-radius: 10px;
-    background: rgba(20,10,40,0.82);
-    box-shadow: 0 2px 8px #0007;
-    margin: 0 auto;
-  }
-  .banner-header-currency select {
-    font-size: 1.05rem;
-    padding: 2px 8px;
-    font-weight: bold;
-    background: transparent;
-    color: #fff;
-    border: none;
-    outline: none;
-  }
-  /* Unificar iconos favoritos y carrito */
-  .banner-header-icon.unified-icon {
-    background: rgba(30, 20, 60, 0.92);
-    border: none;
-    border-radius: 14px;
-    width: 48px;
-    height: 48px;
-    margin-left: 10px;
-    cursor: pointer;
-    box-shadow: 0 2px 8px #a259ff22;
-    transition: background 0.15s, box-shadow 0.15s;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-  }
-  .banner-header-icon.unified-icon:hover {
-    background: #a259ff;
-  }
-  .unified-icon-inner {
-    font-size: 28px;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .banner-header-badge {
-    font-size: 0.8rem;
-    min-width: 16px;
-    padding: 1px 4px;
-    top: 0;
-    right: 0;
-  }
-  /* Dropdowns modernos y responsivos */
-  .header-navbar-dropdown {
-    right: 2vw !important;
-    left: 2vw !important;
-    min-width: unset;
-    max-width: 96vw;
-    width: auto;
-    padding: 14px 8px 10px 8px;
-    font-size: 1rem;
-    border-radius: 18px;
-    box-shadow: 0 8px 32px #000b;
-    background: rgba(20,10,40,0.98);
-    z-index: 1002;
-  }
-  .header-navbar-dropdown ul {
-    gap: 8px;
-  }
-  .header-navbar-dropdown li {
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-  .header-navbar-dropdown img {
-    width: 32px;
-    height: 32px;
-    border-radius: 7px;
-  }
-  .header-navbar-dropdown button {
-    font-size: 1.1rem;
-    padding: 2px 8px;
-    border-radius: 6px;
-  }
-  .header-navbar-cart-buy-btn {
-    font-size: 1.05rem;
-    padding: 6px 18px;
-    border-radius: 8px;
-    margin-left: 8px;
-  }
-}
-@media (max-width: 700px) {
-  .banner-header-inner {
-    flex-direction: row;
-    align-items: flex-start;
-    padding: 2px 1vw 0 1vw;
-  }
-  .banner-header-left {
-    padding-right: 2vw;
-  }
-  .banner-header-hamburger {
-    font-size: 22px;
-    padding: 4px;
-    border-radius: 8px;
-  }
-  .banner-header-center {
-    min-width: 0;
-    margin: 0 2vw;
-  }
-  .banner-header-currency {
-    padding: 1px 6px;
-    border-radius: 8px;
-  }
-  .banner-header-currency select {
-    font-size: 0.98rem;
-    padding: 1px 4px;
-  }
-  .banner-header-right {
-    top: 2px;
-    right: 1vw;
-  }
-  .banner-header-actions {
-    gap: 4px;
-    padding: 2px 4px;
-    border-radius: 10px;
-  }
-  .banner-header-action {
-    font-size: 20px;
-    padding: 4px;
-    border-radius: 7px;
-  }
-  .banner-header-badge {
-    font-size: 0.7rem;
-    min-width: 16px;
-    padding: 1px 3px;
-    top: 0;
-    right: 0;
-  }
-}
-/*
-  BannerHeader.css
-  Estilos para el header profesional con imagen de fondo/banner, sticky y responsivo.
-*/
+/* ==========================================================================
+   BannerHeader.css - Header con Banner Responsivo, Iconos Pro & Scroll Inteligente
+   ========================================================================== */
+
 .banner-header {
-  width: 100vw;
-  min-height: 260px;
-  position: sticky;
-  top: 0;
-  z-index: 1200;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  box-shadow: 0 4px 24px #0008;
-  border-bottom: 2px solid #2d174d;
-  background: linear-gradient(90deg, #7b2ff2 0%, #f357a8 100%);
-  transition: box-shadow 0.18s, background 0.18s;
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  z-index: 9999 !important;
+  background: #0b0318;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+  border-bottom: 1.5px solid rgba(162, 89, 255, 0.28);
+  /* IMPORTANTE: overflow visible para que el dropdown de moneda no se corte */
+  overflow: visible !important;
+  transition: box-shadow 0.3s ease;
 }
 
-.banner-header-bg {
+/* Mantener permanentemente visible en scroll */
+.banner-header--hidden {
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
+/* --- Contenedor Multimedia del Banner --- */
+.banner-header-media {
+  position: relative;
+  width: 100%;
+  /* Misma presencia compacta del encabezado original, con arte panorámico de borde a borde. */
+  height: clamp(135px, 15vw, 210px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* El recorte visual solo aplica al banner e imagen */
+  background: radial-gradient(circle at 50% 50%, #1d0a3d 0%, #0b0318 100%);
+}
+
+/* Fondo ambiental difuminado para llenar suavemente pantallas ultra-anchas */
+.banner-header-ambient {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  width: 100vw;
+  inset: 0;
+  width: 100%;
   height: 100%;
-  /* Si usas create-react-app, la imagen debe estar en public y la ruta debe ser background: url('/banner.jpg') ...
-     Si usas Vite o Webpack, importa la imagen en el componente JS y pásala como prop o usa import banner from '../../public/banner.jpg';
-     Por ahora, solo se usará el gradiente para evitar el error de compilación. */
-  background: linear-gradient(90deg, #1a093b 0%, #3a1c71 40%, #a259ff 100%);
-  opacity: 0.92;
+  object-fit: cover;
+  filter: blur(24px) brightness(0.45);
+  transform: scale(1.15);
+  pointer-events: none;
   z-index: 0;
 }
 
-.banner-header-inner {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  z-index: 2;
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 12px 24px 0 24px;
-  height: 0;
+/* Imagen principal del Banner: centrada, nítida y visible */
+.banner-header-img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  user-select: none;
   pointer-events: none;
 }
 
-.banner-header-left {
-  display: flex;
-  align-items: flex-start;
-  pointer-events: auto;
-}
-.banner-header-center {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  flex: 1;
-  pointer-events: auto;
-}
-.banner-header-currency {
-  background: rgba(20, 10, 40, 0.82);
-  border-radius: 10px;
-  box-shadow: 0 2px 8px #0007;
-  padding: 2px 10px;
-  margin: 0 10px;
-}
-.banner-header-currency select {
-  background: transparent;
-  color: #fff;
-  border: none;
-  font-size: 1.1rem;
-  font-weight: bold;
-  outline: none;
-  padding: 2px 8px;
-}
-.banner-header-right {
-  display: flex;
-  align-items: flex-start;
-  pointer-events: auto;
-  position: static;
-  z-index: 3;
-  margin-right: 40px;
-}
-@media (max-width: 700px) {
-  .banner-header-right {
-    margin-right: 12vw;
-  }
-}
-
-.banner-header-hamburger,
-.banner-header-actions {
-  pointer-events: auto;
-}
-
-.banner-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(20, 10, 40, 0.82);
-  border-radius: 16px;
-  box-shadow: 0 4px 24px #000a;
-  padding: 6px 12px;
-}
-@media (max-width: 700px) {
-  .banner-header-inner {
-    padding: 4px 2vw 0 2vw;
-  }
-  .banner-header-right {
-    top: 6px;
-    right: 2vw;
-  }
-  .banner-header-actions {
-    gap: 6px;
-    padding: 4px 6px;
-  }
-}
-
-.banner-header-action {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 30px;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 10px;
-  position: relative;
-  transition: background 0.2s, color 0.2s;
-  display: flex;
-  align-items: center;
-  box-shadow: 0 2px 8px #0007;
-}
-
-.banner-header-action:hover {
-  background: rgba(57, 255, 20, 0.08);
-  color: var(--secondary-accent);
-}
-
-.banner-header-badge {
+/* Viñeta sutil arriba para garantizar contraste absoluto en los botones */
+.banner-header-top-vignette {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  background: var(--secondary-accent);
-  color: #23272f;
-  font-size: 0.85rem;
-  font-weight: bold;
-  border-radius: 50%;
-  padding: 2px 6px;
-  min-width: 22px;
-  text-align: center;
-  box-shadow: 0 0 8px #39ff1440;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: linear-gradient(180deg, rgba(8, 2, 18, 0.65) 0%, rgba(8, 2, 18, 0) 100%);
+  pointer-events: none;
+  z-index: 2;
 }
 
-/* Mejorar dropdowns de carrito y favoritos */
-.header-navbar-dropdown {
+/* --- Controles Superpuestos (Menú, Selector, Acciones) --- */
+.banner-header-inner {
   position: absolute;
-  top: 60px;
-  right: 32px;
-  min-width: 270px;
-  max-width: 95vw;
-  background: rgba(20, 10, 40, 0.98);
-  color: #fff;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px #000b;
-  padding: 18px 16px 14px 16px;
-  z-index: 1002;
-  font-size: 1rem;
-  animation: fadeInDropdown 0.18s;
-}
-
-@keyframes fadeInDropdown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: none; }
-}
-
-.header-navbar-dropdown ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.header-navbar-dropdown li {
+  inset: 0;
+  z-index: 5;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-.header-navbar-dropdown li:last-child {
-  margin-bottom: 0;
-}
-.header-navbar-dropdown img {
-  width: 38px;
-  height: 38px;
-  object-fit: cover;
-  border-radius: 8px;
-  background: #fff2;
-}
-.header-navbar-dropdown button {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 1.2rem;
-  cursor: pointer;
-  margin-left: auto;
-  border-radius: 6px;
-  padding: 2px 6px;
-  transition: background 0.2s;
-}
-.header-navbar-dropdown button:hover {
-  background: #a259ff33;
-  color: var(--secondary-accent);
-}
-.header-navbar-cart-total {
-  margin-top: 10px;
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  font-weight: bold;
-}
-.header-navbar-cart-buy-btn {
-  background: var(--primary-accent);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 6px 16px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  margin-left: 10px;
-  transition: background 0.2s;
-}
-.header-navbar-cart-buy-btn:hover {
-  background: var(--secondary-accent);
-  color: #23272f;
+  align-items: flex-start;
+  padding: 10px 20px;
+  box-sizing: border-box;
+  pointer-events: none;
 }
 
-@media (max-width: 700px) {
-  .banner-header-inner {
-    padding: 8px 4vw 0 4vw;
-    gap: 6px;
-  }
-  .header-navbar-dropdown {
-    right: 4vw;
-    min-width: 90vw;
-    padding: 12px 6px 10px 6px;
-    font-size: 0.98rem;
-  }
-  .header-navbar-dropdown img {
-    width: 32px;
-    height: 32px;
-  }
+.banner-header-left,
+.banner-header-currency-float,
+.banner-header-right {
+  pointer-events: auto;
 }
 
-.banner-header-title {
-  font-size: 2.2rem;
-  font-weight: bold;
-  color: #fff;
-  text-shadow: 0 2px 12px #000a, 0 0 8px #39ff1440;
-  letter-spacing: 1.5px;
-  text-decoration: none;
-  flex: 1;
-  text-align: center;
-}
-
+/* 1. Botón Menú Hamburguesa */
 .banner-header-hamburger {
-  background: rgba(26,9,59,0.7);
-  border: none;
-  color: #fff;
-  font-size: 32px;
+  background: rgba(14, 5, 30, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.2px solid rgba(162, 89, 255, 0.35);
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 7px 9px;
   cursor: pointer;
-  padding: 8px;
-  border-radius: 10px;
-  margin-right: 8px;
-  transition: background 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .banner-header-hamburger:hover {
-  background: rgba(162, 89, 255, 0.18);
-  color: var(--secondary-accent);
+  background: rgba(162, 89, 255, 0.35);
+  border-color: #a259ff;
+  transform: scale(1.06);
 }
 
-.banner-header-actions {
+/* 2. Selector de Moneda y País */
+.banner-header-currency-float {
+  display: flex;
+  justify-content: center;
+}
+
+.banner-currency-btn {
+  font-size: 13.5px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.2px solid rgba(162, 89, 255, 0.35);
+  background: rgba(14, 5, 30, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  outline: none;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 92px;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.banner-currency-btn:hover {
+  background: rgba(162, 89, 255, 0.32);
+  border-color: #a259ff;
+  transform: scale(1.04);
+}
+
+.banner-currency-flag {
+  width: 20px;
+  height: 14px;
+  object-fit: cover;
+  border-radius: 2px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.banner-currency-code {
+  letter-spacing: 0.5px;
+}
+
+.banner-currency-arrow {
+  font-size: 9px;
+  opacity: 0.7;
+  margin-left: 1px;
+}
+
+/* Dropdown menú selector de país */
+.banner-currency-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #130728 0%, #251044 100%);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.9), 0 0 16px rgba(162, 89, 255, 0.25);
+  border: 1.5px solid rgba(162, 89, 255, 0.45);
+  min-width: 210px;
+  z-index: 99999 !important;
+  overflow: hidden;
+  padding: 5px 0;
+  animation: dropdownPop 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdownPop {
+  from { opacity: 0; transform: translateX(-50%) translateY(-6px) scale(0.96); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+.banner-currency-option {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
+  padding: 9px 16px;
+  border: none;
+  background: transparent;
+  color: #ddd;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  transition: background 0.15s;
 }
 
-.banner-header-action {
-  background: rgba(26,9,59,0.7);
-  border: none;
-  color: #fff;
-  font-size: 30px;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 10px;
-  position: relative;
-  transition: background 0.2s, color 0.2s;
+.banner-currency-option:hover {
+  background: rgba(162, 89, 255, 0.22);
+  color: #ffffff;
+}
+
+.banner-currency-option.active {
+  background: rgba(162, 89, 255, 0.32);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.banner-currency-option-flag {
+  width: 22px;
+  height: 15px;
+  object-fit: cover;
+  border-radius: 2px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.banner-currency-option-name {
+  flex: 1;
+}
+
+.banner-currency-option-coin {
+  font-size: 12px;
+  opacity: 0.7;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+/* 3. Botones de Acción (Favoritos, Carrito, Perfil) */
+.banner-header-actions {
   display: flex;
   align-items: center;
+  gap: 7px;
+  background: rgba(14, 5, 30, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.2px solid rgba(162, 89, 255, 0.35);
+  border-radius: 24px;
+  padding: 4px 7px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
-.banner-header-action:hover {
-  background: rgba(57, 255, 20, 0.08);
-  color: var(--secondary-accent);
+/* Botón Portal Distribuidor */
+.banner-header-distributor-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(14, 165, 233, 0.25) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.6);
+  color: #38bdf8;
+  padding: 5px 11px;
+  border-radius: 18px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+  white-space: nowrap;
+}
+
+.banner-header-distributor-btn:hover {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.4) 0%, rgba(14, 165, 233, 0.5) 100%);
+  border-color: #38bdf8;
+  color: #ffffff;
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+}
+
+.banner-header-distributor-btn .banner-distributor-icon {
+  color: #38bdf8;
+  transition: transform 0.2s ease;
+}
+
+.banner-header-distributor-btn:hover .banner-distributor-icon {
+  transform: rotate(-15deg);
+  color: #ffffff;
+}
+
+.banner-header-icon.unified-icon {
+  background: transparent;
+  border: none;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
+  outline: none;
+  color: #ffffff;
+}
+
+.banner-header-icon.unified-icon:hover {
+  background: rgba(162, 89, 255, 0.32);
+  transform: scale(1.08);
 }
 
 .banner-header-badge {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  background: var(--secondary-accent);
-  color: #23272f;
-  font-size: 0.85rem;
-  font-weight: bold;
+  top: -3px;
+  right: -3px;
+  background: #00e676;
+  color: #0c0418;
+  font-size: 10.5px;
+  font-weight: 900;
   border-radius: 50%;
-  padding: 2px 6px;
-  min-width: 22px;
-  text-align: center;
-  box-shadow: 0 0 8px #39ff1440;
+  min-width: 17px;
+  height: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  border: 1.5px solid #0c0418;
 }
 
-.banner-header-login-btn {
-  background: rgba(26,9,59,0.7);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 1rem;
-  font-weight: 600;
-  margin-left: 8px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background 0.2s, color 0.2s;
+.banner-profile-avatar {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #a259ff;
 }
 
-.banner-header-login-btn:hover {
-  background: var(--primary-accent);
-  color: #fff;
+.banner-profile-btn.profile-open {
+  background: rgba(162, 89, 255, 0.35);
+  box-shadow: 0 0 0 2px #a259ff;
 }
 
+/* ==========================================================================
+   Adaptabilidad Móvil Impecable (<= 700px)
+   ========================================================================== */
 @media (max-width: 700px) {
+  .banner-header-media {
+    height: clamp(95px, 24vw, 130px);
+  }
+
   .banner-header-inner {
-    height: 80px;
-    padding: 0 8px;
+    padding: 6px 8px;
   }
-  .banner-header-title {
-    font-size: 1.3rem;
-    padding: 0 4px;
+
+  /* Hamburguesa móvil */
+  .banner-header-hamburger {
+    padding: 5px 7px;
+    border-radius: 10px;
   }
-  .banner-header {
-    min-height: 80px;
+
+  /* Selector de moneda móvil */
+  .banner-currency-btn {
+    font-size: 11.5px;
+    padding: 4px 9px;
+    min-width: unset;
+    gap: 4px;
+    border-radius: 16px;
+  }
+  .banner-currency-flag {
+    width: 16px;
+    height: 11px;
+  }
+
+  /* Acciones móvil */
+  .banner-header-actions {
+    gap: 3px;
+    padding: 3px 5px;
+    border-radius: 18px;
+  }
+  .banner-header-distributor-btn {
+    padding: 3px 7px;
+    font-size: 11px;
+    gap: 3px;
+  }
+  .banner-distributor-text {
+    display: none;
+  }
+  .banner-header-icon.unified-icon {
+    width: 29px;
+    height: 29px;
+    min-width: 29px;
+    min-height: 29px;
+  }
+  .banner-header-badge {
+    font-size: 9px;
+    min-width: 14px;
+    height: 14px;
+    top: -2px;
+    right: -2px;
+    padding: 0 2px;
+  }
+  .banner-profile-avatar {
+    width: 22px;
+    height: 22px;
   }
 }

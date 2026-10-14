@@ -1,0 +1,336 @@
+/* InstalacionActivador.css - PandaStore Activator Theme */
+
+.activator-install-root {
+  max-width: 900px;
+  margin: 40px auto 80px auto;
+  padding: 0 20px 48px 20px;
+  color: #f3e8ff;
+  position: relative;
+  z-index: 2;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+}
+
+/* ── Encabezado Principal ── */
+.activator-header {
+  text-align: center;
+  margin-bottom: 34px;
+}
+
+.activator-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(162, 89, 255, 0.12);
+  border: 1px solid rgba(162, 89, 255, 0.35);
+  color: #c4b5fd;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 6px 16px;
+  border-radius: 30px;
+  margin-bottom: 14px;
+}
+
+.activator-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  line-height: 1.2;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.activator-title-gradient {
+  background: linear-gradient(90deg, #00f5d4 0%, #a259ff 55%, #f357a8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.activator-subtitle {
+  color: #a08ab8;
+  font-size: 1.05rem;
+  max-width: 650px;
+  margin: 0 auto 20px auto;
+  line-height: 1.6;
+}
+
+.activator-divider {
+  width: 90px;
+  height: 4px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #00f5d4, #a259ff);
+  margin: 0 auto;
+}
+
+/* ── Hero Card de Descarga ── */
+.activator-download-hero {
+  background: linear-gradient(135deg, rgba(26, 16, 53, 0.95) 0%, rgba(40, 20, 75, 0.9) 100%);
+  border: 2px solid rgba(162, 89, 255, 0.4);
+  box-shadow: 0 12px 40px rgba(123, 47, 242, 0.25), 0 0 20px rgba(0, 245, 212, 0.1);
+  border-radius: 24px;
+  padding: 32px 36px;
+  margin-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-app-info {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.hero-panda-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 2.5px solid #a259ff;
+  box-shadow: 0 0 20px rgba(162, 89, 255, 0.45);
+  object-fit: cover;
+  background: #11021c;
+}
+
+.hero-app-meta h2 {
+  margin: 0 0 6px 0;
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.hero-app-tags {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.hero-tag {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+}
+
+.hero-tag.highlight {
+  background: rgba(0, 245, 212, 0.15);
+  color: #00f5d4;
+  border: 1px solid rgba(0, 245, 212, 0.35);
+}
+
+.hero-buttons-group {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0 16px 0;
+  width: 100%;
+  max-width: 460px;
+}
+
+.btn-activator-download {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #a259ff 0%, #7b2ff2 100%);
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 900;
+  padding: 18px 32px;
+  border-radius: 50px;
+  text-decoration: none;
+  box-shadow: 0 8px 30px rgba(123, 47, 242, 0.45);
+  transition: all 0.25s ease;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.4px;
+}
+
+.btn-activator-download:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 40px rgba(162, 89, 255, 0.6);
+  filter: brightness(1.1);
+}
+
+.hero-security-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #cbd5e1;
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+/* ── Sección de Video Tutorial ── */
+.activator-video-section {
+  background: rgba(22, 12, 45, 0.95);
+  border: 1.5px solid rgba(162, 89, 255, 0.35);
+  border-radius: 24px;
+  padding: 30px;
+  margin-bottom: 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.section-title-wrap {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.section-title-wrap h3 {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 6px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.section-title-wrap p {
+  color: #a08ab8;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.video-player-container {
+  width: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(162, 89, 255, 0.2);
+  border: 2px solid rgba(162, 89, 255, 0.4);
+  background: #000;
+  position: relative;
+}
+
+.video-player-container video {
+  width: 100%;
+  height: auto;
+  max-height: 520px;
+  display: block;
+  outline: none;
+}
+
+/* ── Banner de Ayuda / Soporte ── */
+.activator-support-banner {
+  background: linear-gradient(135deg, rgba(30, 15, 60, 0.95) 0%, rgba(17, 2, 28, 0.95) 100%);
+  border: 1.5px solid rgba(162, 89, 255, 0.35);
+  border-radius: 20px;
+  padding: 24px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.support-text h4 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 4px 0;
+}
+
+.support-text p {
+  color: #a08ab8;
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.support-buttons {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.btn-support {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 22px;
+  border-radius: 50px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.btn-support-wa {
+  background: rgba(37, 211, 102, 0.15);
+  border: 1.5px solid #25D366;
+  color: #25D366;
+}
+
+.btn-support-wa:hover {
+  background: #25D366;
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+}
+
+.btn-support-ig {
+  background: rgba(225, 48, 108, 0.15);
+  border: 1.5px solid #E1306C;
+  color: #f472b6;
+}
+
+.btn-support-ig:hover {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  color: #fff;
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(225, 48, 108, 0.4);
+}
+
+.support-icon-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+@media (max-width: 768px) {
+  .activator-install-root {
+    margin-top: 20px;
+    padding: 0 14px 40px 14px;
+  }
+  .activator-title {
+    font-size: 1.85rem;
+  }
+  .activator-download-hero {
+    padding: 24px 18px;
+  }
+  .activator-video-section {
+    padding: 18px 14px;
+  }
+  .btn-activator-download {
+    font-size: 1rem;
+    padding: 15px 22px;
+  }
+  .activator-support-banner {
+    flex-direction: column;
+    text-align: center;
+  }
+  .support-buttons {
+    justify-content: center;
+    width: 100%;
+  }
+  .btn-support {
+    width: 100%;
+    justify-content: center;
+  }
+}

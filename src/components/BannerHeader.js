@@ -1,211 +1,196 @@
 /*
   BannerHeader.js
-  Header visualmente atractivo y profesional con imagen de fondo/banner, sticky y responsivo.
-  Incluye el nombre "Panda Store" centrado, íconos de carrito, usuario y favoritos, y menú hamburguesa.
+  Header visualmente atractivo y profesional con nuevo banner optimizado (18 de septiembre).
+  100% responsivo, con presencia majestuosa, iconos vectoriales profesionales y scroll inteligente.
 */
 
-
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./BannerHeader.css";
 import { useMoneda } from "../context/MonedaContext";
-
-// Formatea el precio según la moneda
-function formatPrecio(precio, moneda) {
-  if (!precio || isNaN(precio)) return "";
-  if (moneda === "USD") {
-    return `$${Number(precio).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  }
-  if (moneda === "CLP") {
-    return `$${Number(precio).toLocaleString("es-CL")}`;
-  }
-  return precio;
-}
+import bannerHalloween from "../assets/halloween/banner-halloween-panoramico.png";
+import { Menu, Heart, ShoppingBag, User as UserIcon, Key } from "lucide-react";
 
 export default function BannerHeader({
   user,
+  isDistributor = false,
   onMenuClick,
   onCartClick,
   onFavClick,
+  onProfileClick,
   cartCount,
   favCount,
   favOpen,
   cartOpen,
-  cartItems = [],
-  favItems = []
+  profileOpen,
 }) {
-  const { moneda, setMoneda } = useMoneda();
-  // Resalta iconos si los menús están abiertos
-  const isFavOpen = !!favOpen;
-  const isCartOpen = !!cartOpen;
+  const navigate = useNavigate();
+  const { pais, setPais, infoPais, PAISES_CONFIG } = useMoneda();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // El banner se mantiene fijo y visible permanentemente sin ocultarse en scroll
+  useEffect(() => {
+    // Mantener visible permanentemente
+  }, []);
+
+  // Cerrar dropdown de moneda al hacer click afuera
+  useEffect(() => {
+    function handleOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    }
+    if (dropdownOpen) document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [dropdownOpen]);
+
+  const isProfileOpen = !!profileOpen;
+
   return (
-    <header className="banner-header" style={{
-      position: 'sticky',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      zIndex: 100,
-      overflow: 'hidden',
-      minHeight: 320,
-      boxShadow: '0 2px 16px #0002',
-      background: '#4a1a8a',
-      backdropFilter: 'blur(2px)',
-      transition: 'box-shadow .2s',
-    }}>
-      <style>{`
-        @media (max-width: 700px) {
-          .banner-header {
-            min-height: 90px !important;
-          }
-          .banner-header-img {
-            height: 90px !important;
-          }
-        }
-      `}</style>
-      <img
-        src="/banner.png"
-        alt="Banner Panda Store"
-        className="banner-header-img"
-        style={{
-          width: '100vw',
-          height: '320px',
-          objectFit: 'cover',
-          objectPosition: 'center center',
-          display: 'block',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          zIndex: 0,
-          pointerEvents: 'none',
-          userSelect: 'none',
-        }}
-      />
-      <div className="banner-header-inner" style={{position:'relative',zIndex:1}}>
+    <header className="banner-header">
+      {/* Contenedor del Banner - Escala generosa y presencia completa */}
+      <div className="banner-header-media">
+        {/* Fondo ambiental difuminado para llenar suavemente pantallas ultra-anchas */}
+        <img
+          src={bannerHalloween}
+          alt=""
+          aria-hidden="true"
+          className="banner-header-ambient"
+        />
+        {/* Banner principal nítido */}
+        <img
+          src={bannerHalloween}
+          alt="Panda Store: especial de Halloween"
+          className="banner-header-img"
+        />
+        {/* Gradiente sutil arriba para legibilidad perfecta de los controles */}
+        <div className="banner-header-top-vignette" />
+      </div>
+
+      {/* Barra de controles sobre el banner (menú, moneda, acciones) */}
+      <div className="banner-header-inner">
+        {/* Izquierda: Botón Menú Hamburguesa */}
         <div className="banner-header-left">
           <button className="banner-header-hamburger" onClick={onMenuClick} aria-label="Abrir menú">
-            <span className="material-icons">menu</span>
+            <Menu size={22} color="#ffffff" strokeWidth={2.4} />
           </button>
         </div>
-        {/* Selector de moneda flotante, centrado arriba, atractivo y responsivo */}
-        <div className="banner-header-currency-float" style={{
-          position:'absolute',
-          left:'50%',
-          top:8,
-          transform:'translateX(-50%)',
-          zIndex:10,
-          pointerEvents:'auto',
-          display:'flex',
-          justifyContent:'center',
-          width:'auto',
-        }}>
-          <style>{`
-            @media (max-width: 600px) {
-              .banner-header-currency-float {
-                top: 2px !important;
-              }
-              .banner-header-currency-float select {
-                font-size: 12px !important;
-                padding: 1.5px 7px !important;
-                min-width: 44px !important;
-                border-radius: 10px !important;
-              }
-              .banner-header-badge {
-                font-size: 9px !important;
-                min-width: 11px !important;
-                height: 11px !important;
-                padding: 0 2px !important;
-                top: -2px !important;
-                right: -2px !important;
-                background: #00c853 !important;
-                border: 1px solid #fff !important;
-                box-shadow: 0 1px 3px #0004 !important;
-                font-weight: bold !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-              }
-              .banner-header-icon.unified-icon {
-                font-size: 16px !important;
-                width: 20px !important;
-                height: 20px !important;
-                min-width: 20px !important;
-                min-height: 20px !important;
-                padding: 0 !important;
-              }
-            }
-          `}</style>
-          <select value={moneda} onChange={e => setMoneda(e.target.value)}
-            style={{
-              fontSize:16,
-              padding:'5px 16px',
-              borderRadius:18,
-              border:'none',
-              background:'rgba(255,255,255,0.93)',
-              fontWeight:700,
-              boxShadow:'0 2px 10px #0002',
-              minWidth:80,
-              outline:'none',
-              color:'#222',
-              letterSpacing:1,
-              textAlign:'center',
-              transition:'box-shadow .2s',
-            }}
-            className="banner-header-currency-select"
-          >
-            <option value="CLP">CLP</option>
-            <option value="USD">USD</option>
-          </select>
+
+        {/* Centro: Selector flotante de País/Moneda */}
+        <div className="banner-header-currency-float">
+          <div ref={dropdownRef} style={{ position: 'relative' }}>
+            <button
+              onClick={() => setDropdownOpen(v => !v)}
+              className="banner-currency-btn"
+              aria-label="Seleccionar país/moneda"
+            >
+              <img
+                src={`https://flagcdn.com/w40/${infoPais.codigo.toLowerCase()}.png`}
+                alt={infoPais.nombre}
+                className="banner-currency-flag"
+              />
+              <span className="banner-currency-code">{infoPais.moneda}</span>
+              <span className="banner-currency-arrow">▼</span>
+            </button>
+
+            {dropdownOpen && (
+              <div className="banner-currency-dropdown">
+                {PAISES_CONFIG.map(p => (
+                  <button
+                    key={p.codigo}
+                    onClick={() => { setPais(p.codigo); setDropdownOpen(false); }}
+                    className={`banner-currency-option ${pais === p.codigo ? 'active' : ''}`}
+                  >
+                    <img
+                      src={`https://flagcdn.com/w40/${p.codigo.toLowerCase()}.png`}
+                      alt={p.nombre}
+                      className="banner-currency-option-flag"
+                    />
+                    <span className="banner-currency-option-name">{p.nombre}</span>
+                    <span className="banner-currency-option-coin">{p.moneda}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Derecha: Favoritos, Carrito y Perfil */}
         <div className="banner-header-right">
-          <div className="banner-header-actions" style={{display:'flex',gap:10,background:'none',boxShadow:'none'}}>
+          <div className="banner-header-actions">
+            {/* Botón Acceso Rápido Distribuidor */}
+            {isDistributor && (
+              <button
+                className="banner-header-distributor-btn"
+                onClick={() => navigate("/portal-distribuidor")}
+                title="Acceder al Portal Distribuidor Steam"
+                aria-label="Portal Distribuidor Steam"
+              >
+                <Key size={14} strokeWidth={2.4} className="banner-distributor-icon" />
+                <span className="banner-distributor-text">Portal B2B</span>
+              </button>
+            )}
+
+            {/* Favoritos */}
             <button
               className="banner-header-icon unified-icon"
               onClick={() => onFavClick && onFavClick()}
               aria-label="Favoritos"
-              style={{
-                position: 'relative',
-                fontSize: 24,
-                width: 36,
-                height: 36,
-                minWidth: 36,
-                minHeight: 36,
-                padding: 0,
-                background: 'none',
-                border: 'none',
-                borderRadius: '50%',
-                boxShadow: 'none',
-                outline: 'none',
-                transition: 'background 0.18s, border 0.18s, box-shadow 0.18s',
-              }}
             >
-              <span style={{fontSize:26,lineHeight:1,verticalAlign:'middle',background:'none',boxShadow:'none'}}>⭐</span>
+              <Heart 
+                size={19} 
+                strokeWidth={2.2} 
+                color={favCount > 0 ? "#ff4757" : "#ffffff"} 
+                fill={favCount > 0 ? "#ff4757" : "none"} 
+              />
               {favCount > 0 && (
-                <span className="banner-header-badge" style={{position:'absolute',top:-7,right:-7,background:'#43a047',color:'#fff',borderRadius:'50%',fontSize:13,minWidth:18,padding:'0 5px',fontWeight:700,display:'inline-block',boxShadow:'0 1px 4px #0002'}}>{favCount}</span>
+                <span className="banner-header-badge">{favCount}</span>
               )}
             </button>
+
+            {/* Carrito */}
             <button
               className="banner-header-icon unified-icon"
               onClick={() => onCartClick && onCartClick()}
               aria-label="Carrito"
-              style={{
-                position: 'relative',
-                fontSize: 24,
-                width: 36,
-                height: 36,
-                minWidth: 36,
-                minHeight: 36,
-                padding: 0,
-                background: 'none',
-                border: 'none',
-                borderRadius: '50%',
-                boxShadow: 'none',
-                outline: 'none',
-                transition: 'background 0.18s, border 0.18s, box-shadow 0.18s',
-              }}
             >
-              <span style={{fontSize:26,lineHeight:1,verticalAlign:'middle',background:'none',boxShadow:'none'}}>🛒</span>
+              <ShoppingBag size={19} strokeWidth={2.2} color="#ffffff" />
               {cartCount > 0 && (
-                <span className="banner-header-badge" style={{position:'absolute',top:-7,right:-7,background:'#43a047',color:'#fff',borderRadius:'50%',fontSize:13,minWidth:18,padding:'0 5px',fontWeight:700,display:'inline-block',boxShadow:'0 1px 4px #0002'}}>{cartCount}</span>
+                <span className="banner-header-badge">{cartCount}</span>
+              )}
+            </button>
+
+            {/* Perfil */}
+            <button
+              className={`banner-header-icon unified-icon banner-profile-btn ${isProfileOpen ? 'profile-open' : ''}`}
+              onClick={() => onProfileClick && onProfileClick()}
+              aria-label="Perfil"
+            >
+              {user && user.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt="Perfil"
+                  className="banner-profile-avatar"
+                />
+              ) : (
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <UserIcon size={19} strokeWidth={2.2} color="#ffffff" />
+                  <span
+                    title="Modo Invitado Activo"
+                    style={{
+                      position: 'absolute',
+                      bottom: -2,
+                      right: -3,
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: '#10b981',
+                      border: '1.5px solid #140d2b',
+                      boxShadow: '0 0 6px #10b981'
+                    }}
+                  />
+                </div>
               )}
             </button>
           </div>

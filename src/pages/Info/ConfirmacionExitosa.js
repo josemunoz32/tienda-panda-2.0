@@ -1,270 +1,1091 @@
-﻿import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useMemo } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import confirmadoImg from "../../assets/estadopedido/confimado.png";
 import { auth, db } from "../../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+import {
+  CheckCircle2,
+  Gamepad2,
+  Download,
+  Copy,
+  Check,
+  ExternalLink,
+  ShieldCheck,
+  Sparkles,
+  ShoppingBag,
+  Send,
+  Home,
+  BookOpen
+} from "lucide-react";
+import { buildSolicitarInstalacionWspUrl, getOrderPlatformInfo } from "../../utils/whatsappHelper";
 
 function ConfirmacionExitosa() {
-  const user = auth.currentUser;
-  const [avatarUrl, setAvatarUrl] = useState(null);
-  const [nombre, setNombre] = useState("");
+  const location = useLocation();
   const navigate = useNavigate();
 
+  const [user, setUser] = useState(auth.currentUser);
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [nombre, setNombre] = useState("");
+  const [copiedId, setCopiedId] = useState(false);
+  const [orderData, setOrderData] = useState(location.state || null);
+  const [loadingOrder, setLoadingOrder] = useState(!location.state);
+
+  // Escuchar cambios de autenticación
   useEffect(() => {
-    async function loadUserProfile() {
-      try {
-        if (!user) return;
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (snap.exists()) {
-          const d = snap.data();
-          setAvatarUrl(d.photoURL || d.avatarUrl || null);
-          setNombre(d.displayName || d.name || "");
-        }
-      } catch (_) {}
+    const unsub = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        getDoc(doc(db, "users", currentUser.uid))
+          .then((snap) => {
+            if (snap.exists()) {
+              const d = snap.data();
+              setAvatarUrl(d.photoURL || d.avatarUrl || currentUser.photoURL || null);
+              setNombre(d.displayName || d.name || currentUser.displayName || "");
+            }
+          })
+          .catch(() => {});
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  // Si no vino state en la navegación, buscar el pedido más reciente en Firestore
+  useEffect(() => {
+    if (orderData && orderData.orderId) {
+      setLoadingOrder(false);
+      return;
     }
-    loadUserProfile();
-  }, [user]);
+
+    async function fetchLatestOrder() {
+      try {
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+          setLoadingOrder(false);
+          return;
+        }
+
+        const snap = await getDocs(collection(db, `users/${currentUser.uid}/orders`));
+        if (!snap.empty) {
+          const orders = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          orders.sort((a, b) => new Date(b.fecha || 0).getTime() - new Date(a.fecha || 0).getTime());
+          const latest = orders[0];
+          if (latest) {
+            setOrderData({
+              orderId: latest.globalOrderId || latest.id,
+              pedidoId: latest.globalOrderId || latest.id,
+              productos: latest.productos || [],
+              producto: Array.isArray(latest.productos) && latest.productos.length > 0
+                ? latest.productos.map((p) => p.nombre || p.title || p.name).join(", ")
+                : (latest.producto || "Juegos PandaStore"),
+              plataforma: latest.plataforma && latest.plataforma !== "Nintendo Switch / PC" ? latest.plataforma : "PC / Steam",
+              total: latest.totalCLP || latest.total || 0,
+              moneda: latest.moneda || "CLP",
+              metodoPago: latest.metodoPago || "Aprobado",
+              nombre: latest.nombre || currentUser.displayName || "",
+              email: latest.email || currentUser.email || ""
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Error buscando último pedido:", err);
+      } finally {
+        setLoadingOrder(false);
+      }
+    }
+
+    fetchLatestOrder();
+  }, [user, orderData]);
+
+  // Datos normalizados y plataforma dinámica
+  const platformInfo = useMemo(() => getOrderPlatformInfo(orderData), [orderData]);
+  const finalNombre = orderData?.nombre || nombre || user?.displayName || "Gamer";
+  const finalEmail = orderData?.email || user?.email || "";
+  const finalOrderId = orderData?.orderId || orderData?.pedidoId || "";
+  const finalPlataforma = platformInfo.platformLabel;
+  const finalTotal = orderData?.total || orderData?.totalCLP || null;
+  const finalMoneda = orderData?.moneda || "CLP";
+  const finalMetodo = orderData?.metodoPago || "Aprobado";
+
+  const productosList = useMemo(() => {
+    if (Array.isArray(orderData?.productos) && orderData.productos.length > 0) {
+      return orderData.productos;
+    }
+    if (orderData?.producto) {
+      return [
+        {
+          nombre: orderData.producto,
+          plataforma: finalPlataforma,
+          precio: finalTotal,
+          cantidad: 1
+        }
+      ];
+    }
+    return [];
+  }, [orderData, finalPlataforma, finalTotal]);
+
+  // Generar URL de WhatsApp con mensaje personalizado
+  const whatsappUrl = useMemo(() => {
+    return buildSolicitarInstalacionWspUrl({
+      nombre: finalNombre,
+      email: finalEmail,
+      pedidoId: finalOrderId,
+      productos: productosList,
+      producto: orderData?.producto,
+      plataforma: finalPlataforma,
+      total: finalTotal,
+      moneda: finalMoneda,
+      metodoPago: finalMetodo
+    });
+  }, [finalNombre, finalEmail, finalOrderId, productosList, orderData, finalPlataforma, finalTotal, finalMoneda, finalMetodo]);
+
+  // Copiar ID al portapapeles
+  const handleCopyId = () => {
+    if (!finalOrderId) return;
+    navigator.clipboard.writeText(finalOrderId).then(() => {
+      setCopiedId(true);
+      setTimeout(() => setCopiedId(false), 2200);
+    });
+  };
+
+  const isNintendo = finalPlataforma.toLowerCase().includes("nintendo") ||
+    productosList.some((p) => (p.plataforma || "").toLowerCase().includes("nintendo"));
 
   return (
-    <div className="ce-bg">
-      <div className="ce-card">
+    <div className="ce-page-container">
+      <div className="ce-ambient-glow ce-glow-top" />
+      <div className="ce-ambient-glow ce-glow-bottom" />
 
-        {/* Header glow strip */}
-        <div className="ce-header-strip" />
+      <main className="ce-card">
+        {/* Top neon decorative border */}
+        <div className="ce-top-bar" />
 
-        {/* Imagen confirmado */}
-        <div className="ce-img-wrap">
-          <img src={confirmadoImg} alt="Compra confirmada" className="ce-img" />
+        {/* Celebration Hero Badge */}
+        <div className="ce-hero-section">
+          <div className="ce-img-container">
+            <div className="ce-img-halo" />
+            <img src={confirmadoImg} alt="Compra Confirmada" className="ce-img" />
+            <div className="ce-floating-badge">
+              <CheckCircle2 size={18} className="ce-badge-icon" />
+              <span>Aprobado</span>
+            </div>
+          </div>
+
+          {/* User Avatar Chip */}
+          <div className="ce-user-chip">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Avatar" className="ce-user-avatar" />
+            ) : (
+              <div className="ce-user-avatar-fallback">
+                {(finalNombre || "U").charAt(0).toUpperCase()}
+              </div>
+            )}
+            <span className="ce-user-name">¡Hola, {finalNombre}!</span>
+          </div>
+
+          <h1 className="ce-main-title">
+            ¡COMPRA CONFIRMADA!
+          </h1>
+          <p className="ce-subtitle">
+            Tu pago ha sido validado exitosamente. Todo está listo en el sistema de PandaStore para tu entrega.
+          </p>
         </div>
 
-        {/* Avatar */}
-        <div className="ce-avatar">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="avatar" className="ce-avatar-img" />
-          ) : (
-            <div className="ce-avatar-fallback">{(nombre || "").slice(0, 1).toUpperCase() || "U"}</div>
-          )}
+        {/* Order Details Summary Box */}
+        {(finalOrderId || productosList.length > 0 || finalTotal) && (
+          <div className="ce-order-box">
+            <div className="ce-order-header">
+              <div className="ce-order-id-group">
+                <span className="ce-order-label">N° DE PEDIDO:</span>
+                {finalOrderId ? (
+                  <div className="ce-order-id-badge" onClick={handleCopyId} title="Copiar ID de pedido">
+                    <span className="ce-order-id-text">#{finalOrderId.slice(0, 14)}...</span>
+                    <button className="ce-copy-btn" type="button" aria-label="Copiar ID">
+                      {copiedId ? <Check size={14} color="#34d399" /> : <Copy size={14} />}
+                    </button>
+                    {copiedId && <span className="ce-copied-toast">¡Copiado!</span>}
+                  </div>
+                ) : (
+                  <span className="ce-order-id-text">Generado en tu cuenta</span>
+                )}
+              </div>
+              <span className="ce-status-pill">
+                <Sparkles size={13} /> Pago Verificado
+              </span>
+            </div>
+
+            {/* Product items preview */}
+            {productosList.length > 0 && (
+              <div className="ce-products-list">
+                {productosList.slice(0, 4).map((p, idx) => (
+                  <div key={idx} className="ce-prod-row">
+                    <div className="ce-prod-icon-wrap">
+                      <Gamepad2 size={18} className="ce-prod-icon" />
+                    </div>
+                    <div className="ce-prod-info">
+                      <span className="ce-prod-name">{p.nombre || p.title || p.name || "Juego Digital"}</span>
+                      <span className="ce-prod-plat">{p.variante ? `${p.plataforma || finalPlataforma || "PlayStation"} (${p.variante.charAt(0).toUpperCase() + p.variante.slice(1).toLowerCase()})` : (p.plataforma || finalPlataforma || "Digital")}</span>
+                    </div>
+                    {p.precio ? (
+                      <span className="ce-prod-price">
+                        {finalMoneda === "USD"
+                          ? `$${Number(p.precio).toFixed(2)} USD`
+                          : `$${Number(p.precio).toLocaleString("es-CL")} CLP`}
+                      </span>
+                    ) : null}
+                  </div>
+                ))}
+                {productosList.length > 4 && (
+                  <div className="ce-prod-more">
+                    +{productosList.length - 4} productos adicionales
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Total and Payment Method Summary */}
+            <div className="ce-order-footer">
+              <div className="ce-footer-item">
+                <span className="ce-footer-lbl">Método:</span>
+                <span className="ce-footer-val">{finalMetodo.toUpperCase()}</span>
+              </div>
+              {finalTotal && (
+                <div className="ce-footer-item ce-footer-total">
+                  <span className="ce-footer-lbl">Total pagado:</span>
+                  <span className="ce-footer-total-val">
+                    {finalMoneda === "USD"
+                      ? `$${Number(finalTotal).toFixed(2)} USD`
+                      : `$${Number(finalTotal).toLocaleString("es-CL")} CLP`}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* PRIMARY CTA: SOLICITAR INSTALACIÓN POR WHATSAPP */}
+        <div className="ce-wsp-cta-container">
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ce-wsp-btn"
+            id="btn-solicitar-instalacion-wsp"
+          >
+            <div className="ce-wsp-btn-icon-wrap">
+              <svg className="ce-wsp-svg" viewBox="0 0 448 512" fill="currentColor">
+                <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z" />
+              </svg>
+            </div>
+            <div className="ce-wsp-btn-text">
+              <span className="ce-wsp-btn-title">
+                {platformInfo.wspButtonTitle || "SOLICITAR INSTALACIÓN POR WHATSAPP"}
+              </span>
+              <span className="ce-wsp-btn-subtitle">
+                {platformInfo.wspButtonSub || "Envíanos tus datos para coordinar la entrega e instalación al instante"}
+              </span>
+            </div>
+            <Send size={20} className="ce-wsp-arrow" />
+          </a>
         </div>
 
-        {/* Titulo */}
-        <div className="ce-title">
-          <span className="ce-title-icon">&#127881;</span>
-          <span className="ce-title-text">&iexcl;COMPRA CONFIRMADA!</span>
-        </div>
-        <p className="ce-subtitle">Tu pago fue aprobado y tu pedido est&aacute; siendo procesado.</p>
+        {/* Quick Actions Grid - Platform Adaptive */}
+        <div className="ce-actions-section">
+          <div className="ce-actions-label">
+            {platformInfo.platformKey === "steam" ? "Opciones y descargas oficiales:" : "Opciones de tu pedido:"}
+          </div>
+          <div className="ce-actions-grid">
+            {platformInfo.showGuideBtn && platformInfo.guideRoute && (
+              <button
+                type="button"
+                className="ce-action-btn ce-action-guide"
+                onClick={() => navigate(platformInfo.guideRoute)}
+              >
+                <div className="ce-action-icon">
+                  <BookOpen size={18} />
+                </div>
+                <div className="ce-action-details">
+                  <span className="ce-action-title">
+                    {platformInfo.guideTitle}
+                  </span>
+                  <span className="ce-action-sub">{platformInfo.guideSub}</span>
+                </div>
+              </button>
+            )}
 
-        {/* Divider */}
-        <div className="ce-divider" />
+            {platformInfo.showLauncherBtn && (
+              <button
+                type="button"
+                className="ce-action-btn ce-action-launcher"
+                onClick={() => navigate("/descargar-launcher")}
+              >
+                <div className="ce-action-icon">
+                  <Download size={18} />
+                </div>
+                <div className="ce-action-details">
+                  <span className="ce-action-title">Descargar Launcher</span>
+                  <span className="ce-action-sub">Instalador oficial PC</span>
+                </div>
+              </button>
+            )}
 
-        {/* Botones */}
-        <div className="ce-btn-group">
-          <button className="ce-btn ce-btn-install" onClick={() => navigate("/instalacion-nintendo")}>
-            &#127918; Ver gu&iacute;a de instalaci&oacute;n
-          </button>
-          <a className="ce-btn ce-btn-home" href="/home">&#127968; Volver al inicio</a>
-        </div>
+            <button
+              type="button"
+              className="ce-action-btn ce-action-orders"
+              onClick={() => navigate("/mispedidos")}
+            >
+              <div className="ce-action-icon">
+                <ShoppingBag size={18} />
+              </div>
+              <div className="ce-action-details">
+                <span className="ce-action-title">Mis Pedidos y Claves</span>
+                <span className="ce-action-sub">Ver compras y detalles</span>
+              </div>
+            </button>
 
-        {/* Contacto social */}
-        <div className="ce-contacts">
-          <div className="ce-contacts-title">&iquest;Dudas? Cont&aacute;ctanos por:</div>
-          <div className="ce-social-row">
-            <a href="https://wa.me/56974751810" target="_blank" rel="noopener noreferrer" className="ce-social-btn ce-wa">
-              <svg viewBox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7 .9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg>
-              WhatsApp
-            </a>
-            <a href="https://instagram.com/juegos_nintendo_switch_chile2" target="_blank" rel="noopener noreferrer" className="ce-social-btn ce-ig">
-              <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0h.003zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z" fill="#E1306C"/></svg>
-              Instagram
-            </a>
-            <a href="https://t.me/NintendoChile2" target="_blank" rel="noopener noreferrer" className="ce-social-btn ce-tg">
-              <svg viewBox="0 0 496 512" xmlns="http://www.w3.org/2000/svg"><path d="M248 8C111 8 0 119 0 256S111 504 248 504 496 393 496 256 385 8 248 8zM363 176.7c-3.7 39.2-19.9 134.4-28.1 178.3-3.5 18.6-10.3 24.8-16.9 25.4-14.4 1.3-25.3-9.5-39.3-18.7-21.8-14.3-34.2-23.2-55.3-37.2-24.5-16.1-8.6-25 5.3-39.5 3.7-3.8 67.1-61.5 68.3-66.7 .2-.7 .3-3.1-1.2-4.4s-3.6-.8-5.1-.5q-3.3 .7-104.6 69.1-14.8 10.2-26.9 9.9c-8.9-.2-25.9-5-38.6-9.1-15.5-5-27.9-7.7-26.8-16.3q.8-6.7 18.5-13.7 108.4-47.2 144.6-62.3c68.9-28.6 83.2-33.6 92.5-33.8 2.1 0 6.6 .5 9.6 2.9a10.5 10.5 0 0 1 3.5 6.7A43.8 43.8 0 0 1 363 176.7z"/></svg>
-              Telegram
-            </a>
+            <button
+              type="button"
+              className="ce-action-btn ce-action-home"
+              onClick={() => navigate("/home")}
+            >
+              <div className="ce-action-icon">
+                <Home size={18} />
+              </div>
+              <div className="ce-action-details">
+                <span className="ce-action-title">Volver a la Tienda</span>
+                <span className="ce-action-sub">Seguir explorando</span>
+              </div>
+            </button>
           </div>
         </div>
 
-      </div>
+        {/* Security & Customer Support Info */}
+        <div className="ce-support-footer">
+          <div className="ce-support-badge">
+            <ShieldCheck size={18} className="ce-support-shield" />
+            <span>Compra protegida y garantizada por PandaStore</span>
+          </div>
+
+          <div className="ce-social-links">
+            <span className="ce-social-label">¿Necesitas ayuda adicional?</span>
+            <div className="ce-social-btns">
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ce-pill-link ce-pill-wsp"
+              >
+                WhatsApp Oficial
+              </a>
+              <a
+                href="https://t.me/NintendoChile2"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ce-pill-link ce-pill-tg"
+              >
+                Telegram @NintendoChile2
+              </a>
+            </div>
+          </div>
+        </div>
+      </main>
+
       <style>{`
-        .ce-bg {
+        .ce-page-container {
           min-height: 100vh;
           width: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 40px 16px;
+          padding: 50px 18px 80px 18px;
+          position: relative;
+          background: #090314;
+          overflow: hidden;
+          font-family: inherit;
         }
+
+        .ce-ambient-glow {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(120px);
+          pointer-events: none;
+          z-index: 0;
+        }
+        .ce-glow-top {
+          width: 500px;
+          height: 500px;
+          background: radial-gradient(circle, rgba(123, 47, 242, 0.28) 0%, rgba(37, 211, 102, 0.12) 60%, transparent 80%);
+          top: -120px;
+          left: 50%;
+          transform: translateX(-50%);
+        }
+        .ce-glow-bottom {
+          width: 450px;
+          height: 450px;
+          background: radial-gradient(circle, rgba(243, 87, 168, 0.2) 0%, rgba(123, 47, 242, 0.08) 60%, transparent 80%);
+          bottom: -150px;
+          right: 5%;
+        }
+
         .ce-card {
-          background: rgba(26,16,53,0.97);
-          border: 1.5px solid rgba(162,89,255,0.35);
-          border-radius: 24px;
-          width: 400px;
-          max-width: 96vw;
+          position: relative;
+          z-index: 1;
+          width: 100%;
+          max-width: 620px;
+          background: rgba(18, 9, 36, 0.88);
+          backdrop-filter: blur(28px);
+          -webkit-backdrop-filter: blur(28px);
+          border: 1.5px solid rgba(162, 89, 255, 0.3);
+          border-radius: 28px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.75), 0 0 45px rgba(123, 47, 242, 0.25);
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          padding-bottom: 28px;
+          animation: ceCardAppear 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes ceCardAppear {
+          from {
+            opacity: 0;
+            transform: translateY(24px) scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        .ce-top-bar {
+          width: 100%;
+          height: 6px;
+          background: linear-gradient(90deg, #7b2ff2 0%, #25D366 50%, #f357a8 100%);
+        }
+
+        .ce-hero-section {
           display: flex;
           flex-direction: column;
           align-items: center;
-          overflow: hidden;
+          text-align: center;
+          padding: 30px 24px 12px 24px;
+        }
+
+        .ce-img-container {
           position: relative;
-          box-shadow: 0 8px 48px rgba(123,47,242,0.35), 0 2px 0 rgba(162,89,255,0.18);
-          padding-bottom: 32px;
-        }
-        .ce-header-strip {
-          width: 100%;
-          height: 6px;
-          background: linear-gradient(90deg, #7b2ff2 0%, #FFD600 50%, #a259ff 100%);
-        }
-        .ce-img-wrap {
-          width: 100%;
-          display: flex;
-          justify-content: center;
-          padding: 20px 16px 0 16px;
-        }
-        .ce-img {
           width: 130px;
           height: 130px;
-          object-fit: contain;
-          filter: drop-shadow(0 4px 18px rgba(162,89,255,0.5));
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 12px;
         }
-        .ce-avatar {
-          width: 80px;
-          height: 80px;
+
+        .ce-img-halo {
+          position: absolute;
+          width: 110px;
+          height: 110px;
           border-radius: 50%;
-          border: 3px solid rgba(162,89,255,0.6);
-          box-shadow: 0 0 18px rgba(162,89,255,0.4);
-          overflow: hidden;
-          margin: 14px 0 6px 0;
-          background: rgba(40,20,80,0.8);
+          background: radial-gradient(circle, rgba(52, 211, 153, 0.35) 0%, rgba(123, 47, 242, 0.2) 65%, transparent 80%);
+          filter: blur(14px);
+          animation: cePulseHalo 3s ease-in-out infinite;
+        }
+
+        @keyframes cePulseHalo {
+          0%, 100% { transform: scale(0.95); opacity: 0.7; }
+          50% { transform: scale(1.18); opacity: 1; }
+        }
+
+        .ce-img {
+          width: 115px;
+          height: 115px;
+          object-fit: contain;
+          position: relative;
+          z-index: 2;
+          filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6));
+          animation: ceFloatImg 4s ease-in-out infinite;
+        }
+
+        @keyframes ceFloatImg {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-7px); }
+        }
+
+        .ce-floating-badge {
+          position: absolute;
+          bottom: 2px;
+          right: 0;
+          z-index: 3;
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          background: #052e16;
+          border: 1.5px solid #34d399;
+          color: #34d399;
+          font-size: 0.76rem;
+          font-weight: 800;
+          padding: 4px 10px;
+          border-radius: 999px;
+          box-shadow: 0 4px 14px rgba(52, 211, 153, 0.4);
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+        }
+
+        .ce-user-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 9px;
+          background: rgba(123, 47, 242, 0.18);
+          border: 1px solid rgba(162, 89, 255, 0.35);
+          padding: 4px 14px 4px 5px;
+          border-radius: 999px;
+          margin-bottom: 12px;
+        }
+
+        .ce-user-avatar {
+          width: 26px;
+          height: 26px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 1.5px solid #a259ff;
+        }
+
+        .ce-user-avatar-fallback {
+          width: 26px;
+          height: 26px;
+          border-radius: 50%;
+          background: #7b2ff2;
+          color: #fff;
+          font-weight: 800;
+          font-size: 0.8rem;
           display: flex;
           align-items: center;
           justify-content: center;
         }
-        .ce-avatar-img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          border-radius: 50%;
+
+        .ce-user-name {
+          font-size: 0.88rem;
+          color: #e2d9f3;
+          font-weight: 700;
         }
-        .ce-avatar-fallback {
-          font-size: 2rem;
+
+        .ce-main-title {
+          margin: 0;
+          font-size: 1.85rem;
           font-weight: 900;
-          color: #c4b5fd;
-        }
-        .ce-title {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-top: 10px;
-          padding: 0 12px;
-        }
-        .ce-title-icon { font-size: 1.5rem; }
-        .ce-title-text {
-          font-size: 1.4rem;
-          font-weight: 900;
-          background: linear-gradient(90deg, #FFD600 0%, #a259ff 60%, #7b2ff2 100%);
+          letter-spacing: 0.02em;
+          background: linear-gradient(135deg, #ffffff 0%, #34d399 45%, #a259ff 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          letter-spacing: 0.01em;
+          line-height: 1.2;
         }
+
         .ce-subtitle {
-          font-size: 0.98rem;
-          color: #a08ab8;
-          text-align: center;
-          margin: 8px 0 0 0;
-          padding: 0 20px;
-          font-weight: 500;
+          margin: 10px 0 0 0;
+          font-size: 0.96rem;
+          color: #aba0c2;
+          line-height: 1.5;
+          max-width: 490px;
         }
-        .ce-divider {
-          width: 80px;
-          height: 4px;
-          border-radius: 2px;
-          background: linear-gradient(90deg, #7b2ff2, #FFD600);
-          margin: 18px auto 0 auto;
+
+        /* Order Details Box */
+        .ce-order-box {
+          margin: 18px 24px 0 24px;
+          background: rgba(30, 15, 60, 0.6);
+          border: 1px solid rgba(162, 89, 255, 0.25);
+          border-radius: 18px;
+          padding: 16px 18px;
         }
-        .ce-btn-group {
+
+        .ce-order-header {
           display: flex;
-          flex-direction: column;
-          gap: 12px;
-          width: calc(100% - 48px);
-          margin-top: 20px;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 10px;
+          padding-bottom: 12px;
+          border-bottom: 1px solid rgba(162, 89, 255, 0.15);
         }
-        .ce-btn {
-          width: 100%;
-          padding: 13px 0;
-          border-radius: 12px;
-          font-size: 1rem;
-          font-weight: 800;
-          cursor: pointer;
-          text-align: center;
-          text-decoration: none;
-          display: block;
-          border: none;
-          transition: transform 0.18s, box-shadow 0.18s, opacity 0.18s;
-          font-family: inherit;
-        }
-        .ce-btn:hover { transform: translateY(-2px); opacity: 0.9; }
-        .ce-btn-install {
-          background: linear-gradient(90deg, #7b2ff2 0%, #a259ff 100%);
-          color: #fff;
-          box-shadow: 0 4px 18px rgba(123,47,242,0.45);
-        }
-        .ce-btn-home {
-          background: transparent;
-          color: #c4b5fd;
-          border: 1.5px solid rgba(162,89,255,0.45) !important;
-          box-shadow: none;
-        }
-        .ce-btn-home:hover { background: rgba(162,89,255,0.12); color: #fff; }
-        .ce-contacts {
-          width: calc(100% - 48px);
-          margin-top: 22px;
-          background: rgba(40,20,80,0.55);
-          border: 1px solid rgba(162,89,255,0.22);
-          border-radius: 14px;
-          padding: 14px 12px;
-        }
-        .ce-contacts-title {
-          text-align: center;
-          color: #8b80a0;
-          font-size: 0.82rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          margin-bottom: 12px;
-        }
-        .ce-social-row {
+
+        .ce-order-id-group {
           display: flex;
+          align-items: center;
           gap: 8px;
-          justify-content: center;
+          font-size: 0.84rem;
         }
-        .ce-social-btn {
+
+        .ce-order-label {
+          color: #8f82a8;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+        }
+
+        .ce-order-id-badge {
+          position: relative;
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 7px 12px;
-          border-radius: 9px;
+          background: rgba(123, 47, 242, 0.25);
+          border: 1px solid rgba(162, 89, 255, 0.4);
+          color: #e0d0ff;
+          font-weight: 700;
+          padding: 3px 10px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: background 0.2s, border-color 0.2s;
+        }
+
+        .ce-order-id-badge:hover {
+          background: rgba(123, 47, 242, 0.4);
+          border-color: #a259ff;
+        }
+
+        .ce-copy-btn {
+          background: none;
+          border: none;
+          color: #bfa8e6;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          padding: 0;
+        }
+
+        .ce-copied-toast {
+          position: absolute;
+          top: -26px;
+          right: 0;
+          background: #34d399;
+          color: #064e3b;
+          font-size: 0.72rem;
+          font-weight: 800;
+          padding: 2px 7px;
+          border-radius: 6px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .ce-status-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          background: rgba(52, 211, 153, 0.12);
+          border: 1px solid rgba(52, 211, 153, 0.35);
+          color: #34d399;
+          font-size: 0.78rem;
+          font-weight: 700;
+          padding: 3px 10px;
+          border-radius: 999px;
+        }
+
+        .ce-products-list {
+          padding: 12px 0 8px 0;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .ce-prod-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: rgba(14, 7, 28, 0.45);
+          border: 1px solid rgba(162, 89, 255, 0.14);
+          border-radius: 12px;
+          padding: 8px 12px;
+        }
+
+        .ce-prod-icon-wrap {
+          width: 34px;
+          height: 34px;
+          border-radius: 8px;
+          background: rgba(123, 47, 242, 0.25);
+          border: 1px solid rgba(162, 89, 255, 0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #c4b5fd;
+          flex-shrink: 0;
+        }
+
+        .ce-prod-info {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+          min-width: 0;
+        }
+
+        .ce-prod-name {
+          color: #f1edfa;
+          font-size: 0.9rem;
+          font-weight: 700;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .ce-prod-plat {
+          color: #a78bfa;
+          font-size: 0.76rem;
+          font-weight: 600;
+        }
+
+        .ce-prod-price {
+          color: #34d399;
+          font-size: 0.9rem;
+          font-weight: 800;
+          flex-shrink: 0;
+        }
+
+        .ce-prod-more {
+          text-align: center;
+          font-size: 0.78rem;
+          color: #8b80a0;
+          font-weight: 600;
+          padding-top: 4px;
+        }
+
+        .ce-order-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-top: 10px;
+          border-top: 1px solid rgba(162, 89, 255, 0.15);
+          font-size: 0.85rem;
+        }
+
+        .ce-footer-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .ce-footer-lbl {
+          color: #8b80a0;
+        }
+
+        .ce-footer-val {
+          color: #d1c4e9;
+          font-weight: 700;
+        }
+
+        .ce-footer-total-val {
+          color: #34d399;
+          font-size: 1.05rem;
+          font-weight: 900;
+        }
+
+        /* PRIMARY CTA: WHATSAPP BUTTON */
+        .ce-wsp-cta-container {
+          margin: 24px 24px 0 24px;
+        }
+
+        .ce-wsp-btn {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          width: 100%;
+          background: linear-gradient(135deg, #25D366 0%, #16a34a 50%, #0d7334 100%);
+          border: 1.5px solid rgba(255, 255, 255, 0.4);
+          border-radius: 18px;
+          padding: 16px 20px;
+          text-decoration: none;
+          color: #ffffff;
+          box-shadow: 0 10px 30px rgba(37, 211, 102, 0.4), 0 0 20px rgba(37, 211, 102, 0.2);
+          transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s, filter 0.22s;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .ce-wsp-btn::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 60%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+          transform: skewX(-20deg);
+          animation: ceShimmer 3.2s infinite;
+        }
+
+        @keyframes ceShimmer {
+          0% { left: -100%; }
+          30%, 100% { left: 160%; }
+        }
+
+        .ce-wsp-btn:hover {
+          transform: translateY(-3px) scale(1.01);
+          box-shadow: 0 14px 40px rgba(37, 211, 102, 0.55), 0 0 28px rgba(37, 211, 102, 0.35);
+          filter: brightness(1.05);
+        }
+
+        .ce-wsp-btn:active {
+          transform: translateY(-1px) scale(0.99);
+        }
+
+        .ce-wsp-btn-icon-wrap {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .ce-wsp-svg {
+          width: 24px;
+          height: 24px;
+          fill: #ffffff;
+        }
+
+        .ce-wsp-btn-text {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          flex: 1;
+          text-align: left;
+        }
+
+        .ce-wsp-btn-title {
+          font-size: 1.05rem;
+          font-weight: 900;
+          letter-spacing: 0.02em;
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .ce-wsp-btn-subtitle {
+          font-size: 0.78rem;
+          opacity: 0.94;
+          font-weight: 600;
+          line-height: 1.3;
+        }
+
+        .ce-wsp-arrow {
+          flex-shrink: 0;
+          opacity: 0.85;
+          transition: transform 0.2s;
+        }
+
+        .ce-wsp-btn:hover .ce-wsp-arrow {
+          transform: translateX(4px);
+          opacity: 1;
+        }
+
+        /* Actions Section */
+        .ce-actions-section {
+          margin: 22px 24px 0 24px;
+        }
+
+        .ce-actions-label {
+          font-size: 0.78rem;
+          font-weight: 700;
+          color: #9282a8;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          margin-bottom: 12px;
+          padding-left: 2px;
+        }
+
+        .ce-actions-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+        }
+
+        .ce-action-btn {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: rgba(30, 16, 60, 0.65);
+          border: 1px solid rgba(162, 89, 255, 0.25);
+          border-radius: 14px;
+          padding: 12px 14px;
+          color: #ffffff;
+          cursor: pointer;
+          transition: transform 0.18s, background 0.18s, border-color 0.18s;
+          text-align: left;
+          font-family: inherit;
+        }
+
+        .ce-action-btn:hover {
+          transform: translateY(-2px);
+          background: rgba(45, 22, 85, 0.85);
+          border-color: rgba(162, 89, 255, 0.5);
+        }
+
+        .ce-action-icon {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          background: rgba(123, 47, 242, 0.25);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #c4b5fd;
+          flex-shrink: 0;
+        }
+
+        .ce-action-guide .ce-action-icon {
+          background: rgba(239, 68, 68, 0.18);
+          color: #f87171;
+        }
+
+        .ce-action-launcher .ce-action-icon {
+          background: rgba(59, 130, 246, 0.18);
+          color: #60a5fa;
+        }
+
+        .ce-action-orders .ce-action-icon {
+          background: rgba(168, 85, 247, 0.18);
+          color: #c084fc;
+        }
+
+        .ce-action-home .ce-action-icon {
+          background: rgba(234, 179, 8, 0.18);
+          color: #facc15;
+        }
+
+        .ce-action-details {
+          display: flex;
+          flex-direction: column;
+          gap: 1px;
+          min-width: 0;
+        }
+
+        .ce-action-title {
+          font-size: 0.88rem;
+          font-weight: 800;
+          color: #f1edfa;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .ce-action-sub {
+          font-size: 0.74rem;
+          color: #8b80a0;
+          font-weight: 500;
+        }
+
+        /* Support & Guarantee Footer */
+        .ce-support-footer {
+          margin: 22px 24px 0 24px;
+          background: rgba(14, 6, 26, 0.55);
+          border: 1px solid rgba(162, 89, 255, 0.16);
+          border-radius: 16px;
+          padding: 14px 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .ce-support-badge {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #c4b5fd;
           font-size: 0.82rem;
+          font-weight: 600;
+        }
+
+        .ce-support-shield {
+          color: #34d399;
+          flex-shrink: 0;
+        }
+
+        .ce-social-links {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 8px;
+          padding-top: 10px;
+          border-top: 1px solid rgba(162, 89, 255, 0.12);
+        }
+
+        .ce-social-label {
+          font-size: 0.78rem;
+          color: #83759b;
+          font-weight: 600;
+        }
+
+        .ce-social-btns {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .ce-pill-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 5px 12px;
+          border-radius: 8px;
+          font-size: 0.76rem;
           font-weight: 700;
           text-decoration: none;
-          border: 1.5px solid transparent;
           transition: transform 0.18s, background 0.18s;
         }
-        .ce-social-btn:hover { transform: translateY(-2px); }
-        .ce-social-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
-        .ce-wa { background: rgba(37,211,102,0.1); color: #25D366; border-color: rgba(37,211,102,0.3); }
-        .ce-wa svg path { fill: #25D366; }
-        .ce-wa:hover { background: rgba(37,211,102,0.2); }
-        .ce-ig { background: rgba(225,48,108,0.1); color: #E1306C; border-color: rgba(225,48,108,0.3); }
-        .ce-ig svg path { fill: #E1306C; }
-        .ce-ig:hover { background: rgba(225,48,108,0.2); }
-        .ce-tg { background: rgba(34,158,217,0.1); color: #229ED9; border-color: rgba(34,158,217,0.3); }
-        .ce-tg svg path { fill: #229ED9; }
-        .ce-tg:hover { background: rgba(34,158,217,0.2); }
-        @media (max-width: 480px) {
-          .ce-card { padding-bottom: 22px; }
-          .ce-title-text { font-size: 1.15rem; }
-          .ce-social-btn span { display: none; }
-          .ce-social-btn { padding: 8px 14px; }
-          .ce-social-btn svg { width: 22px; height: 22px; }
+
+        .ce-pill-link:hover {
+          transform: translateY(-1px);
+        }
+
+        .ce-pill-wsp {
+          background: rgba(37, 211, 102, 0.14);
+          color: #25D366;
+          border: 1px solid rgba(37, 211, 102, 0.35);
+        }
+
+        .ce-pill-wsp:hover {
+          background: rgba(37, 211, 102, 0.25);
+        }
+
+        .ce-pill-tg {
+          background: rgba(34, 158, 217, 0.14);
+          color: #229ED9;
+          border: 1px solid rgba(34, 158, 217, 0.35);
+        }
+
+        .ce-pill-tg:hover {
+          background: rgba(34, 158, 217, 0.25);
+        }
+
+        @media (max-width: 540px) {
+          .ce-page-container {
+            padding: 30px 12px 60px 12px;
+          }
+          .ce-card {
+            border-radius: 22px;
+          }
+          .ce-hero-section {
+            padding: 22px 16px 10px 16px;
+          }
+          .ce-main-title {
+            font-size: 1.5rem;
+          }
+          .ce-subtitle {
+            font-size: 0.88rem;
+          }
+          .ce-order-box,
+          .ce-wsp-cta-container,
+          .ce-actions-section,
+          .ce-support-footer {
+            margin-left: 14px;
+            margin-right: 14px;
+          }
+          .ce-actions-grid {
+            grid-template-columns: 1fr;
+          }
+          .ce-wsp-btn-title {
+            font-size: 0.92rem;
+          }
+          .ce-social-links {
+            flex-direction: column;
+            align-items: flex-start;
+          }
         }
       `}</style>
     </div>

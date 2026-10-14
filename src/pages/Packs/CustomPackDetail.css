@@ -1,0 +1,280 @@
+.cpd-container {
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px 80px;
+  font-family: 'Poppins', system-ui, sans-serif;
+}
+
+.cpd-card {
+  max-width: 680px;
+  width: 100%;
+  background: linear-gradient(165deg, rgba(28, 21, 66, 0.95) 0%, rgba(12, 8, 30, 0.98) 100%);
+  border: 2px solid rgba(162, 89, 255, 0.4);
+  border-radius: 24px;
+  padding: 36px 32px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 50px rgba(123, 47, 242, 0.25);
+  text-align: center;
+  backdrop-filter: blur(16px);
+  position: relative;
+  overflow: hidden;
+}
+
+.cpd-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(123, 47, 242, 0.3) 0%, rgba(162, 89, 255, 0.2) 100%);
+  border: 1px solid rgba(162, 89, 255, 0.5);
+  color: #e0baff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 18px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.cpd-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 16px;
+  line-height: 1.3;
+}
+
+.cpd-price-tag {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(10, 6, 25, 0.6);
+  border: 1.5px solid rgba(34, 197, 94, 0.5);
+  border-radius: 16px;
+  padding: 12px 28px;
+  margin-bottom: 24px;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.15);
+}
+
+.cpd-price-label {
+  font-size: 12.5px;
+  color: #86efac;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cpd-price-value {
+  font-size: 32px;
+  font-weight: 900;
+  color: #4ade80;
+  margin-top: 2px;
+}
+
+.cpd-description {
+  background: rgba(162, 89, 255, 0.1);
+  border-left: 3px solid #a259ff;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 28px;
+  text-align: left;
+}
+
+.cpd-description p {
+  margin: 0;
+  color: #d8b4fe;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.cpd-games-section {
+  margin-bottom: 32px;
+}
+
+.cpd-games-section h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #c4b5fd;
+  margin: 0 0 16px;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cpd-games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 16px;
+}
+
+.cpd-game-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(162, 89, 255, 0.25);
+  border-radius: 14px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.cpd-game-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(162, 89, 255, 0.6);
+  background: rgba(123, 47, 242, 0.15);
+}
+
+.cpd-game-img-wrapper {
+  width: 100%;
+  aspect-ratio: 3/4;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  background: #000;
+}
+
+.cpd-game-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cpd-game-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cpd-btn-buy {
+  position: relative;
+  width: 100%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 60%, #047857 100%);
+  color: #ffffff;
+  border: 1px solid rgba(167, 243, 208, 0.4);
+  border-radius: 18px;
+  padding: 20px 28px;
+  font-size: 19px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 12px 35px rgba(16, 185, 129, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  letter-spacing: 0.5px;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.cpd-btn-buy::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left 0.75s ease;
+}
+
+.cpd-btn-buy:hover::before {
+  left: 140%;
+}
+
+.cpd-btn-buy:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 16px 45px rgba(16, 185, 129, 0.65), 0 0 25px rgba(52, 211, 153, 0.5);
+  background: linear-gradient(135deg, #059669 0%, #047857 60%, #065f46 100%);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.cpd-btn-buy:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.cpd-btn-buy:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.cpd-btn-arrow {
+  font-size: 24px;
+  transition: transform 0.25s ease;
+}
+
+.cpd-btn-buy:hover .cpd-btn-arrow {
+  transform: translateX(6px);
+}
+
+.cpd-feature-item {
+  font-size: 12px;
+  color: #a78bfa;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+
+/* Screens */
+.cpd-loading-screen, .cpd-error-screen {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.cpd-loading-card, .cpd-error-card {
+  background: rgba(26, 20, 60, 0.9);
+  border: 1px solid rgba(162, 89, 255, 0.3);
+  border-radius: 20px;
+  padding: 40px 32px;
+  text-align: center;
+  max-width: 440px;
+  color: #fff;
+}
+
+.cpd-loading-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.cpd-error-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.cpd-btn-back {
+  display: inline-block;
+  margin-top: 16px;
+  background: #a259ff;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}

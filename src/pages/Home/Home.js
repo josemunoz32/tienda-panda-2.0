@@ -1,14 +1,18 @@
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Helmet } from 'react-helmet-async';
 import { catUrl, prodUrl } from '../../utils/slugify';
-import { useMoneda } from "../../context/MonedaContext";
+import { useMoneda, PAISES_CONFIG } from "../../context/MonedaContext";
 import { db, auth } from "../../firebase";
 import {
   collection,
   getDocs,
   doc,
   getDoc,
+  query,
+  where,
+  limit,
   onSnapshot,
   setDoc,
   deleteDoc
@@ -28,49 +32,22 @@ import letreroPS4 from '../../assets/letreros/play 4.png';
 import letreroPS5 from '../../assets/letreros/play 5.png';
 import letreroStreaming from '../../assets/letreros/streaming.png';
 import letreroSuscripciones from '../../assets/letreros/suscripciones.png';
+import steamLogo from '../../assets/logos/logosteam.png';
+import wspLogo from '../../assets/logos/logowsp.png';
+import steamFastLookup from '../../assets/steam_fast_lookup.json';
 import pandaLoader from '../../assets/logos/miicono.png';
+import DepthCarousel from "../../components/DepthCarousel/DepthCarousel";
+import StrokeText from "../../components/StrokeText/StrokeText";
+import SpecularButton from "../../components/SpecularButton/SpecularButton";
+import DriftWall from "../../components/DriftWall/DriftWall";
+import AccordionGallery from "../../components/AccordionGallery/AccordionGallery";
+import Loader from "../../components/Loader";
+import WelcomeCategoriesModal from "../../components/WelcomeCategoriesModal/WelcomeCategoriesModal";
+import ReviewRewardModal, { REVIEW_REWARD_KEY } from "../../components/ReviewRewardModal/ReviewRewardModal";
 import "./Home.css";
 
-// Modal pregunta rápida para usuarios nuevos
-function ModalPregunta({ visible, onClose, onSelect }) {
-  if (!visible) return null;
-  return (
-    <div className="modal-pregunta-overlay">
-      <div className="modal-pregunta-card animated-fadein">
-        <div className="card-border-top"></div>
-        <h3>¿Qué estás buscando?</h3>
-        <div className="modal-pregunta-opciones">
-          <button onClick={() => onSelect("promos")}>Promociones</button>
-          <button onClick={() => onSelect("ps4")}>Juegos PS4</button>
-          <button onClick={() => onSelect("ps5")}>Juegos PS5</button>
-          <button onClick={() => onSelect("nintendo switch 1 y 2")}>Nintendo Switch 1 y 2</button>
-          <button onClick={() => onSelect("streaming")}>Streaming</button>
-          <button onClick={() => onSelect("suscripciones")}>Suscripciones</button>
-        </div>
-        <button className="modal-pregunta-cerrar" onClick={onClose}>Cerrar</button>
-      </div>
-    </div>
-  );
-}
-
 function HomeLoadingScreen() {
-  return (
-    <div className="home-loading-screen" role="status" aria-live="polite">
-      <div className="home-loading-card">
-        <div className="home-loading-orbit" aria-hidden="true" />
-        <img src={pandaLoader} alt="Panda Store" className="home-loading-icon" />
-        <div className="home-loading-copy">
-          <h2>Panda Store</h2>
-          <p>Cargando catalogo y novedades...</p>
-        </div>
-        <div className="home-loading-dots" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-        </div>
-      </div>
-    </div>
-  );
+  return <Loader text="Cargando..." subtext="PandaStore • Catálogo & Novedades" fullScreen={true} />;
 }
 
 // (All misplaced CSS removed. Use Home.css for styles.)
@@ -190,23 +167,61 @@ function DestacadosCarrusel({ productos, moneda, handleFav, favIds, openAuthModa
 }
 
 export default function Home() {
-  // Modal pregunta rápida: mostrar SIEMPRE al entrar/recargar en / o /home
+  // Modal de bienvenida con categorías oficiales que sale al entrar a la web
   const [showModal, setShowModal] = useState(() => {
     const path = window.location.pathname.toLowerCase();
     return path === "/" || path === "/home";
   });
+  const [showReviewReward, setShowReviewReward] = useState(false);
+
+  const openReviewRewardIfEligible = async () => {
+    if (localStorage.getItem(REVIEW_REWARD_KEY)) return;
+
+    const currentUser = auth.currentUser;
+    if (currentUser?.uid) {
+      try {
+        const existingReview = await getDocs(query(
+          collection(db, "testimonios_reviews"),
+          where("userId", "==", currentUser.uid),
+          limit(1)
+        ));
+        if (!existingReview.empty) {
+          // Evita volver a consultar y mostrar el incentivo a un cliente que ya participó.
+          localStorage.setItem(REVIEW_REWARD_KEY, "true");
+          return;
+        }
+      } catch (error) {
+        console.warn("No se pudo comprobar la reseña anterior del cliente:", error);
+        return;
+      }
+    }
+    setShowReviewReward(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    void openReviewRewardIfEligible();
+  };
 
   const handleSelect = async (opcion) => {
+    localStorage.setItem("pandaModalDismissed", "true");
     setShowModal(false);
     if (opcion === "promos") {
       navigate("/promos");
       return;
     }
 
+    if (opcion === "steam") {
+      if (categoryIds?.steam) {
+        navigate(catUrl(categoryNames?.steam || 'Juegos Steam', categoryIds.steam));
+        return;
+      }
+    }
+
     // Nintendo Switch 1 y 2 debe ir a la categoría Nintendo
     if (opcion === "nintendo" || opcion === "nintendo switch 1 y 2") {
       if (categoryIds?.nintendo) {
-        navigate(catUrl(categoryNames?.nintendo, categoryIds.nintendo));
+        navigate(catUrl(categoryNames?.nintendo || 'Nintendo Switch', categoryIds.nintendo));
         return;
       }
       // fallback si aún no cargó categoryIds
@@ -214,6 +229,7 @@ export default function Home() {
 
     // Buscar el ID de la categoría por nombre y redirigir
     const nombreMap = {
+      steam: "steam",
       ps4: "ps4",
       ps5: "ps5",
       nintendo: "nintendo",
@@ -244,21 +260,30 @@ export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const openAuthModal = () => setShowAuthModal(true);
-  const closeAuthModal = () => setShowAuthModal(false);
-  // Pasar openAuthModal como propiedad a DestacadosCarrusel
-  const { moneda } = useMoneda();
+  const [resellerBannerDismissed, setResellerBannerDismissed] = useState(false);
+  // (Removido openAuthModal para permitir acceso a invitados)
+  const { moneda, formatearPrecio, pais, setPais } = useMoneda();
   // Ref para el canvas de fondo galaxia
   const galaxyRef = useRef(null);
   const enableGalaxy = false;
 
   // Preview de Promociones (4 imágenes)
   const promosPreview = useMemo(() => ([
-    { key: 'promo-2x', title: 'Arma tu pack 2X', img: require('../../assets/promos/2x30.png') },
-    { key: 'promo-3x', title: 'Arma tu pack 3X', img: require('../../assets/promos/3x40.png') },
-    { key: 'promo-4x', title: 'Arma tu pack 4X', img: require('../../assets/promos/4x55.png') },
-    { key: 'promo-kart', title: 'Kart + Pase', img: require('../../assets/promos/kart + pase.png') },
+    { key: 'promo-basica-2x', title: 'Arma tu pack 2X Básica', img: require('../../assets/promos/2 x 25.000 basica.png') },
+    { key: 'promo-basica-3x', title: 'Arma tu pack 3X Básica', img: require('../../assets/promos/3x1 $35.000 basica.png') },
+    { key: 'promo-deluxe-2x', title: 'Arma tu pack Deluxe 2X', img: require('../../assets/promos/deluxe 2 x 30.000.png') },
+    { key: 'promo-deluxe-3x', title: 'Arma tu pack Deluxe 3X', img: require('../../assets/promos/deluxe 3 x40.000.png') },
   ]), []);
+
+  const promoCarouselItems = useMemo(() => (
+    promosPreview.map(p => ({
+      image: p.img,
+      alt: p.title,
+      title: p.title,
+      subtitle: '🔥 Oferta Especial',
+      key: p.key
+    }))
+  ), [promosPreview]);
 
   // Estados necesarios antes de cualquier uso
   const [productos, setProductos] = useState([]);
@@ -293,19 +318,7 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location?.pathname]);
 
-  // Mostrar el modal cada vez que se entra a Home (/ o /home)
-  useEffect(() => {
-    const path = (location?.pathname || "").toLowerCase();
-    if (path === "/" || path === "/home") {
-      setShowModal(true);
-    }
-  }, [location?.pathname]);
-
-  // SEO: Set page title for Home
-  useEffect(() => {
-    document.title = 'PandaStore | Tienda de Videojuegos Digitales - PS4, PS5, Nintendo Switch, Streaming';
-    return () => { document.title = 'PandaStore | Tienda de Videojuegos Digitales'; };
-  }, []);
+  // Eliminado el useEffect manual de SEO, usamos Helmet en el return
 
   // PAGINATION STATE
   const [page, setPage] = useState(1);
@@ -329,23 +342,24 @@ export default function Home() {
     }
     resizeCanvas();
 
-    // Más partículas y estrellas fugaces (más cantidad y más grandes)
-    const particles = Array.from({length: 400}, () => ({
+    const isMobile = window.innerWidth < 768;
+    const particleCount = isMobile ? 60 : 160;
+    const particles = Array.from({length: particleCount}, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      r: Math.random() * 2.5 + 1.2, // estrellas más grandes
+      r: Math.random() * 2.2 + 1.0,
       speed: Math.random() * 0.18 + 0.08,
-      alpha: Math.random() * 0.8 + 0.5 // más brillantes
+      alpha: Math.random() * 0.8 + 0.5
     }));
 
     let shootingStars = [];
     function spawnShootingStar() {
-      if (Math.random() < 0.025) {
+      if (Math.random() < 0.02) {
         shootingStars.push({
           x: Math.random() * width * 0.8 + width * 0.1,
           y: Math.random() * height * 0.4 + height * 0.05,
-          len: Math.random() * 180 + 80,
-          speed: Math.random() * 10 + 8,
+          len: Math.random() * 140 + 60,
+          speed: Math.random() * 9 + 6,
           angle: Math.PI / 4 + (Math.random() - 0.5) * 0.18,
           alpha: 1
         });
@@ -353,28 +367,29 @@ export default function Home() {
     }
 
     function draw() {
-  ctx.clearRect(0, 0, width, height);
-  // Fondo gradiente galaxia real
-  const grad = ctx.createRadialGradient(width/2, height/2, width*0.08, width/2, height/2, width*0.95);
-  grad.addColorStop(0, '#4f5b93'); // centro más claro
-  grad.addColorStop(0.18, '#232a3a');
-  grad.addColorStop(0.38, '#181c2b');
-  grad.addColorStop(0.7, '#0a0a13');
-  grad.addColorStop(1, '#000');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, width, height);
+      if (document.hidden) {
+        animationId = requestAnimationFrame(draw);
+        return;
+      }
+      ctx.clearRect(0, 0, width, height);
 
-      // Partículas (estrellas) mucho más notorias
+      // Fondo gradiente galaxia real
+      const grad = ctx.createRadialGradient(width/2, height/2, width*0.08, width/2, height/2, width*0.95);
+      grad.addColorStop(0, '#4f5b93');
+      grad.addColorStop(0.18, '#232a3a');
+      grad.addColorStop(0.38, '#181c2b');
+      grad.addColorStop(0.7, '#0a0a13');
+      grad.addColorStop(1, '#000');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+
+      // Partículas (estrellas) optimizadas sin shadowBlur para prevenir memory leaks
+      ctx.fillStyle = '#ffffff';
       for (const p of particles) {
-        ctx.save();
         ctx.globalAlpha = p.alpha;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, 2 * Math.PI);
-        ctx.fillStyle = '#fff';
-        ctx.shadowColor = '#b5e0ff';
-        ctx.shadowBlur = 18;
         ctx.fill();
-        ctx.restore();
         p.y += p.speed;
         if (p.y > height) {
           p.y = 0;
@@ -382,30 +397,26 @@ export default function Home() {
         }
       }
 
-      // Estrellas fugaces
+      // Estrellas fugaces optimizadas
+      ctx.lineWidth = 2.2;
       for (let i = shootingStars.length - 1; i >= 0; i--) {
         const s = shootingStars[i];
-        ctx.save();
         ctx.globalAlpha = s.alpha;
         ctx.strokeStyle = 'rgba(173,216,230,0.85)';
-        ctx.lineWidth = 2.6;
-        ctx.shadowColor = '#fff';
-        ctx.shadowBlur = 22;
         ctx.beginPath();
         ctx.moveTo(s.x, s.y);
         ctx.lineTo(s.x - Math.cos(s.angle) * s.len, s.y - Math.sin(s.angle) * s.len);
         ctx.stroke();
-        ctx.restore();
         s.x += Math.cos(s.angle) * s.speed;
         s.y += Math.sin(s.angle) * s.speed;
-        s.alpha -= 0.009;
+        s.alpha -= 0.012;
         if (s.alpha <= 0) shootingStars.splice(i, 1);
       }
       spawnShootingStar();
       animationId = requestAnimationFrame(draw);
     }
     draw();
-    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('resize', resizeCanvas, { passive: true });
     return () => {
       cancelAnimationFrame(animationId);
       window.removeEventListener('resize', resizeCanvas);
@@ -513,6 +524,14 @@ export default function Home() {
     return () => { window.setHomeFilters = null; };
   }, []);
   const [testimonios, setTestimonios] = useState([]);
+  const driftWallItems = useMemo(() => {
+    if (!Array.isArray(testimonios) || testimonios.length === 0) return [];
+    return testimonios.map(t => ({
+      image: t.imagen,
+      title: t.nombre || t.titulo || 'Venta PandaStore',
+      href: '/testimonios'
+    }));
+  }, [testimonios]);
   useEffect(() => {
     getDocs(collection(db, "testimonios")).then(snapshot => {
       setTestimonios(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -533,20 +552,12 @@ export default function Home() {
 
   const getMinPriceForHome = (prod) => {
     const precios = [];
-    if (moneda === "CLP") {
-      if (prod?.priceCLP) precios.push(Number(prod.priceCLP));
-      if (prod?.pricePrimariaCLP) precios.push(Number(prod.pricePrimariaCLP));
-      if (prod?.priceSecundariaCLP) precios.push(Number(prod.priceSecundariaCLP));
-      if (Array.isArray(prod?.preciosPorMes)) {
-        prod.preciosPorMes.forEach((p) => { if (p?.clp) precios.push(Number(p.clp)); });
-      }
-    } else if (moneda === "USD") {
-      if (prod?.priceUSD) precios.push(Number(prod.priceUSD));
-      if (prod?.pricePrimariaUSD) precios.push(Number(prod.pricePrimariaUSD));
-      if (prod?.priceSecundariaUSD) precios.push(Number(prod.priceSecundariaUSD));
-      if (Array.isArray(prod?.preciosPorMes)) {
-        prod.preciosPorMes.forEach((p) => { if (p?.usd) precios.push(Number(p.usd)); });
-      }
+    // Siempre usar CLP como base; formatearPrecio del contexto convierte a la moneda activa
+    if (prod?.priceCLP) precios.push(Number(prod.priceCLP));
+    if (prod?.pricePrimariaCLP) precios.push(Number(prod.pricePrimariaCLP));
+    if (prod?.priceSecundariaCLP) precios.push(Number(prod.priceSecundariaCLP));
+    if (Array.isArray(prod?.preciosPorMes)) {
+      prod.preciosPorMes.forEach((p) => { if (p?.clp) precios.push(Number(p.clp)); });
     }
     const nums = precios.filter((x) => Number.isFinite(x) && x > 0);
     return nums.length ? Math.min(...nums) : null;
@@ -554,68 +565,116 @@ export default function Home() {
 
   const categoryIds = useMemo(() => {
     const norm = (s) => (s || "").toString().trim().toLowerCase();
-    const findByIncludesAny = (needles) => {
-      const ns = needles.map(norm);
-      const found = categorias.find((c) => {
-        const name = norm(c?.name);
-        return ns.some((n) => n && name.includes(n));
-      });
-      return found ? found.id : null;
-    };
-    const findByIncludesAll = (needles) => {
-      const ns = needles.map(norm);
-      const found = categorias.find((c) => {
-        const name = norm(c?.name);
-        return ns.every((n) => n && name.includes(n));
-      });
-      return found ? found.id : null;
+    const findCat = (predicate, fallbackId) => {
+      const found = categorias.find(c => predicate(norm(c?.name), c?.id));
+      return found ? found.id : fallbackId;
     };
     return {
-      nintendo: findByIncludesAll(["nintendo", "switch"]),
-      ps4: findByIncludesAny(["ps4", "play 4", "play4", "playstation 4"]),
-      ps5: findByIncludesAny(["ps5", "play 5", "play5", "playstation 5"]),
-      streaming: findByIncludesAny(["streaming"]),
-      suscripciones: findByIncludesAny(["suscrip"]),
+      steam: findCat((n, id) => id === 'lW3JaYVl6iDINZI57WE1' || n.includes('steam'), 'lW3JaYVl6iDINZI57WE1'),
+      nintendo: findCat((n, id) => id === 'VtQaPwP0xXdC1qdz6Hvq' || ((n.includes('nintendo') || n.includes('switch')) && !n.includes('2')), 'VtQaPwP0xXdC1qdz6Hvq'),
+      ps4: findCat((n, id) => id === 'xA4NsfBdY5MOvqegPDBw' || (n.includes('ps4') || n.includes('play 4') || n.includes('playstation 4')), 'xA4NsfBdY5MOvqegPDBw'),
+      ps5: findCat((n, id) => id === 'cLMyaADucf7zGkC73DWK' || (n.includes('ps5') || n.includes('play 5') || n.includes('playstation 5')), 'cLMyaADucf7zGkC73DWK'),
+      streaming: findCat((n, id) => id === 'KY1aLOOEMmQAunfZq5Ya' || n.includes('streaming'), 'KY1aLOOEMmQAunfZq5Ya'),
+      suscripciones: findCat((n, id) => id === 'SKkWSCanKlQ8yP6CJgnr' || n.includes('suscrip'), 'SKkWSCanKlQ8yP6CJgnr'),
     };
   }, [categorias]);
 
   const categoryNames = useMemo(() => {
-    const nameOf = (id) => categorias.find(c => c.id === id)?.name || '';
+    const nameOf = (id, fallback) => categorias.find(c => c.id === id)?.name || fallback;
     return {
-      nintendo: nameOf(categoryIds.nintendo),
-      ps4: nameOf(categoryIds.ps4),
-      ps5: nameOf(categoryIds.ps5),
-      streaming: nameOf(categoryIds.streaming),
-      suscripciones: nameOf(categoryIds.suscripciones),
+      steam: nameOf(categoryIds.steam, 'Juegos Steam'),
+      nintendo: nameOf(categoryIds.nintendo, 'Nintendo Switch'),
+      ps4: nameOf(categoryIds.ps4, 'Ps4'),
+      ps5: nameOf(categoryIds.ps5, 'Ps5'),
+      streaming: nameOf(categoryIds.streaming, 'Streaming'),
+      suscripciones: nameOf(categoryIds.suscripciones, 'Suscripciones'),
     };
   }, [categoryIds, categorias]);
 
+  const resolveSteamCover = (prod) => {
+    if (prod?.imageUrl && prod.imageUrl.trim() !== "") return prod.imageUrl;
+    const appId = prod?.app_id || (prod?.id && !isNaN(prod.id) ? prod.id : null);
+    const cleanN = (prod?.name || '').toLowerCase()
+      .replace(/\|.*$/g, '')
+      .replace(/\+.*dlc.*/g, '')
+      .replace(/\b(dlc|expansion|edition|deluxe|remastered|definitive)\b/g, '')
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+
+    if (steamFastLookup && steamFastLookup[cleanN]?.imageUrl) {
+      return steamFastLookup[cleanN].imageUrl;
+    }
+    if (appId) {
+      return `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/header.jpg`;
+    }
+    return null;
+  };
+
   const previewByCategory = useMemo(() => {
-    const take8 = (catId) => {
+    const takeProds = (catId, isSteam = false) => {
       if (!catId) return [];
-      return productos.filter((p) => p?.categoryId === catId).slice(0, 8);
+      const list = productos.filter((p) => p?.categoryId === catId);
+      if (isSteam) {
+        const steamResolved = list
+          .map(p => {
+            const img = resolveSteamCover(p);
+            return {
+              ...p,
+              imageUrl: img,
+              priceCLP: p.priceCLP ? Number(p.priceCLP) : 2000
+            };
+          })
+          .filter(p => Boolean(p.imageUrl));
+
+        const POPULAR_KEYWORDS = ['resident evil', 'tomb raider', 'f1', 'wolfenstein', 'god of war', 'elden ring', 'cyberpunk', 'batman', 'final fantasy', 'ark', 'sonic'];
+        steamResolved.sort((a, b) => {
+          const aPop = POPULAR_KEYWORDS.some(k => (a.name || '').toLowerCase().includes(k)) ? 1 : 0;
+          const bPop = POPULAR_KEYWORDS.some(k => (b.name || '').toLowerCase().includes(k)) ? 1 : 0;
+          return bPop - aPop;
+        });
+
+        return steamResolved.slice(0, 10);
+      }
+      return list.slice(0, 8);
     };
+
     return {
-      nintendo: take8(categoryIds.nintendo),
-      ps4: take8(categoryIds.ps4),
-      ps5: take8(categoryIds.ps5),
-      streaming: take8(categoryIds.streaming),
-      suscripciones: take8(categoryIds.suscripciones),
+      steam: takeProds(categoryIds.steam, true),
+      nintendo: takeProds(categoryIds.nintendo),
+      ps4: takeProds(categoryIds.ps4),
+      ps5: takeProds(categoryIds.ps5),
+      streaming: takeProds(categoryIds.streaming),
+      suscripciones: takeProds(categoryIds.suscripciones),
     };
   }, [productos, categoryIds]);
 
   useEffect(() => {
+    let isMounted = true;
+    const failsafeTimer = setTimeout(() => {
+      if (isMounted) setLoading(false);
+    }, 2500);
+
     const fetchProductos = async () => {
-      const snapshot = await getDocs(collection(db, "products"));
-      const prods = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  setProductos(prods);
-  // Generar destacados aleatorios solo una vez
-  setDestacados(prods.length > 0 ? [...prods].sort(() => 0.5 - Math.random()).slice(0, 10) : []);
-  // Mezclar productos solo una vez para el listado principal
-  setProductosAleatorios(prods.length > 0 ? [...prods].sort(() => 0.5 - Math.random()) : []);
-  setLoading(false);
+      try {
+        const snapshot = await getDocs(collection(db, "products"));
+        if (!isMounted) return;
+        const prods = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setProductos(prods);
+        // Generar destacados aleatorios solo una vez
+        setDestacados(prods.length > 0 ? [...prods].sort(() => 0.5 - Math.random()).slice(0, 10) : []);
+        // Mezclar productos solo una vez para el listado principal
+        setProductosAleatorios(prods.length > 0 ? [...prods].sort(() => 0.5 - Math.random()) : []);
+      } catch (err) {
+        console.error("Error al cargar productos en Home:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
     };
     fetchProductos();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(failsafeTimer);
+    };
   }, []);
 
   useEffect(() => {
@@ -636,10 +695,6 @@ export default function Home() {
 
 
   const handleCart = async (prod) => {
-    if (!user) {
-      openAuthModal();
-      return;
-    }
     await handleCartAddOrRemove({
       db,
       user,
@@ -653,19 +708,28 @@ export default function Home() {
   // Modal handler para cuando el usuario selecciona una opción de precio
   const handleCartModal = async (opcion) => {
     const { prod, tipo } = modal;
-    const cartRef = doc(db, `users/${user.uid}/cart`, prod.id);
-    let extra = {};
+    if (!prod) return;
+    let customProd = { ...prod };
     if (tipo === 'ps') {
-      extra = { variante: opcion.value, [`price${opcion.moneda}`]: opcion.price };
+      customProd.variante = opcion.value;
+      customProd.priceCLP = opcion.priceCLP;
+      if (opcion.priceUSD) customProd.priceUSD = opcion.priceUSD;
+      if (opcion.precioPublicoCLP) customProd.precioPublicoCLP = opcion.precioPublicoCLP;
+      if (opcion.isResellerPrice) customProd.isResellerPrice = true;
     } else if (tipo === 'suscripcion') {
-      extra = { meses: opcion.value, [`price${opcion.moneda}`]: opcion.price };
+      customProd.meses = opcion.value;
+      customProd.priceCLP = opcion.priceCLP;
+      if (opcion.priceUSD) customProd.priceUSD = opcion.priceUSD;
+      if (opcion.precioPublicoCLP) customProd.precioPublicoCLP = opcion.precioPublicoCLP;
+      if (opcion.isResellerPrice) customProd.isResellerPrice = true;
     }
-    await setDoc(cartRef, {
-      productId: prod.id,
-      name: prod.name,
-      imageUrl: prod.imageUrl || null,
-      quantity: 1,
-      ...extra
+    await handleCartAddOrRemove({
+      db,
+      user,
+      prod: customProd,
+      moneda,
+      cartIds: Object.keys(inCart),
+      setModal: null
     });
     setModal({ open: false, prod: null, opciones: [], tipo: null });
   };
@@ -673,7 +737,24 @@ export default function Home() {
 
   const handleFav = async (prod) => {
     if (!user) {
-      openAuthModal();
+      let localFavs = [];
+      try {
+        const stored = localStorage.getItem('guestFavs');
+        if (stored) localFavs = JSON.parse(stored);
+      } catch(e) {}
+      if (favIds.includes(prod.id)) {
+        localFavs = localFavs.filter(f => f.productId !== prod.id);
+      } else {
+        localFavs.push({
+          productId: prod.id,
+          name: prod.name,
+          imageUrl: prod.imageUrl || null,
+          priceCLP: prod.priceCLP || null,
+          priceUSD: prod.priceUSD || null
+        });
+      }
+      localStorage.setItem('guestFavs', JSON.stringify(localFavs));
+      window.dispatchEvent(new Event('localFavUpdated'));
       return;
     }
     const favRef = doc(db, `users/${user.uid}/favorites`, prod.id);
@@ -713,14 +794,49 @@ export default function Home() {
 
   if (loading) return <HomeLoadingScreen />;
 
+  const isMobile = window.innerWidth <= 700;
+
   return (
     <>
-      {/* Modal solo en la raíz o /home, y solo la primera vez */}
+      <Helmet>
+        <title>PandaStore | Tienda de Videojuegos Digitales • Steam PC, Nintendo Switch, PS5 y PS4 Baratos</title>
+        <meta name="description" content="Tienda online #1 de videojuegos digitales en Latinoamérica. Juegos para Steam PC con Activador oficial, Nintendo Switch 1 y 2, PlayStation 5 y PS4. Cuentas primarias y secundarias, packs 2x1 y estrenos VIP con entrega inmediata 24/7." />
+        <meta name="keywords" content="comprar juegos digitales, juegos steam baratos, juegos pc baratos, activador steam pc, pandastore launcher, juegos ps4 baratos, juegos ps5 digitales, cuentas primarias ps5, cuentas secundarias ps4, juegos nintendo switch baratos, nintendo switch 2 juegos digitales, ofertas videojuegos steam, tienda gamer online, comprar juegos digitales chile, juegos digitales argentina, juegos digitales mexico, juegos digitales colombia, entrega inmediata videojuegos, black myth wukong pc barato, ea sports fc 25 barato, elden ring pc barato, silent hill 2 remake barato, dragon ball sparking zero steam, gta v pc barato, comprar juegos steam offline, packs de juegos steam, suscripcion ps plus barata, nintendo switch online barato, pandastore" />
+        <meta property="og:title" content="PandaStore | Tienda #1 de Videojuegos Digitales • Steam PC, Switch, PS5 y PS4" />
+        <meta property="og:description" content="Catálogo líder de videojuegos digitales en Latinoamérica: Steam PC, Nintendo Switch 1 y 2, PlayStation 5 y PS4. Entrega inmediata 24/7 y mejor precio garantizado." />
+        <meta property="og:url" content="https://pandastoreupdate.web.app/" />
+        <meta property="og:image" content="https://pandastoreupdate.web.app/banner.png" />
+        <meta name="twitter:title" content="PandaStore | Tienda #1 de Videojuegos Digitales • Steam PC, Switch, PS5 y PS4" />
+        <meta name="twitter:description" content="Compra juegos digitales para Steam PC, Nintendo Switch 1 y 2, PS5 y PS4 en PandaStore. Entrega inmediata 24/7 y garantía total." />
+        <meta name="twitter:image" content="https://pandastoreupdate.web.app/banner.png" />
+        <link rel="canonical" href="https://pandastoreupdate.web.app/" />
+        <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "PandaStore | Tienda #1 de Videojuegos Digitales",
+          "url": "https://pandastoreupdate.web.app/",
+          "description": "La mayor tienda de videojuegos digitales en Latinoamérica: Steam PC con activador, Nintendo Switch 1 y 2, PS5 y PS4. Entrega 24/7.",
+          "isPartOf": {
+            "@type": "WebSite",
+            "name": "PandaStore",
+            "url": "https://pandastoreupdate.web.app/"
+          }
+        })}
+        </script>
+      </Helmet>
       {showModal && (
-        <ModalPregunta
+        <WelcomeCategoriesModal
           visible={showModal}
-          onClose={() => setShowModal(false)}
-          onSelect={handleSelect}
+          onClose={handleCloseModal}
+          categoryIds={categoryIds}
+          categoryNames={categoryNames}
+        />
+      )}
+      {showReviewReward && (
+        <ReviewRewardModal
+          visible={showReviewReward}
+          onClose={() => setShowReviewReward(false)}
         />
       )}
       <div
@@ -731,382 +847,459 @@ export default function Home() {
           overflow: 'hidden',
           zIndex: 10,
           background: 'transparent',
-          paddingBottom: 60,
-          marginTop: window.innerWidth <= 700 ? 90 : 220 // margen restaurado para header/banner
+          paddingBottom: 80,
+          marginTop: isMobile ? 90 : 220,
         }}
       >
-      {/* Modal de autenticación */}
-      {showAuthModal && (
-        <div className="modal-bg" style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',background:'rgba(24,18,43,0.82)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={e => {if(e.target.classList.contains('modal-bg'))closeAuthModal();}}>
-          <div style={{background:'#fff',borderRadius:18,padding:'38px 32px 28px 32px',boxShadow:'0 8px 32px #7b2ff244',maxWidth:380,width:'90%',textAlign:'center',position:'relative'}}>
-            <h2 style={{fontWeight:800,fontSize:'1.35rem',color:'#7b2ff2',marginBottom:12}}>Debes iniciar sesión</h2>
-            <p style={{color:'#222',fontSize:'1.08rem',marginBottom:22}}>Para agregar productos al carrito, favoritos o ver detalles, primero debes iniciar sesión o crear una cuenta.</p>
-            <div style={{display:'flex',gap:16,justifyContent:'center',marginBottom:8}}>
-              <button onClick={()=>{closeAuthModal();navigate('/iniciar-sesion');}} style={{background:'linear-gradient(90deg,#7b2ff2 0%,#a084e8 100%)',color:'#fff',fontWeight:700,fontSize:'1.08rem',border:'none',borderRadius:10,padding:'12px 24px',boxShadow:'0 2px 12px #7b2ff244',cursor:'pointer'}}>Iniciar sesión</button>
-              <button onClick={()=>{closeAuthModal();navigate('/registro');}} style={{background:'linear-gradient(90deg,#f357a8 0%,#7b2ff2 100%)',color:'#fff',fontWeight:700,fontSize:'1.08rem',border:'none',borderRadius:10,padding:'12px 24px',boxShadow:'0 2px 12px #7b2ff244',cursor:'pointer'}}>Registrarse</button>
-            </div>
-            <button onClick={closeAuthModal} style={{background:'none',border:'none',color:'#a084e8',fontWeight:600,fontSize:'1rem',marginTop:8,cursor:'pointer'}}>Cancelar</button>
-          </div>
-        </div>
-      )}
+      {/* Auth modal removido */}
 
-      {/* Fondo galaxia animado (desactivado) */}
-      {enableGalaxy && (
-        <canvas
-          ref={galaxyRef}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            zIndex: 0,
-            pointerEvents: 'none'
-          }}
-        />
-      )}
+      <div className="home-content">
 
-      {/* Secciones principales del Home */}
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 1200,
-          margin: '0 auto 18px auto',
-          padding: '0 12px',
-          position: 'relative',
-          zIndex: 2
-        }}
-      >
-        {/* PROMOCIONES */}
-        <div style={{ textAlign: 'center', marginBottom: 10 }}>
-          <img src={letreroPromos} alt="Promociones" style={{ maxWidth: 520, width: '92%', height: 'auto' }} />
-        </div>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: window.innerWidth < 700 ? '1fr' : 'repeat(4, 1fr)',
-            gap: 14,
-            justifyItems: 'center',
-            marginBottom: 14
-          }}
-        >
-          {promosPreview.map((p) => (
-            <Link
-              key={p.key}
-              to={`/promos?promo=${encodeURIComponent(p.key)}`}
-              style={{
-                textDecoration: 'none',
-                background: '#ffffff10',
-                border: '1.5px solid #a084e8',
-                borderRadius: 16,
-                boxShadow: '0 6px 22px #0003',
-                padding: 12,
-                width: '100%',
-                maxWidth: window.innerWidth < 700 ? 360 : 280,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 10
-              }}
-            >
-              <div
-                style={{
-                  width: '100%',
-                  height: window.innerWidth < 700 ? 190 : 150,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden'
-                }}
-              >
+        {/* ── AVISO DE VALIDACIÓN REVENDEDOR (FULL RESPONSIVE & CON LOGO WSP OFICIAL) ── */}
+        {location.state?.resellerNotice && !resellerBannerDismissed && (
+          <div style={{
+            margin: "0 0 24px 0",
+            background: "linear-gradient(135deg, rgba(15, 23, 42, 0.96) 0%, rgba(6, 78, 59, 0.94) 100%)",
+            border: "1.5px solid rgba(52, 211, 153, 0.55)",
+            borderRadius: 20,
+            padding: "16px 20px",
+            boxShadow: "0 16px 40px rgba(0, 0, 0, 0.5), 0 0 25px rgba(16, 185, 129, 0.2)",
+            backdropFilter: "blur(14px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+            flexWrap: "wrap",
+            animation: "fadeIn 0.3s ease"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 260, flex: "1 1 300px" }}>
+              <div style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                boxShadow: "0 4px 14px rgba(37, 211, 102, 0.4)"
+              }}>
                 <img
-                  src={p.img}
-                  alt={p.title}
-                  style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }}
+                  src={wspLogo}
+                  alt="WhatsApp Oficial"
+                  style={{ width: 32, height: 32, objectFit: "contain", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.25))" }}
                 />
               </div>
-              <div style={{ color: '#fff', fontWeight: 900, textAlign: 'center', textShadow: '0 2px 10px #0006' }}>{p.title}</div>
-            </Link>
-          ))}
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 22 }}>
-          <Link
-            to="/promos"
-            style={{
-              background: 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)',
-              color: '#fff',
-              fontWeight: 900,
-              fontSize: '1.05rem',
-              border: 'none',
-              borderRadius: 12,
-              padding: '12px 34px',
-              boxShadow: '0 8px 22px #22c55e33',
-              textDecoration: 'none',
-              display: 'inline-block'
-            }}
-          >
-            Ver más
-          </Link>
-        </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#34d399", fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                  <span>⏳ POSTULACIÓN ENVIADA</span>
+                  <span>•</span>
+                  <span>ESPERA TU VALIDACIÓN</span>
+                </div>
+                <h4 style={{ margin: "2px 0 0", color: "#fff", fontSize: "1rem", fontWeight: 900 }}>
+                  ¡Gracias por postular como Revendedor Oficial!
+                </h4>
+                <p style={{ margin: "2px 0 0", color: "#cbd5e1", fontSize: "0.82rem", lineHeight: 1.4 }}>
+                  Tu solicitud está en revisión. Por ahora puedes navegar como cliente; cuando un administrador apruebe tu cuenta, se activarán automáticamente tus precios y beneficios mayoristas. ¿Quieres acelerar la revisión? Escríbenos por WhatsApp.
+                </p>
+              </div>
+            </div>
 
-        {/* Helper inline para secciones por categoría */}
-        {([
-          { key: 'nintendo', img: letreroNintendo, alt: 'Nintendo Switch', catId: categoryIds.nintendo, catName: categoryNames.nintendo, items: previewByCategory.nintendo },
-          { key: 'ps4', img: letreroPS4, alt: 'PS4', catId: categoryIds.ps4, catName: categoryNames.ps4, items: previewByCategory.ps4 },
-          { key: 'ps5', img: letreroPS5, alt: 'PS5', catId: categoryIds.ps5, catName: categoryNames.ps5, items: previewByCategory.ps5 },
-          { key: 'streaming', img: letreroStreaming, alt: 'Streaming', catId: categoryIds.streaming, catName: categoryNames.streaming, items: previewByCategory.streaming },
-          { key: 'suscripciones', img: letreroSuscripciones, alt: 'Suscripciones', catId: categoryIds.suscripciones, catName: categoryNames.suscripciones, items: previewByCategory.suscripciones },
-        ]).map((sec) => (
-          <div key={sec.key} style={{ marginBottom: 26 }}>
-            <div style={{ textAlign: 'center', marginBottom: 10 }}>
-              <img src={sec.img} alt={sec.alt} style={{ maxWidth: 520, width: '92%', height: 'auto' }} />
-            </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: window.innerWidth < 700 ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
-                gap: 14,
-                justifyItems: 'center'
-              }}
-            >
-              {(sec.items || []).map((prod) => {
-                const min = getMinPriceForHome(prod);
-                return (
-                  <Link
-                    key={prod.id}
-                    to={prodUrl(prod.name, prod.id)}
-                    onClick={(e) => {
-                      if (!user) {
-                        e.preventDefault();
-                        openAuthModal();
-                      }
-                    }}
-                    style={{ textDecoration: 'none', width: '100%', maxWidth: 280 }}
-                  >
-                    <div
-                      style={{
-                        background: '#ffffff10',
-                        border: '1.5px solid #a084e8',
-                        borderRadius: 16,
-                        boxShadow: '0 6px 22px #0003',
-                        padding: 12,
-                        width: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: 10,
-                        minHeight: 250
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: '100%',
-                          height: 150,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          overflow: 'hidden'
-                        }}
-                      >
-                        {prod.imageUrl ? (
-                          <img
-                            src={prod.imageUrl}
-                            alt={prod.name}
-                            loading="lazy"
-                            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }}
-                          />
-                        ) : (
-                          <div style={{ width: '100%', height: '100%', borderRadius: 12, background: '#ffffff18' }} />
-                        )}
-                      </div>
-                      <div
-                        style={{
-                          color: '#fff',
-                          fontWeight: 900,
-                          textAlign: 'center',
-                          textShadow: '0 2px 10px #0006',
-                          lineHeight: 1.15,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          minHeight: 42
-                        }}
-                      >
-                        {prod.name}
-                      </div>
-                      <div style={{ marginTop: 'auto' }}>
-                        <span
-                          style={{
-                            background: '#2a126b',
-                            color: '#fff',
-                            borderRadius: 999,
-                            padding: '6px 14px',
-                            fontWeight: 900,
-                            boxShadow: '0 2px 10px #2a126b22',
-                            whiteSpace: 'nowrap',
-                            display: 'inline-block'
-                          }}
-                        >
-                          {min ? `${formatPrecio(min, moneda)} ${moneda}` : `Ver producto`}
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>
-              <Link
-                to={sec.catId ? catUrl(sec.catName, sec.catId) : '/productos'}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0, flexWrap: "wrap" }}>
+              <a
+                href="https://wa.me/56974751810?text=Hola%20PandaStore!%20👋%20Acabo%20de%20postular%20como%20Revendedor%20Oficial%20B2B.%20¿Podrías%20validar%20mi%20cuenta?%20¡Gracias!"
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{
-                  background: 'linear-gradient(90deg, #7b2ff2 0%, #f357a8 100%)',
-                  color: '#fff',
+                  background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
+                  color: "#fff",
                   fontWeight: 900,
-                  fontSize: '1.05rem',
-                  border: 'none',
-                  borderRadius: 12,
-                  padding: '12px 34px',
-                  boxShadow: '0 8px 22px #7b2ff233',
-                  textDecoration: 'none',
-                  display: 'inline-block'
+                  fontSize: "0.86rem",
+                  textDecoration: "none",
+                  padding: "10px 18px",
+                  borderRadius: 14,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  boxShadow: "0 6px 18px rgba(37, 211, 102, 0.45)",
+                  border: "1px solid rgba(255, 255, 255, 0.3)",
+                  cursor: "pointer"
                 }}
               >
-                Ver más
-              </Link>
+                <span>Avisar al Admin por WhatsApp</span>
+                <span style={{ fontSize: "1rem" }}>→</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => setResellerBannerDismissed(true)}
+                style={{
+                  background: "rgba(255, 255, 255, 0.1)",
+                  border: "none",
+                  color: "#94a3b8",
+                  width: 34,
+                  height: 34,
+                  borderRadius: 10,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "1rem",
+                  transition: "all 0.2s"
+                }}
+                title="Cerrar aviso"
+              >
+                ✕
+              </button>
             </div>
           </div>
-        ))}
-      </div>
+        )}
 
-      {/* Ventas anteriores (testimonios) */}
-      <div className="home-testimonios" style={{ marginTop: 34 }}>
-        <div style={{ textAlign: 'center', marginBottom: 18 }}>
-          <img
-            src={ventasHeader}
-            alt="Ventas anteriores"
-            style={{
-              maxWidth: '600px',
-              width: '95%',
-              height: 'auto',
-              display: 'inline-block'
-            }}
-          />
-        </div>
-
-        <div
-          className="home-testimonios-list"
-          style={{
-            display: 'flex',
-            overflowX: 'auto',
-            gap: 24,
-            padding: '8px 0 18px 0',
-            scrollSnapType: 'x mandatory',
-            WebkitOverflowScrolling: 'touch',
-            justifyContent: 'center',
-            alignItems: 'stretch',
-            maxWidth: '100vw',
-            margin: '0 auto'
-          }}
-        >
-          {testimonios.slice(0, 6).map((t) => (
-            <div
-              key={t.id}
-              style={{
-                background: 'rgba(34,34,44,0.98)',
-                borderRadius: 18,
-                boxShadow: '0 4px 24px #7b2ff233, 0 1.5px 0 #a084e8',
-                border: '2px solid #393053',
-                padding: 18,
-                minWidth: 180,
-                maxWidth: 220,
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                marginBottom: 10,
-                position: 'relative',
-                overflow: 'visible',
-                color: '#fff',
-                scrollSnapAlign: 'center',
-                aspectRatio: '1/1'
-              }}
+        {/* ══════════════════════════════════
+            SECCIÓN: PROMOCIONES (DepthCarousel)
+        ══════════════════════════════════ */}
+        <section className="home-section">
+          <div className="home-sec-hdr">
+            <div className="home-sec-title-container">
+              <StrokeText
+                text="Promociones"
+                strokeColor="#a259ff"
+                fillColor="#ffffff"
+                strokeWidth={1.6}
+                fontSize={42}
+                fontWeight={900}
+                letterSpacing={-1}
+                trigger="loop"
+                fillMode="wipe"
+              />
+            </div>
+            <SpecularButton
+              size="sm"
+              radius={20}
+              tint="#a259ff"
+              tintOpacity={0.15}
+              lineColor="#a259ff"
+              baseColor="#2d1b4e"
+              intensity={1.2}
+              autoAnimate
+              onClick={() => navigate('/promos')}
             >
-              <div style={{ width: '100%', height: 0, paddingBottom: '100%' }}>
-                <div
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    background: 'transparent',
-                    borderRadius: 14,
-                    overflow: 'hidden',
-                    marginBottom: 14,
-                    boxShadow: '0 2px 12px #a084e822'
-                  }}
+              Ver todo <span className="material-icons" style={{fontSize:16,verticalAlign:'middle',marginLeft:2}}>arrow_forward</span>
+            </SpecularButton>
+          </div>
+
+          <div className="home-section-dual-content">
+            <div className="home-depth-carousel-wrapper" style={{ height: '460px', position: 'relative', margin: '0' }}>
+              <DepthCarousel
+                items={promoCarouselItems}
+                depth={220}
+                spread={90}
+                tilt={22}
+                tiltDirection="right"
+                perspective={1400}
+                visibleCards={4}
+                falloff={0.2}
+                blur={6}
+                autoplay
+                autoplayDelay={3200}
+                loop
+                showControls
+                showIndicators
+                onItemClick={(item) => {
+                  if (item.link) navigate(item.link);
+                }}
+              />
+            </div>
+
+            <div className="home-desktop-side-grid">
+              {promosPreview.slice(0, 4).map((promo) => (
+                <Link key={promo.key} to="/promos" className="home-desktop-mini-card">
+                  <img src={promo.img} alt={promo.title} className="home-desktop-mini-img" loading="lazy" />
+                  <span className="home-desktop-mini-title">{promo.title}</span>
+                  <span className="home-desktop-mini-price">🔥 Oferta Pack</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="home-sec-cta-wrap">
+            <SpecularButton
+              size="md"
+              radius={24}
+              tint="#00f5d4"
+              tintOpacity={0.18}
+              lineColor="#00f5d4"
+              baseColor="#0d3b34"
+              intensity={1.3}
+              autoAnimate
+              onClick={() => navigate('/promos')}
+            >
+              <span className="material-icons" style={{fontSize:18}}>local_fire_department</span>
+              Ver todas las Promociones
+            </SpecularButton>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════
+            SECCIONES POR CATEGORÍA (DepthCarousel + PC Grid)
+        ══════════════════════════════════ */}
+        {([
+          { key: 'steam',         title: 'Steam',           strokeColor: '#a259ff', catId: categoryIds.steam,         catName: categoryNames.steam,         items: previewByCategory.steam,         fallbackImg: steamLogo,            badge: '🔥 Catálogo PC' },
+          { key: 'nintendo',      title: 'Nintendo Switch', strokeColor: '#ff2a6d', catId: categoryIds.nintendo,      catName: categoryNames.nintendo,      items: previewByCategory.nintendo,      fallbackImg: letreroNintendo,      badge: '🎮 Switch 1 & 2' },
+          { key: 'ps4',           title: 'Juegos PS4',      strokeColor: '#0072ce', catId: categoryIds.ps4,           catName: categoryNames.ps4,           items: previewByCategory.ps4,           fallbackImg: letreroPS4,           badge: '⚡ PS4 Digital' },
+          { key: 'ps5',           title: 'Juegos PS5',      strokeColor: '#00d4ff', catId: categoryIds.ps5,           catName: categoryNames.ps5,           items: previewByCategory.ps5,           fallbackImg: letreroPS5,           badge: '🚀 PS5 Next-Gen' },
+          { key: 'streaming',     title: 'Streaming',       strokeColor: '#00f5d4', catId: categoryIds.streaming,     catName: categoryNames.streaming,     items: previewByCategory.streaming,     fallbackImg: letreroStreaming,     badge: '📺 Cuentas & Pases' },
+          { key: 'suscripciones', title: 'Suscripciones',   strokeColor: '#ffb703', catId: categoryIds.suscripciones, catName: categoryNames.suscripciones, items: previewByCategory.suscripciones, fallbackImg: letreroSuscripciones, badge: '⭐ Membresías VIP' },
+        ]).map((sec, secIdx) => {
+          let carouselData = (Array.isArray(sec.items) && sec.items.length > 0)
+            ? sec.items.map(prod => ({
+                image: prod.imageUrl || sec.fallbackImg || pandaLoader,
+                alt: prod.name,
+                title: prod.name,
+                subtitle: getMinPriceForHome(prod) ? formatearPrecio(getMinPriceForHome(prod)) : sec.badge,
+                link: prodUrl(prod.name, prod.id),
+                key: prod.id
+              }))
+            : [
+                { image: sec.fallbackImg || pandaLoader, alt: sec.title, title: sec.title, subtitle: sec.badge, link: sec.catId ? catUrl(sec.catName, sec.catId) : '/productos' }
+              ];
+
+          // Si hay menos de 4 tarjetas, duplicar para mantener la experiencia 3D de DepthCarousel
+          if (carouselData.length > 1 && carouselData.length < 4) {
+            const original = [...carouselData];
+            let step = 0;
+            while (carouselData.length < 4) {
+              const prefix = `dup-${step++}`;
+              for (let i = 0; i < original.length && carouselData.length < 4; i++) {
+                const it = original[i];
+                carouselData.push({ ...it, key: `${it.key || i}-${prefix}` });
+              }
+            }
+          }
+
+          const targetUrl = sec.catId ? catUrl(sec.catName, sec.catId) : '/productos';
+
+          return (
+            <section key={sec.key} className="home-section" id={sec.key === 'nintendo' ? 'home-catalogo' : undefined}>
+              <div className="home-sec-hdr">
+                <div className="home-sec-title-container">
+                  <StrokeText
+                    text={sec.title}
+                    strokeColor={sec.strokeColor}
+                    fillColor="#ffffff"
+                    strokeWidth={1.6}
+                    fontSize={40}
+                    fontWeight={900}
+                    letterSpacing={-1}
+                    trigger="loop"
+                    fillMode="wipe"
+                  />
+                </div>
+                <SpecularButton
+                  size="sm"
+                  radius={20}
+                  tint={sec.strokeColor}
+                  tintOpacity={0.15}
+                  lineColor={sec.strokeColor}
+                  baseColor="#1e2030"
+                  intensity={1.2}
+                  autoAnimate
+                  onClick={() => navigate(targetUrl)}
                 >
-                  <img
-                    src={t.imagen}
-                    alt="Testimonio"
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain',
-                      display: 'block',
-                      borderRadius: 14,
-                      background: 'transparent'
+                  Ver todo <span className="material-icons" style={{fontSize:16,verticalAlign:'middle',marginLeft:2}}>arrow_forward</span>
+                </SpecularButton>
+              </div>
+
+              <div className="home-section-dual-content">
+                <div className="home-depth-carousel-wrapper" style={{ height: '460px', position: 'relative', margin: '0' }}>
+                  <DepthCarousel
+                    items={carouselData}
+                    depth={210}
+                    spread={88}
+                    tilt={22}
+                    tiltDirection={secIdx % 2 === 0 ? 'right' : 'left'}
+                    perspective={1400}
+                    visibleCards={4}
+                    falloff={0.2}
+                    blur={6}
+                    autoplay
+                    autoplayDelay={3400 + secIdx * 300}
+                    loop
+                    showControls
+                    showIndicators
+                    onItemClick={(item) => {
+                      if (item.link) navigate(item.link);
                     }}
                   />
                 </div>
+
+                {Array.isArray(sec.items) && sec.items.length > 0 && (
+                  <div className="home-desktop-side-grid">
+                    {sec.items.slice(0, 4).map((prod) => (
+                      <Link key={prod.id} to={prodUrl(prod.name, prod.id)} className="home-desktop-mini-card">
+                        <img src={prod.imageUrl || sec.fallbackImg || pandaLoader} alt={prod.name} className="home-desktop-mini-img" loading="lazy" />
+                        <span className="home-desktop-mini-title">{prod.name}</span>
+                        <span className="home-desktop-mini-price">
+                          {getMinPriceForHome(prod) ? formatearPrecio(getMinPriceForHome(prod)) : 'Ver precio'}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
+
+              <div className="home-sec-cta-wrap">
+                <SpecularButton
+                  size="md"
+                  radius={24}
+                  tint={sec.strokeColor}
+                  tintOpacity={0.2}
+                  lineColor={sec.strokeColor}
+                  baseColor="#2d1f48"
+                  intensity={1.3}
+                  autoAnimate
+                  onClick={() => navigate(targetUrl)}
+                >
+                  <span className="material-icons" style={{fontSize:18}}>explore</span>
+                  Ver todo {sec.title}
+                </SpecularButton>
+              </div>
+            </section>
+          );
+        })}
+
+        {/* ══════════════════════════════════
+            SECCIÓN: VENTAS / TESTIMONIOS (DriftWall)
+        ══════════════════════════════════ */}
+        {testimonios.length > 0 && (
+          <section className="home-section home-section-testi">
+            <div style={{ textAlign: 'center', marginBottom: 20 }}>
+              <img src={ventasHeader} alt="Ventas anteriores" style={{ maxWidth: 520, width: '92%', height: 'auto' }} />
             </div>
-          ))}
+            <div className="home-driftwall-wrapper" style={{ height: 480, position: 'relative', width: '100%', overflow: 'hidden', borderRadius: 20, margin: '20px 0' }}>
+              <DriftWall
+                items={driftWallItems}
+                columns={5}
+                tileWidth={220}
+                tileHeight={140}
+                gap={18}
+                tilt={16}
+                turn={-14}
+                perspective={1200}
+                depth={120}
+                speed={42}
+                direction="up"
+                variance={0.45}
+                parallax={0.6}
+                lift={64}
+                fade={0.6}
+                dim={0.65}
+                overlayColor="#060010"
+              />
+            </div>
+            <div className="home-sec-cta-wrap" style={{marginTop: 24}}>
+              <SpecularButton
+                size="md"
+                radius={24}
+                tint="#a259ff"
+                tintOpacity={0.2}
+                lineColor="#a259ff"
+                baseColor="#2d1f48"
+                intensity={1.3}
+                autoAnimate
+                onClick={() => navigate('/testimonios')}
+              >
+                Ver más ventas
+              </SpecularButton>
+            </div>
+          </section>
+        )}
+
+        {/* ══════════════════════════════════
+            FOOTER CTA FINAL
+        ══════════════════════════════════ */}
+        <div className="home-footer-cta">
+          <div className="home-footer-cta-orb" />
+          <h2 className="home-footer-cta-title">Tu próximo juego favorito te espera</h2>
+          <p className="home-footer-cta-sub">Compra en segundos, recibe al instante. Miles de títulos para PS4, PS5, Nintendo Switch y más.</p>
+          <div style={{display:'flex',gap:16,justifyContent:'center',flexWrap:'wrap',alignItems:'center'}}>
+            <SpecularButton
+              size="lg"
+              radius={26}
+              tint="#00f5d4"
+              tintOpacity={0.25}
+              lineColor="#00f5d4"
+              baseColor="#0e3d36"
+              intensity={1.5}
+              autoAnimate
+              onClick={() => navigate('/promos')}
+            >
+              Ver Ofertas
+            </SpecularButton>
+            <SpecularButton
+              size="lg"
+              radius={26}
+              tint="#a259ff"
+              tintOpacity={0.25}
+              lineColor="#a259ff"
+              baseColor="#321b54"
+              intensity={1.5}
+              autoAnimate
+              onClick={() => navigate(categoryIds.nintendo ? catUrl(categoryNames.nintendo, categoryIds.nintendo) : '/productos')}
+            >
+              Ver Catálogo
+            </SpecularButton>
+          </div>
         </div>
 
-        <style>{`
-          @media (min-width: 700px) {
-            .home-testimonios-list {
-              overflow-x: visible !important;
-              justify-content: center !important;
-              flex-wrap: nowrap !important;
-              gap: 24px !important;
-              max-width: 1200px;
-              margin: 0 auto;
-            }
-            .home-testimonios-list > div {
-              min-width: 140px !important;
-              max-width: 180px !important;
-              flex: 1 1 0 !important;
-            }
-          }
-        `}</style>
+      </div>
+    </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 18 }}>
-          <Link
-            to="/testimonios"
-            style={{
-              background: 'linear-gradient(90deg, #7b2ff2 0%, #f357a8 100%)',
-              color: '#fff',
-              fontWeight: 900,
-              fontSize: '1.05rem',
-              border: 'none',
-              borderRadius: 12,
-              padding: '12px 34px',
-              boxShadow: '0 8px 22px #7b2ff233',
-              textDecoration: 'none',
-              display: 'inline-block'
-            }}
-          >
-            Ver más Ventas
-          </Link>
+    {/* Variant / Subscription modal */}
+    {modal.open && (
+      <div className="catpage-modal-overlay" onClick={e => { if (e.target === e.currentTarget) setModal({ open: false, prod: null, opciones: [], tipo: null }); }}>
+        <div className="catpage-modal-card">
+          <h3>Selecciona una opci&oacute;n</h3>
+          <ul className="catpage-modal-options">
+            {modal.opciones.map(op => (
+              <li key={op.value}>
+                <button
+                  className="catpage-modal-option-btn"
+                  onClick={() => handleCartModal(op)}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 4,
+                    width: "100%",
+                    padding: "12px 16px"
+                  }}
+                >
+                  <span style={{ fontSize: "1rem", fontWeight: 700 }}>{op.label}</span>
+                  <span style={{ fontSize: "1.05rem", fontWeight: 800, color: op.isResellerPrice ? "#00f5d4" : "#ffffff" }}>
+                    {formatearPrecio(op.priceCLP)}
+                  </span>
+                  {op.isResellerPrice && (
+                    <span style={{
+                      fontSize: "0.72rem",
+                      color: "#00f5d4",
+                      background: "rgba(0, 245, 212, 0.15)",
+                      border: "1px solid rgba(0, 245, 212, 0.3)",
+                      padding: "2px 8px",
+                      borderRadius: 4,
+                      fontWeight: 700
+                    }}>
+                      💎 Descuento Revendedor (-$5.000)
+                    </span>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <button className="catpage-modal-cancel" onClick={() => setModal({ open: false, prod: null, opciones: [], tipo: null })}>Cancelar</button>
         </div>
       </div>
-      </div>
+    )}
     </>
   );
 }

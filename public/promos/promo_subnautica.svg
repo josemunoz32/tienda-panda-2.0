@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a051b" />
+      <stop offset="50%" stop-color="#140a33" />
+      <stop offset="100%" stop-color="#06030e" />
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#a259ff" stop-opacity="0.8"/>
+    </linearGradient>
+    <linearGradient id="cardBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0ea5e9"/>
+      <stop offset="100%" stop-color="#7b2ff2"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0ea5e9" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="450" fill="url(#bg)"/>
+  
+  <!-- Subtle Grid Pattern -->
+  <path d="M0,75 H800 M0,150 H800 M0,225 H800 M0,300 H800 M0,375 H800" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+  <path d="M133,0 V450 M266,0 V450 M400,0 V450 M533,0 V450 M666,0 V450" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+
+  <!-- Ambient Light Orbs -->
+  <circle cx="150" cy="150" r="180" fill="#0ea5e9" opacity="0.15" filter="blur(50px)"/>
+  <circle cx="650" cy="300" r="200" fill="#7b2ff2" opacity="0.12" filter="blur(60px)"/>
+
+  <!-- Outer Frame -->
+  <rect x="15" y="15" width="770" height="420" rx="20" fill="none" stroke="url(#cardBorder)" stroke-width="3" opacity="0.8"/>
+
+  <!-- Top Badge -->
+  <g transform="translate(40, 40)">
+    <rect width="210" height="32" rx="16" fill="rgba(162, 89, 255, 0.2)" stroke="rgba(162, 89, 255, 0.5)" stroke-width="1.5"/>
+    <text x="105" y="21" fill="#e0baff" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="900" text-anchor="middle" letter-spacing="1.5">PANDASTORE SAGA VIP</text>
+  </g>
+
+  <!-- Big Icon Center-Right -->
+  <text x="600" y="260" font-size="140" text-anchor="middle" filter="url(#shadow)" opacity="0.9">🌊</text>
+
+  <!-- Content Left -->
+  <g transform="translate(50, 190)">
+    <!-- Main Title -->
+    <text x="0" y="40" fill="#ffffff" font-family="'Inter', 'Segoe UI', sans-serif" font-size="38" font-weight="900" letter-spacing="0.5">SUBNAUTICA</text>
+    
+    <!-- Subtitle -->
+    <text x="0" y="80" fill="#c4b5fd" font-family="'Segoe UI', sans-serif" font-size="20" font-weight="600">Original & Below Zero</text>
+
+    <!-- Tag Pills -->
+    <g transform="translate(0, 115)">
+      <rect x="0" y="0" width="180" height="36" rx="8" fill="url(#glow)"/>
+      <text x="90" y="23" fill="#ffffff" font-family="'Segoe UI', sans-serif" font-size="14" font-weight="800" text-anchor="middle">🎮 COLECCIÓN COMPLETA</text>
+
+      <rect x="195" y="0" width="160" height="36" rx="8" fill="rgba(0,0,0,0.5)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+      <text x="275" y="23" fill="#00f5d4" font-family="'Segoe UI', sans-serif" font-size="14" font-weight="800" text-anchor="middle">⚡ MODOS HISTORIA</text>
+    </g>
+  </g>
+
+  <!-- Bottom Brand Watermark -->
+  <text x="750" y="415" fill="rgba(255,255,255,0.3)" font-family="'Segoe UI', sans-serif" font-size="13" font-weight="700" text-anchor="end">PandaStore 2.0 Premium Bundle</text>
+</svg>

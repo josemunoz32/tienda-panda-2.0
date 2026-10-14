@@ -1,483 +1,187 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { collection, getDocs, limit, onSnapshot, orderBy, query } from "firebase/firestore";
+import { onValue, ref } from "firebase/database";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { db, database } from "../../firebase";
-import { collection, getDocs, collectionGroup } from "firebase/firestore";
-import { ref, onValue } from "firebase/database";
-import { Link } from "react-router-dom";
 import "./AdminDashboard.css";
+import { useMoneda } from "../../context/MonedaContext";
 
-/* ── helpers ── */
-function parseDate(val) {
-  if (!val) return null;
-  if (val.toDate) return val.toDate();
-  if (typeof val === "string") return new Date(val);
-  if (typeof val === "number") return new Date(val);
-  if (val.seconds) return new Date(val.seconds * 1000);
-  return null;
+const PERIODS = [["hoy", "Hoy"], ["semana", "7 días"], ["mes", "30 días"], ["3meses", "3 meses"], ["todo", "Todo"]];
+const PAID = new Set(["exitoso", "completado", "aprobado", "pagado", "paid", "completed", "approved"]);
+const dateOf = (value) => {
+  if (!value) return null;
+  if (value.toDate) return value.toDate();
+  if (value.seconds) return new Date(value.seconds * 1000);
+  const result = new Date(value);
+  return Number.isNaN(result.getTime()) ? null : result;
+};
+const isPaid = (order) => order.entregado === true || order.pagoConfirmado === true || PAID.has(String(order.estado || order.status || order.paymentStatus || "").toLowerCase());
+const orderDate = (order) => dateOf(order.fecha || order.createdAt || order.timestamp);
+const itemsOf = (order) => [order.productos, order.items, order.cart, order.products].find(Array.isArray) || [];
+// Firestore debería guardar montos como número, pero los pedidos antiguos pueden
+// traer "$ 10.000" o "10,000". Se normalizan sin asumir ni redondear valores.
+const numberValue = (value) => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  if (typeof value !== "string") return 0;
+  const raw = value.trim().replace(/[^0-9,.-]/g, "");
+  if (!raw) return 0;
+  const lastComma = raw.lastIndexOf(",");
+  const lastDot = raw.lastIndexOf(".");
+  let normalized = raw;
+  if (lastComma >= 0 && lastDot >= 0) {
+    const decimal = lastComma > lastDot ? "," : ".";
+    normalized = raw.replace(decimal === "," ? /\./g : /,/g, "").replace(decimal, ".");
+  } else if (lastComma >= 0) normalized = /,\d{1,2}$/.test(raw) ? raw.replace(",", ".") : raw.replace(/,/g, "");
+  else if (/\.\d{3}(\.\d{3})+$/.test(raw) || /\.\d{3}$/.test(raw)) normalized = raw.replace(/\./g, "");
+  const result = Number(normalized);
+  return Number.isFinite(result) ? result : 0;
+};
+const money = (amount, currency = "CLP") => new Intl.NumberFormat(currency === "USD" ? "en-US" : "es-CL", { style: "currency", currency, maximumFractionDigits: currency === "CLP" ? 0 : 2 }).format(numberValue(amount));
+const displayName = (item) => item?.name || item?.nombre || item?.title || item?.productName || "Producto sin nombre";
+const eventDate = (event) => dateOf(event.timestamp || event.createdAt);
+const orderCurrency = (order) => {
+  const raw = String(order.moneda || order.currency || order.monedaLocal || "").trim().toUpperCase();
+  if (raw.includes("USD") || raw.includes("US$") || raw.includes("DOLAR")) return "USD";
+  // Algunos registros antiguos sólo tenían el total USD, sin el campo moneda.
+  if (!raw && order.totalUSD !== undefined && order.totalUSD !== null && (order.totalCLP === undefined || order.totalCLP === null)) return "USD";
+  return "CLP";
+};
+const orderAmount = (order, currency = orderCurrency(order)) => numberValue(currency === "USD"
+  ? order.totalUSD ?? order.totalUsd ?? order.total ?? order.amount ?? order.monto
+  : order.totalCLP ?? order.totalClp ?? order.total ?? order.totalPrice ?? order.amount ?? order.monto);
+
+function cutOff(period) {
+  if (period === "todo") return null;
+  const result = new Date();
+  if (period === "hoy") result.setHours(0, 0, 0, 0);
+  if (period === "semana") result.setDate(result.getDate() - 7);
+  if (period === "mes") result.setMonth(result.getMonth() - 1);
+  if (period === "3meses") result.setMonth(result.getMonth() - 3);
+  return result;
 }
 
-function getRange(key) {
-  const now = new Date();
-  const start = new Date(now);
-  switch (key) {
-    case "hoy":
-      start.setHours(0, 0, 0, 0);
-      return start;
-    case "semana":
-      start.setDate(now.getDate() - 7);
-      return start;
-    case "mes":
-      start.setMonth(now.getMonth() - 1);
-      return start;
-    case "3meses":
-      start.setMonth(now.getMonth() - 3);
-      return start;
-    default:
-      return null;
-  }
+function Empty({ children }) { return <div className="adm-table-empty">{children}</div>; }
+function RankedList({ items, empty, value }) {
+  return items.length ? <div className="adm-event-feed">{items.map((item, index) => <div className="adm-event-row" key={item.key || item.name || item.term}><span className="adm-event-badge">#{index + 1}</span><span className="adm-event-prod" title={item.name || item.term}>{item.name || item.term}</span><b className="adm-event-val">{value(item)}</b></div>)}</div> : <Empty>{empty}</Empty>;
 }
 
-const TIME_OPTIONS = [
-  { key: "hoy", label: "Hoy" },
-  { key: "semana", label: "7 días" },
-  { key: "mes", label: "30 días" },
-  { key: "3meses", label: "3 meses" },
-  { key: "todo", label: "Todo" },
-];
-
-function fmtCurrency(val, currency) {
-  if (currency === "USD")
-    return val.toLocaleString("en-US", { style: "currency", currency: "USD" });
-  return val.toLocaleString("es-CL", { style: "currency", currency: "CLP" });
-}
-
-function fmtDate(val) {
-  const d = parseDate(val);
-  if (!d || isNaN(d)) return "-";
-  return d.toLocaleDateString("es-CL", { day: "2-digit", month: "short", year: "numeric" });
-}
-
-function fmtShortDate(val) {
-  const d = parseDate(val);
-  if (!d || isNaN(d)) return "-";
-  return d.toLocaleDateString("es-CL", { day: "2-digit", month: "short" });
-}
-
-function buildDailyBuckets(items, dateField, valueField, days) {
-  const now = new Date();
-  const buckets = [];
-  for (let i = days - 1; i >= 0; i--) {
-    const day = new Date(now);
-    day.setDate(now.getDate() - i);
-    day.setHours(0, 0, 0, 0);
-    const nextDay = new Date(day);
-    nextDay.setDate(day.getDate() + 1);
-    let total = 0;
-    items.forEach((it) => {
-      const d = parseDate(it[dateField]);
-      if (d && d >= day && d < nextDay) total += Number(it[valueField]) || 0;
-    });
-    buckets.push({ date: new Date(day), total });
-  }
-  return buckets;
-}
-
-/* ── component ── */
 export default function AdminDashboard() {
-  const [rawData, setRawData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [timeFilter, setTimeFilter] = useState("todo");
-  const [activeUsers, setActiveUsers] = useState(0);
-
-  /* Listen to presence node in Realtime Database — count unique UIDs */
-  useEffect(() => {
-    const presenceRef = ref(database, "presence");
-    const unsub = onValue(presenceRef, (snap) => {
-      const val = snap.val();
-      if (!val) { setActiveUsers(0); return; }
-      const uniqueUids = new Set();
-      Object.values(val).forEach((entry) => {
-        if (entry && entry.online) uniqueUids.add(entry.uid || "anon");
-      });
-      setActiveUsers(uniqueUids.size);
-    });
-    return () => unsub();
-  }, []);
+  const { valorDolar } = useMoneda();
+  const [store, setStore] = useState(null);
+  const [events, setEvents] = useState([]);
+  const [online, setOnline] = useState(0);
+  const [period, setPeriod] = useState("todo");
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
-    async function fetchAll() {
-      setLoading(true);
-      const [usersSnap, productsSnap, ordersSnap, reviewsSnap] = await Promise.all([
-        getDocs(collection(db, "users")),
-        getDocs(collection(db, "products")),
-        getDocs(collection(db, "orders")),
-        getDocs(collectionGroup(db, "reviews")),
-      ]);
-      const users = usersSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      const products = productsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      const orders = ordersSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      const reviews = reviewsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setRawData({ users, products, orders, reviews });
-      setLoading(false);
-    }
-    fetchAll();
+    let active = true;
+    Promise.all(["users", "products", "orders"].map(async (name) => {
+      const snapshot = await getDocs(collection(db, name));
+      return [name, snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))];
+    })).then((entries) => active && setStore(Object.fromEntries(entries))).catch(() => active && setLoadError("No fue posible cargar parte de los datos de la tienda."));
+    return () => { active = false; };
   }, []);
 
-  const filtered = useMemo(() => {
-    if (!rawData) return null;
-    const cutoff = getRange(timeFilter);
-    const inRange = (item, field) => {
-      if (!cutoff) return true;
-      const d = parseDate(item[field]);
-      return d && d >= cutoff;
-    };
-    const users = cutoff ? rawData.users.filter((u) => inRange(u, "createdAt")) : rawData.users;
-    const orders = cutoff ? rawData.orders.filter((o) => inRange(o, "fecha")) : rawData.orders;
-    const reviews = cutoff ? rawData.reviews.filter((r) => inRange(r, "date")) : rawData.reviews;
+  useEffect(() => onSnapshot(query(collection(db, "analyticsEvents"), orderBy("timestamp", "desc"), limit(2000)), (snapshot) => setEvents(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))), () => setLoadError("No fue posible leer los eventos analíticos.")), []);
+  useEffect(() => onValue(ref(database, "presence"), (snapshot) => {
+    const ids = new Set();
+    Object.values(snapshot.val() || {}).forEach((entry) => { if (entry?.online) ids.add(entry.uid || entry.sessionId || "anónimo"); });
+    setOnline(ids.size);
+  }), []);
 
-    let ventasUSD = 0, ventasCLP = 0, resenasOcultas = 0;
-    orders.forEach((o) => {
-      if (o.total && o.moneda === "USD") ventasUSD += Number(o.total);
-      if (o.total && o.moneda === "CLP") ventasCLP += Number(o.total);
-    });
-    reviews.forEach((r) => { if (r.visible === false) resenasOcultas++; });
-
-    const sortedUsers = [...users].sort((a, b) => {
-      const da = parseDate(a.createdAt), db2 = parseDate(b.createdAt);
-      return (db2 || 0) - (da || 0);
-    }).slice(0, 6);
-    const sortedOrders = [...orders].sort((a, b) => {
-      const da = parseDate(a.fecha), db2 = parseDate(b.fecha);
-      return (db2 || 0) - (da || 0);
-    }).slice(0, 6);
-    const sortedReviews = [...reviews].sort((a, b) => {
-      const da = parseDate(a.date), db2 = parseDate(b.date);
-      return (db2 || 0) - (da || 0);
-    }).slice(0, 6);
-
-    const ordersUSD = rawData.orders.filter((o) => o.moneda === "USD");
-    const ordersCLP = rawData.orders.filter((o) => o.moneda === "CLP");
-    const barDays = timeFilter === "hoy" ? 1 : timeFilter === "semana" ? 7 : timeFilter === "mes" ? 30 : timeFilter === "3meses" ? 14 : 14;
-    const barsUSD = buildDailyBuckets(ordersUSD, "fecha", "total", barDays);
-    const barsCLP = buildDailyBuckets(ordersCLP, "fecha", "total", barDays);
-
-    // Previous period comparison
-    let prevOrders = rawData.orders;
-    let prevUsers = rawData.users;
-    if (cutoff) {
-      const duration = Date.now() - cutoff.getTime();
-      const prevCutoff = new Date(cutoff.getTime() - duration);
-      prevOrders = rawData.orders.filter((o) => {
-        const d = parseDate(o.fecha);
-        return d && d >= prevCutoff && d < cutoff;
+  const model = useMemo(() => {
+    if (!store) return null;
+    const from = cutOff(period);
+    const within = (date) => !from || Boolean(date && date >= from);
+    const allOrders = store.orders;
+    const orders = allOrders.filter((order) => within(orderDate(order)));
+    const paidOrders = orders.filter(isPaid);
+    const periodEvents = events.filter((event) => within(eventDate(event)));
+    const productIndex = new Map();
+    store.products.forEach((product) => [product.id, product.name, product.nombre, product.title].filter(Boolean).forEach((key) => productIndex.set(String(key).trim().toLowerCase(), product)));
+    const monthly = new Map();
+    let historicalCLP = 0; let historicalUSD = 0; let profit = 0; let profitOrders = 0;
+    const sold = new Map();
+    // Los ingresos históricos usan cada pedido guardado, incluso los creados antes
+    // de que existieran los campos de confirmación de pago.
+    orders.forEach((order) => {
+      const currency = orderCurrency(order);
+      const total = orderAmount(order, currency);
+      if (currency === "USD") historicalUSD += total; else historicalCLP += total;
+      const date = orderDate(order);
+      if (date) {
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+        const bucket = monthly.get(key) || { key, name: date.toLocaleDateString("es-CL", { month: "short", year: "2-digit" }), ingresos: 0, ganancia: 0, pedidosConCosto: 0 };
+        if (currency !== "USD") bucket.ingresos += total;
+        monthly.set(key, bucket);
+      }
+      const items = itemsOf(order);
+      let orderProfit = 0; let costComplete = currency !== "USD" && items.length > 0;
+      items.forEach((item) => {
+        const product = productIndex.get(String(item.id || item.productId || displayName(item)).trim().toLowerCase());
+        const rawCost = product?.costo_clp ?? product?.costCLP;
+        const cost = numberValue(rawCost);
+        const quantity = Math.max(1, numberValue(item.quantity ?? item.cantidad ?? 1));
+        const rawUnit = item.precio ?? item.priceCLP ?? item.price ?? (items.length === 1 ? total : null);
+        const unit = numberValue(rawUnit);
+        if (rawCost === undefined || rawCost === null || rawUnit === undefined || rawUnit === null) costComplete = false;
+        else orderProfit += (unit - cost) * quantity;
+        const key = String(item.id || item.productId || displayName(item)).toLowerCase();
+        const entry = sold.get(key) || { key, name: displayName(item), quantity: 0 };
+        entry.quantity += quantity; sold.set(key, entry);
       });
-      prevUsers = rawData.users.filter((u) => {
-        const d = parseDate(u.createdAt);
-        return d && d >= prevCutoff && d < cutoff;
-      });
-    }
-    let prevUSD = 0, prevCLP = 0;
-    prevOrders.forEach((o) => {
-      if (o.total && o.moneda === "USD") prevUSD += Number(o.total);
-      if (o.total && o.moneda === "CLP") prevCLP += Number(o.total);
+      if (costComplete && date) {
+        profit += orderProfit; profitOrders += 1;
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+        const bucket = monthly.get(key); bucket.ganancia += orderProfit; bucket.pedidosConCosto += 1;
+      }
     });
-
-    return {
-      totalUsers: rawData.users.length,
-      totalProducts: rawData.products.length,
-      users: users.length,
-      orders: orders.length,
-      reviews: reviews.length,
-      resenasOcultas,
-      ventasUSD,
-      ventasCLP,
-      prevUSD,
-      prevCLP,
-      prevOrders: prevOrders.length,
-      prevUsers: cutoff ? prevUsers.length : null,
-      sortedUsers,
-      sortedOrders,
-      sortedReviews,
-      barsUSD,
-      barsCLP,
+    const group = (filter, key, name) => {
+      const result = new Map();
+      periodEvents.filter(filter).forEach((event) => { const raw = String(key(event) || "").trim(); if (!raw) return; const normalized = raw.toLowerCase(); const entry = result.get(normalized) || { key: normalized, name: name(event, raw), count: 0 }; entry.count += 1; result.set(normalized, entry); });
+      return [...result.values()].sort((a, b) => b.count - a.count).slice(0, 8);
     };
-  }, [rawData, timeFilter]);
+    const pageViews = periodEvents.filter((event) => event.event === "page_view");
+    const productViews = group((event) => event.event === "view_item", (event) => event.productId || event.productName, (event, fallback) => event.productName || fallback);
+    const cartAdds = group((event) => event.event === "add_to_cart", (event) => event.productId || event.productName, (event, fallback) => event.productName || fallback);
+    const searches = group((event) => event.event === "search", (event) => event.searchTerm || event.query, (_, fallback) => fallback);
+    const pages = group((event) => event.event === "page_view", (event) => String(event.page || "").replace(/\?.*/, ""), (_, fallback) => fallback);
+    const roles = store.users.reduce((result, user) => { const role = String(user.role || "cliente").trim().toLowerCase() || "cliente"; result.set(role, (result.get(role) || 0) + 1); return result; }, new Map());
+    const stockSet = store.products.filter((product) => product.stock !== undefined && product.stock !== null);
+    const stateCounts = orders.reduce((result, order) => { const state = isPaid(order) ? "confirmado" : String(order.estado || order.status || "sin estado").toLowerCase(); result.set(state, (result.get(state) || 0) + 1); return result; }, new Map());
+    const visitors = new Set(periodEvents.map((event) => event.sessionId || event.userId).filter(Boolean)).size;
+    return { orders, paidOrders, historicalCLP, historicalUSD, profit, profitOrders, monthly: [...monthly.values()].sort((a, b) => a.key.localeCompare(b.key)).slice(-12), sold: [...sold.values()].sort((a, b) => b.quantity - a.quantity).slice(0, 8), productViews, cartAdds, searches, pages, roles: [...roles.entries()].sort((a, b) => b[1] - a[1]), stockSet, noStock: stockSet.filter((product) => numberValue(product.stock) <= 0).length, stateCounts: [...stateCounts.entries()].sort((a, b) => b[1] - a[1]), visitors, pageViews: pageViews.length, purchases: periodEvents.filter((event) => event.event === "purchase").length };
+  }, [store, events, period]);
 
-  if (loading || !filtered) {
-    return (
-      <div className="adm-dash">
-        <div className="adm-loading">
-          <div className="adm-loading-spinner" />
-          <div className="adm-loading-text">Cargando dashboard...</div>
-        </div>
-      </div>
-    );
-  }
-
-  const pctChange = (curr, prev) => {
-    if (!prev || prev === 0) return null;
-    return Math.round(((curr - prev) / prev) * 100);
-  };
-
-  const usdChange = pctChange(filtered.ventasUSD, filtered.prevUSD);
-  const clpChange = pctChange(filtered.ventasCLP, filtered.prevCLP);
-  const ordersChange = pctChange(filtered.orders, filtered.prevOrders);
-  const usersChange = filtered.prevUsers !== null ? pctChange(filtered.users, filtered.prevUsers) : null;
-
-  return (
-    <div className="adm-dash">
-      {/* HEADER */}
-      <div className="adm-dash-header">
-        <div>
-          <h1 className="adm-dash-title">Panel <span>Administrativo</span></h1>
-          <p className="adm-dash-subtitle">
-            Resumen general · {filtered.totalUsers} usuarios · {filtered.totalProducts} productos
-          </p>
-        </div>
-        <div className="adm-live-users">
-          <span className="adm-live-dot" />
-          <span className="adm-live-count">{activeUsers}</span>
-          <span className="adm-live-label">en línea ahora</span>
-        </div>
-        <div className="adm-time-filter">
-          {TIME_OPTIONS.map((opt) => (
-            <button
-              key={opt.key}
-              className={`adm-time-btn${timeFilter === opt.key ? " active" : ""}`}
-              onClick={() => setTimeFilter(opt.key)}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* KPI CARDS */}
-      <div className="adm-kpi-grid">
-        <KpiCard
-          icon="👥" label="Usuarios" value={filtered.users}
-          change={usersChange}
-          color="#8b5cf6" bg="rgba(139,92,246,0.12)"
-        />
-        <KpiCard
-          icon="📦" label="Pedidos" value={filtered.orders}
-          change={ordersChange}
-          color="#f59e0b" bg="rgba(245,158,11,0.12)"
-        />
-        <KpiCard
-          icon="⭐" label="Reseñas" value={filtered.reviews}
-          change={null}
-          color="#22c55e" bg="rgba(34,197,94,0.12)"
-        />
-        <KpiCard
-          icon="🚫" label="Reseñas Ocultas" value={filtered.resenasOcultas}
-          change={null}
-          color="#ef4444" bg="rgba(239,68,68,0.12)"
-        />
-      </div>
-
-      {/* REVENUE CARDS */}
-      <div className="adm-revenue-row">
-        <RevenueCard
-          label="Ventas USD"
-          amount={fmtCurrency(filtered.ventasUSD, "USD")}
-          change={usdChange}
-          bars={filtered.barsUSD}
-          barColor="#22c55e"
-          badgeBg="rgba(34,197,94,0.12)"
-          badgeColor="#22c55e"
-        />
-        <RevenueCard
-          label="Ventas CLP"
-          amount={fmtCurrency(filtered.ventasCLP, "CLP")}
-          change={clpChange}
-          bars={filtered.barsCLP}
-          barColor="#38bdf8"
-          badgeBg="rgba(56,189,248,0.12)"
-          badgeColor="#38bdf8"
-        />
-      </div>
-
-      {/* TABLES */}
-      <div className="adm-tables-grid">
-        <div className="adm-table-card">
-          <div className="adm-table-header">
-            <h3 className="adm-table-title">
-              <span className="adm-table-title-icon" style={{ background: "rgba(139,92,246,0.15)" }}>👥</span>
-              Últimos Usuarios
-            </h3>
-            <span className="adm-table-count">{filtered.users}</span>
-          </div>
-          <div className="adm-table-scroll">
-            {filtered.sortedUsers.length === 0 ? (
-              <div className="adm-table-empty">Sin datos en este período</div>
-            ) : (
-              <table className="adm-table">
-                <thead><tr><th>Email</th><th>Nombre</th><th>Registro</th></tr></thead>
-                <tbody>
-                  {filtered.sortedUsers.map((u) => (
-                    <tr key={u.id}>
-                      <td className="adm-table-email">{u.email || "-"}</td>
-                      <td>{u.displayName || u.nombre || "-"}</td>
-                      <td>{fmtDate(u.createdAt)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-
-        <div className="adm-table-card">
-          <div className="adm-table-header">
-            <h3 className="adm-table-title">
-              <span className="adm-table-title-icon" style={{ background: "rgba(245,158,11,0.15)" }}>📦</span>
-              Últimos Pedidos
-            </h3>
-            <span className="adm-table-count">{filtered.orders}</span>
-          </div>
-          <div className="adm-table-scroll">
-            {filtered.sortedOrders.length === 0 ? (
-              <div className="adm-table-empty">Sin datos en este período</div>
-            ) : (
-              <table className="adm-table">
-                <thead><tr><th>Total</th><th>Moneda</th><th>Fecha</th></tr></thead>
-                <tbody>
-                  {filtered.sortedOrders.map((o) => (
-                    <tr key={o.id}>
-                      <td>
-                        <span className={`adm-money-badge ${o.moneda === "USD" ? "adm-money-usd" : "adm-money-clp"}`}>
-                          {o.moneda === "USD"
-                            ? Number(o.total).toLocaleString("en-US", { minimumFractionDigits: 2 })
-                            : Number(o.total).toLocaleString("es-CL")}
-                        </span>
-                      </td>
-                      <td>{o.moneda || "-"}</td>
-                      <td>{fmtDate(o.fecha)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-
-        <div className="adm-table-card">
-          <div className="adm-table-header">
-            <h3 className="adm-table-title">
-              <span className="adm-table-title-icon" style={{ background: "rgba(34,197,94,0.15)" }}>⭐</span>
-              Últimas Reseñas
-            </h3>
-            <span className="adm-table-count">{filtered.reviews}</span>
-          </div>
-          <div className="adm-table-scroll">
-            {filtered.sortedReviews.length === 0 ? (
-              <div className="adm-table-empty">Sin datos en este período</div>
-            ) : (
-              <table className="adm-table">
-                <thead><tr><th>Usuario</th><th>Comentario</th><th>Fecha</th></tr></thead>
-                <tbody>
-                  {filtered.sortedReviews.map((r) => (
-                    <tr key={r.id}>
-                      <td>{r.userName || "-"}</td>
-                      <td title={r.comment}>{r.comment ? (r.comment.length > 40 ? r.comment.slice(0, 40) + "…" : r.comment) : "-"}</td>
-                      <td>{fmtDate(r.date)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* QUICK ACTIONS */}
-      <div className="adm-quick-section">
-        <div className="adm-quick-label">Accesos Rápidos</div>
-        <div className="adm-quick-grid">
-          <Link to="/admin/usuarios" className="adm-quick-btn">
-            <span className="adm-quick-icon" style={{ background: "rgba(139,92,246,0.15)" }}>👥</span>
-            <span className="adm-quick-text">Gestión Usuarios</span>
-          </Link>
-          <Link to="/admin/resenas" className="adm-quick-btn">
-            <span className="adm-quick-icon" style={{ background: "rgba(34,197,94,0.15)" }}>⭐</span>
-            <span className="adm-quick-text">Gestión Reseñas</span>
-          </Link>
-          <Link to="/admin/cupones" className="adm-quick-btn">
-            <span className="adm-quick-icon" style={{ background: "rgba(245,158,11,0.15)" }}>🎟️</span>
-            <span className="adm-quick-text">Gestión Cupones</span>
-          </Link>
-          <Link to="/admin/preguntas" className="adm-quick-btn">
-            <span className="adm-quick-icon" style={{ background: "rgba(99,102,241,0.15)" }}>💬</span>
-            <span className="adm-quick-text">Gestión Preguntas</span>
-          </Link>
-          <Link to="/categorias" className="adm-quick-btn">
-            <span className="adm-quick-icon" style={{ background: "rgba(56,189,248,0.15)" }}>📂</span>
-            <span className="adm-quick-text">Categorías</span>
-          </Link>
-          <Link to="/productos" className="adm-quick-btn">
-            <span className="adm-quick-icon" style={{ background: "rgba(236,72,153,0.15)" }}>🛍️</span>
-            <span className="adm-quick-text">Productos</span>
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
+  if (!model) return <div className="adm-dash"><div className="adm-loading"><div className="adm-loading-spinner" /><div className="adm-loading-text">Cargando datos reales de la tienda…</div></div></div>;
+  const label = PERIODS.find(([key]) => key === period)?.[1];
+  const cardStyle = { background: "rgba(15,23,42,.72)", border: "1px solid rgba(148,163,184,.18)", borderRadius: 16, padding: 18 };
+  return <div className="adm-dash">
+    <header className="adm-dash-header"><div><h1 className="adm-dash-title">Tablero <span>Analítico</span></h1><p className="adm-dash-subtitle">Una sola vista de la operación real de PandaStore · período: {label}</p></div><div className="adm-time-filter">{PERIODS.map(([key, name]) => <button key={key} className={`adm-time-btn${period === key ? " active" : ""}`} onClick={() => setPeriod(key)}>{name}</button>)}</div></header>
+    {loadError && <div className="adm-event-empty" style={{ marginBottom: 16 }}>{loadError}</div>}
+    <section className="adm-kpi-grid">
+      <Metric icon="●" label="En línea ahora" value={online} color="#4ade80" />
+      <Metric icon="✓" label="Pedidos confirmados" value={model.paidOrders.length} color="#60a5fa" />
+      <Metric icon="$" label="Ingresos de pedidos CLP" value={money(model.historicalCLP)} color="#38bdf8" />
+      <Metric icon="$" label="Ingresos de pedidos USD" value={money(model.historicalUSD, "USD")} color="#4ade80" />
+      <Metric icon="↗" label="Ganancia calculable CLP" value={model.profitOrders ? money(model.profit) : "Sin respaldo"} color="#fbbf24" />
+      <Metric icon="💵" label="Dólar Web Fijado" value={`$${(valorDolar || 900).toLocaleString("es-CL")} CLP`} color="#10b981" />
+    </section>
+    <section style={{ ...cardStyle, marginBottom: 18 }}><div className="adm-card-head"><div><h2 className="adm-section-title" style={{ margin: 0 }}>Ingresos y ganancia mensual</h2><p className="adm-dash-subtitle">Incluye todos los pedidos fechados del período; la ganancia sólo usa productos con costo real registrado.</p></div></div>{model.monthly.length ? <ResponsiveContainer width="100%" height={270}><AreaChart data={model.monthly} margin={{ top: 15, right: 15, left: 0, bottom: 0 }}><defs><linearGradient id="revenue" x1="0" x2="0" y1="0" y2="1"><stop offset="5%" stopColor="#38bdf8" stopOpacity=".42"/><stop offset="95%" stopColor="#38bdf8" stopOpacity="0"/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.08)" vertical={false}/><XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 11 }}/><YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} width={72}/><Tooltip contentStyle={{ background: "#141126", border: "1px solid #4c3d70", borderRadius: 10 }} formatter={(value, name) => [money(value), name]}/><Area type="monotone" dataKey="ingresos" name="Ingresos CLP" stroke="#38bdf8" fill="url(#revenue)" strokeWidth={2.5}/><Area type="monotone" dataKey="ganancia" name="Ganancia verificable CLP" stroke="#4ade80" fill="none" strokeWidth={2.2}/></AreaChart></ResponsiveContainer> : <Empty>No hay pedidos con fecha disponible para graficar.</Empty>}<div className="adm-event-empty" style={{ marginTop: 8 }}>Pedidos usados para ganancia verificable: {model.profitOrders}. Los pedidos incompletos no se estiman.</div></section>
+    <section className="adm-tables-grid" style={{ marginBottom: 18 }}>
+      <Panel title="Páginas con más tráfico" source="Eventos page_view"><RankedList items={model.pages} empty="No hay visitas de página registradas para este período." value={(item) => `${item.count} vistas`} /></Panel>
+      <Panel title="Juegos más visitados" source="Eventos view_item"><RankedList items={model.productViews} empty="No hay visitas de productos registradas para este período." value={(item) => `${item.count} vistas`} /></Panel>
+      <Panel title="Juegos más agregados al carrito" source="Eventos add_to_cart"><RankedList items={model.cartAdds} empty="No hay adiciones al carrito registradas para este período." value={(item) => `${item.count} veces`} /></Panel>
+      <Panel title="Juegos más buscados" source="Eventos search"><RankedList items={model.searches} empty="No hay búsquedas registradas para este período." value={(item) => `${item.count} búsquedas`} /></Panel>
+    </section>
+    <section className="adm-tables-grid">
+      <Panel title="Productos más vendidos" source="Ítems de pedidos confirmados"><RankedList items={model.sold} empty="Los pedidos confirmados no tienen ítems detallados en este período." value={(item) => `${item.quantity} unidades`} /></Panel>
+      <Panel title="Pedidos y embudo" source="Pedidos y eventos"><div className="adm-event-feed"><div className="adm-event-row"><span className="adm-event-prod">Pedidos del período</span><b>{model.orders.length}</b></div><div className="adm-event-row"><span className="adm-event-prod">Pedidos confirmados</span><b>{model.paidOrders.length}</b></div><div className="adm-event-row"><span className="adm-event-prod">Visitantes identificables</span><b>{model.visitors}</b></div><div className="adm-event-row"><span className="adm-event-prod">Páginas vistas</span><b>{model.pageViews}</b></div><div className="adm-event-row"><span className="adm-event-prod">Compras registradas por evento</span><b>{model.purchases}</b></div></div></Panel>
+      <Panel title="Clientes y roles" source="Usuarios actuales"><div className="adm-event-feed">{model.roles.map(([role, count]) => <div className="adm-event-row" key={role}><span className="adm-event-prod">{role}</span><b>{count}</b></div>)}</div></Panel>
+      <Panel title="Inventario y estados" source="Catálogo y pedidos"><div className="adm-event-feed"><div className="adm-event-row"><span className="adm-event-prod">Productos con stock informado</span><b>{model.stockSet.length}</b></div><div className="adm-event-row"><span className="adm-event-prod">Productos sin stock</span><b>{model.noStock}</b></div>{model.stateCounts.map(([state, count]) => <div className="adm-event-row" key={state}><span className="adm-event-prod">Pedidos: {state}</span><b>{count}</b></div>)}</div></Panel>
+    </section>
+  </div>;
 }
 
-/* ── KPI Card ── */
-function KpiCard({ icon, label, value, change, color, bg }) {
-  const cls = change > 0 ? "up" : change < 0 ? "down" : "neutral";
-  return (
-    <div className="adm-kpi-card" style={{ "--kpi-color": color }}>
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, borderRadius: "18px 18px 0 0", background: color, opacity: 0.7 }} />
-      <div className="adm-kpi-top">
-        <div className="adm-kpi-icon" style={{ background: bg }}>
-          {icon}
-        </div>
-        {change !== null && (
-          <span className={`adm-kpi-change ${cls}`}>
-            {change > 0 ? "↑" : change < 0 ? "↓" : "—"} {change !== null ? `${Math.abs(change)}%` : ""}
-          </span>
-        )}
-      </div>
-      <div className="adm-kpi-value">{typeof value === "number" ? value.toLocaleString() : value}</div>
-      <div className="adm-kpi-label">{label}</div>
-    </div>
-  );
-}
-
-/* ── Revenue Card ── */
-function RevenueCard({ label, amount, change, bars, barColor, badgeBg, badgeColor }) {
-  const max = Math.max(...bars.map((b) => b.total), 1);
-  const cls = change > 0 ? "up" : change < 0 ? "down" : "neutral";
-  return (
-    <div className="adm-revenue-card">
-      <div className="adm-revenue-header">
-        <span className="adm-revenue-label">{label}</span>
-        {change !== null && (
-          <span className={`adm-kpi-change ${cls}`} style={{ fontSize: "0.78rem" }}>
-            {change > 0 ? "↑" : change < 0 ? "↓" : "—"} {Math.abs(change)}%
-          </span>
-        )}
-      </div>
-      <div className="adm-revenue-amount">{amount}</div>
-      <div className="adm-revenue-bars">
-        {bars.map((b, i) => (
-          <div
-            key={i}
-            className="adm-revenue-bar"
-            style={{
-              height: `${Math.max((b.total / max) * 100, 6)}%`,
-              background: b.total > 0 ? barColor : "rgba(162,89,255,0.1)",
-              opacity: b.total > 0 ? (0.4 + (b.total / max) * 0.6) : 0.3,
-            }}
-          >
-            {b.total > 0 && (
-              <span className="adm-bar-tooltip">{fmtShortDate(b.date)}: {b.total.toLocaleString()}</span>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+function Metric({ icon, label, value, color }) { return <div className="adm-kpi-card" style={{ "--kpi-color": color }}><div className="adm-kpi-top"><div className="adm-kpi-icon" style={{ color, background: `${color}1f` }}>{icon}</div></div><div className="adm-kpi-value">{value}</div><div className="adm-kpi-label">{label}</div></div>; }
+function Panel({ title, source, children }) { return <div className="adm-table-card"><div className="adm-table-header"><div><h3 className="adm-table-title">{title}</h3><small style={{ color: "#94a3b8" }}>{source}</small></div></div>{children}</div>; }

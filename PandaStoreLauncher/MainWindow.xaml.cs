@@ -24,6 +24,7 @@ namespace PandaStoreLauncher
         private LicenseModel? _activeLicense;
         private List<GameModel> _allGames = new List<GameModel>();
         private readonly ObservableCollection<GameModel> _filteredGames = new ObservableCollection<GameModel>();
+        private readonly Dictionary<string, string> _gameCategoryCache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private System.Windows.Threading.DispatcherTimer? _trialCountdownTimer;
         private System.Windows.Threading.DispatcherTimer? _revocationCheckTimer;
         private DateTime? _trialExpiresAtUtc;
@@ -74,7 +75,7 @@ namespace PandaStoreLauncher
             }
         }
 
-        private const string CurrentVersion = "2.4.29"; // Current client executable version
+        private const string CurrentVersion = "2.4.31"; // Current client executable version
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -209,9 +210,22 @@ namespace PandaStoreLauncher
                         {
                             btnCheckUpdate.Content = $"🚀 Actualizar a v{targetVer}";
                             btnCheckUpdate.Style = (Style)FindResource("GoldButtonStyle");
+                            btnCheckUpdate.Visibility = Visibility.Visible;
 
-                            UpdateWindow updateWindow = new UpdateWindow(targetUrl, targetVer);
-                            updateWindow.ShowDialog();
+                            var askUpdate = MessageBox.Show(
+                                $"🚀 ¡NUEVA ACTUALIZACIÓN DISPONIBLE!\n\n" +
+                                $"Versión actual: v{CurrentVersion}\n" +
+                                $"Nueva versión: v{targetVer}\n\n" +
+                                "¿Deseas actualizar PandaStore Launcher ahora automáticamente?",
+                                "PandaStore Actualizador",
+                                MessageBoxButton.YesNo,
+                                MessageBoxImage.Question);
+
+                            if (askUpdate == MessageBoxResult.Yes)
+                            {
+                                UpdateWindow updateWindow = new UpdateWindow(targetUrl, targetVer);
+                                updateWindow.ShowDialog();
+                            }
                         });
                     }
                 }
@@ -551,26 +565,26 @@ namespace PandaStoreLauncher
 
         private string GetGameCategory(GameModel game)
         {
+            if (_gameCategoryCache.TryGetValue(game.AppId, out string? cachedCategory)) return cachedCategory;
             string name = (game.Name ?? "").ToLower();
+            string category;
             if (name.Contains("call of duty") || name.Contains("battlefield") || name.Contains("bodycam") || name.Contains("doom") || name.Contains("halo") || name.Contains("sniper") || name.Contains("far cry") || name.Contains("crysis") || name.Contains("f.e.a.r") || name.Contains("metro") || name.Contains("wolfenstein") || name.Contains("payday") || name.Contains("ready or not"))
-                return "Shooters / FPS";
+                category = "Shooters / FPS";
+            else if (name.Contains("resident evil") || name.Contains("outlast") || name.Contains("amnesia") || name.Contains("silent hill") || name.Contains("bendy") || name.Contains("darkwood") || name.Contains("alien isolation") || name.Contains("dead space"))
+                category = "Terror / Horror";
+            else if (name.Contains("elden ring") || name.Contains("dark souls") || name.Contains("sekiro") || name.Contains("the witcher") || name.Contains("final fantasy") || name.Contains("dragon age") || name.Contains("fallout") || name.Contains("skyrim") || name.Contains("cyberpunk") || name.Contains("yakuza") || name.Contains("monster hunter") || name.Contains("persona") || name.Contains("starfield") || name.Contains("baldur"))
+                category = "RPG / Rol";
+            else if (name.Contains("need for speed") || name.Contains("forza") || name.Contains("carx") || name.Contains("f1") || name.Contains("fifa") || name.Contains("dirt") || name.Contains("assetto"))
+                category = "Carreras / Deportes";
+            else if (name.Contains("civilization") || name.Contains("age of empires") || name.Contains("crusader") || name.Contains("tropico") || name.Contains("cities") || name.Contains("sim") || name.Contains("simulator") || name.Contains("starcraft") || name.Contains("football manager") || name.Contains("factorio") || name.Contains("satisfactory") || name.Contains("frostpunk"))
+                category = "Estrategia / Sim";
+            else if (name.Contains("stardew") || name.Contains("celeste") || name.Contains("hollow knight") || name.Contains("cuphead") || name.Contains("blasphemous") || name.Contains("hades") || name.Contains("terraria") || name.Contains("isaac") || name.Contains("balatro") || name.Contains("dead cells"))
+                category = "Indie / Casual";
+            else
+                category = "Acción / Aventura";
 
-            if (name.Contains("resident evil") || name.Contains("outlast") || name.Contains("amnesia") || name.Contains("silent hill") || name.Contains("bendy") || name.Contains("darkwood") || name.Contains("alien isolation") || name.Contains("dead space"))
-                return "Terror / Horror";
-
-            if (name.Contains("elden ring") || name.Contains("dark souls") || name.Contains("sekiro") || name.Contains("the witcher") || name.Contains("final fantasy") || name.Contains("dragon age") || name.Contains("fallout") || name.Contains("skyrim") || name.Contains("cyberpunk") || name.Contains("yakuza") || name.Contains("monster hunter") || name.Contains("persona") || name.Contains("starfield") || name.Contains("baldur"))
-                return "RPG / Rol";
-
-            if (name.Contains("need for speed") || name.Contains("forza") || name.Contains("carx") || name.Contains("f1") || name.Contains("fifa") || name.Contains("dirt") || name.Contains("assetto"))
-                return "Carreras / Deportes";
-
-            if (name.Contains("civilization") || name.Contains("age of empires") || name.Contains("crusader") || name.Contains("tropico") || name.Contains("cities") || name.Contains("sim") || name.Contains("simulator") || name.Contains("starcraft") || name.Contains("football manager") || name.Contains("factorio") || name.Contains("satisfactory") || name.Contains("frostpunk"))
-                return "Estrategia / Sim";
-
-            if (name.Contains("stardew") || name.Contains("celeste") || name.Contains("hollow knight") || name.Contains("cuphead") || name.Contains("blasphemous") || name.Contains("hades") || name.Contains("terraria") || name.Contains("isaac") || name.Contains("balatro") || name.Contains("dead cells"))
-                return "Indie / Casual";
-
-            return "Acción / Aventura";
+            _gameCategoryCache[game.AppId] = category;
+            return category;
         }
 
         private int _currentDisplayLimit = 36;
@@ -628,8 +642,6 @@ namespace PandaStoreLauncher
                     foreach (var g in baseList)
                     {
                         if (token.IsCancellationRequested) break;
-                        if (!FirebaseService.IsCleanPlayableGame(g.AppId, g.Name)) continue;
-
                         bool matchesSearch = string.IsNullOrEmpty(query) ||
                             g.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
                             g.AppId.Contains(query, StringComparison.OrdinalIgnoreCase) ||
@@ -819,7 +831,28 @@ namespace PandaStoreLauncher
             {
                 lblProfileLicenseKey.Text = string.IsNullOrEmpty(_activeLicense.Key) ? "PANDA-DEMO-0000" : _activeLicense.Key;
                 lblProfileEmail.Text = string.IsNullOrEmpty(_activeLicense.ClientEmail) ? "invitado@pandastore.cl" : _activeLicense.ClientEmail;
-                lblProfileStatus.Text = _activeLicense.IsTrial ? "⏳ Modo Prueba Activo" : "✔ Activa & Verificada";
+                lblProfileStatus.Text = _activeLicense.IsTrial ? "⏳ Modo prueba activo" : "✔ Activa & verificada";
+                lblProfileValidity.Text = "Vigencia: permanente";
+                lblProfileValidity.Foreground = new SolidColorBrush(Color.FromRgb(167, 139, 250));
+
+                string? expiryRaw = _activeLicense.IsTrial ? _activeLicense.ExpiresAt : _activeLicense.ExpiryDate;
+                if (!string.IsNullOrWhiteSpace(expiryRaw) && DateTime.TryParse(expiryRaw, out DateTime expiry))
+                {
+                    TimeSpan remaining = expiry.ToUniversalTime() - DateTime.UtcNow;
+                    if (remaining > TimeSpan.Zero)
+                    {
+                        lblProfileValidity.Text = remaining.TotalDays >= 1
+                            ? $"Vigencia: {Math.Ceiling(remaining.TotalDays)} día(s) restante(s)"
+                            : $"Vigencia: {Math.Max(1, (int)Math.Ceiling(remaining.TotalHours))} hora(s) restante(s)";
+                        lblProfileValidity.Foreground = new SolidColorBrush(Color.FromRgb(251, 191, 36));
+                    }
+                    else
+                    {
+                        lblProfileStatus.Text = "⚠️ Licencia vencida";
+                        lblProfileValidity.Text = "Contacta a soporte para reactivarla";
+                        lblProfileValidity.Foreground = new SolidColorBrush(Color.FromRgb(248, 113, 113));
+                    }
+                }
 
                 int totalGames = _activeLicense.IsFullAccess ? 10 : (_activeLicense.AllowedGames?.Count ?? 0);
                 lblProfileGamesCount.Text = _activeLicense.IsFullAccess ? "Catálogo Total (+150 juegos)" : $"{totalGames} juegos autorizados";
@@ -887,6 +920,7 @@ namespace PandaStoreLauncher
                 lblProfileLicenseKey.Text = "Sin Licencia Activa";
                 lblProfileEmail.Text = "Invitado / Catálogo";
                 lblProfileStatus.Text = "No autenticado";
+                lblProfileValidity.Text = "Vigencia: sin licencia";
                 lblProfileGamesCount.Text = "0 juegos";
                 lblProfileDlcsCount.Text = "Ninguno";
                 pbLoyaltyCycle.Value = 0;
@@ -1018,7 +1052,7 @@ namespace PandaStoreLauncher
                     else
                     {
                         MessageBox.Show(
-                            $"¡Juego '{juego.Name}' activado con éxito!\n\nSteam se abrirá de inmediato para iniciar la descarga del juego.",
+                            $"¡Juego '{juego.Name}' activado con éxito!\n\nSteam se ha iniciado con tus licencias cargadas. Abre tu biblioteca de Steam y presiona 'INSTALAR'.",
                             "PandaStore - Activación Lista",
                             MessageBoxButton.OK,
                             MessageBoxImage.Information);

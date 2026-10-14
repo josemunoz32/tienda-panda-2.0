@@ -1,0 +1,20 @@
+{
+  "data": {
+    "code": "XO06txE1",
+    "createTime": 1791411642,
+    "downloadPage": "https://gofile.io/d/EE1L77vC",
+    "id": "84660e9d-b813-46cb-9c8e-d82bad9f6ceb",
+    "md5": "b0559334571a95d3a341570f1329dd8b",
+    "mimetype": "application/vnd.microsoft.portable-executable",
+    "modTime": 1791411642,
+    "name": "PandaStoreSetup.exe",
+    "parentFolder": "9fc99592-856d-4a68-8493-f2e9358db9b4",
+    "parentFolderCode": "EE1L77vC",
+    "servers": [
+      "store1"
+    ],
+    "size": 114985624,
+    "type": "file"
+  },
+  "status": "ok"
+}

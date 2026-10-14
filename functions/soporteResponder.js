@@ -4,8 +4,8 @@ const nodemailer = require("nodemailer");
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "joseroberto999999@gmail.com",
-    pass: "jlsx fplo seqo fywp",
+    user: process.env.GMAIL_USER || "pandastore2.0soporte@gmail.com",
+    pass: process.env.GMAIL_PASS || "nztxunzpjqirfkjv",
   },
 });
 
@@ -33,7 +33,7 @@ exports.soporteResponder = functions.https.onRequest(async (req, res) => {
   }
 
   await transporter.sendMail({
-    from: "joseroberto999999@gmail.com",
+    from: `"PandaStore Soporte" <${process.env.GMAIL_USER || "pandastore2.0soporte@gmail.com"}>`,
     to: email,
     subject: "Respuesta a tu ticket de soporte",
     text: respuesta,

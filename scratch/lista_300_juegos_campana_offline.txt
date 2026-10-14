@@ -1,0 +1,300 @@
+1. A Plague Tale: Innocence
+2. A Plague Tale: Requiem
+3. Alan Wake 2
+4. Alice: Madness Returns
+5. Alien: Isolation
+6. Alpha Protocol
+7. Amnesia: The Dark Descent
+8. Amnesia: Rebirth
+9. Amnesia: The Bunker
+10. Anno 1800
+11. Aragami
+12. Armored Core VI: Fires of Rubicon
+13. Asura's Wrath
+14. Banishers: Ghosts of New Eden
+15. Bastion
+16. Bayonetta
+17. Bayonetta 2
+18. Bayonetta 3
+19. Bendy and the Dark Revival
+20. Bendy and the Ink Machine
+21. Blasphemous
+22. Blasphemous 2
+23. Bloodborne
+24. Bloodstained: Ritual of the Night
+25. Brothers: A Tale of Two Sons
+26. Bulletstorm
+27. Castlevania: Lords of Shadow
+28. Castlevania: Lords of Shadow 2
+29. Castlevania: Symphony of the Night
+30. Celeste
+31. Child of Light
+32. Chronos: Before the Ashes
+33. Clock Tower
+34. Code Vein
+35. Command & Conquer: Generals
+36. Company of Heroes
+37. Company of Heroes 2
+38. Company of Heroes 3
+39. Condemned: Criminal Origins
+40. Control
+41. Crash Bandicoot 4: It's About Time
+42. Crysis
+43. Crysis 2
+44. Crysis 3
+45. Dante's Inferno
+46. Darkwood
+47. Dead Cells
+48. Dead Island
+49. Dead Island 2
+50. Dead Space
+51. Dead Space 2
+52. Dead Space 3
+53. Dead Rising
+54. Dead Rising 2
+55. Dead Rising 3
+56. Dead Rising 4
+57. Death's Door
+58. Deadly Premonition
+59. Demon's Souls
+60. Desperados III
+61. Destroy All Humans!
+62. Destroy All Humans! 2
+63. Deus Ex: Human Revolution
+64. Deus Ex: Mankind Divided
+65. Devil May Cry 3
+66. Devil May Cry 4
+67. Devil May Cry 5
+68. DMC: Devil May Cry
+69. Dishonored
+70. Dishonored 2
+71. Dishonored: Death of the Outsider
+72. Disneyland Adventures
+73. Dragon Age: Inquisition
+74. Dragon Quest XI: Echoes of an Elusive Age
+75. Dragon's Dogma: Dark Arisen
+76. Dragon's Dogma 2
+77. Dredge
+78. Driver: San Francisco
+79. Dying Light
+80. Dying Light 2: Stay Human
+81. Eiyuden Chronicle: Hundred Heroes
+82. Ender Lilies: Quietus of the Knights
+83. Enslaved: Odyssey to the West
+84. Evil West
+85. F.E.A.R.
+86. F.E.A.R. 2: Project Origin
+87. F.E.A.R. 3
+88. Fable Anniversary
+89. Fable II
+90. Fable III
+91. Fallout 1
+92. Fallout 2
+93. Far Cry 3
+94. Far Cry 4
+95. Far Cry 5
+96. Far Cry Primal
+97. Final Fantasy IV
+98. Final Fantasy VI
+99. Final Fantasy VIII
+100. Final Fantasy IX
+101. Final Fantasy X
+102. Final Fantasy XII: The Zodiac Age
+103. Final Fantasy XIII
+104. Final Fantasy XV
+105. Ghostrunner
+106. Ghostrunner 2
+107. Gothic
+108. Gothic II
+109. Gothic III
+110. GreedFall
+111. Grim Dawn
+112. GRIS
+113. Guacamelee!
+114. Guacamelee! 2
+115. Hades
+116. Hades II
+117. Half-Life
+118. Half-Life 2
+119. Half-Life 2: Episode One
+120. Half-Life 2: Episode Two
+121. Half-Life: Alyx
+122. Hellblade: Senua's Sacrifice
+123. Senua's Saga: Hellblade II
+124. Hi-Fi Rush
+125. Hitman: Absolution
+126. Hitman: Blood Money
+127. Hitman World of Assassination
+128. Hotline Miami
+129. Hotline Miami 2: Wrong Number
+130. I Am Alive
+131. ICO
+132. Inscryption
+133. Inside
+134. It Takes Two
+135. Jade Empire
+136. Journey
+137. Judgment
+138. Lost Judgment
+139. Katana Zero
+140. Kena: Bridge of Spirits
+141. Kenshi
+142. Kingdom Come: Deliverance
+143. Kingdom Come: Deliverance II
+144. Kingdom Hearts HD 1.5 + 2.5 ReMIX
+145. Kingdom Hearts HD 2.8 Final Chapter Prologue
+146. Kingdom Hearts III
+147. Lies of P
+148. Limbo
+149. Lords of the Fallen (2023)
+150. Luigi's Mansion 3
+151. Mafia
+152. Mafia II
+153. Mafia III
+154. Manhunt
+155. Manhunt 2
+156. Mark of the Ninja
+157. Marvel's Guardians of the Galaxy
+158. Medal of Honor: Allied Assault
+159. Metal Gear Solid 1
+160. Metal Gear Solid 2: Sons of Liberty
+161. Metal Gear Solid 3: Snake Eater
+162. Metal Gear Solid 4: Guns of the Patriots
+163. Metal Gear Solid V: Ground Zeroes
+164. Metal Gear Solid V: The Phantom Pain
+165. Metal Gear Rising: Revengeance
+166. Metaphor: ReFantazio
+167. Metroid Dread
+168. Middle-earth: Shadow of Mordor
+169. Middle-earth: Shadow of War
+170. Mirror's Edge
+171. Mirror's Edge Catalyst
+172. Monster Hunter Stories 2: Wings of Ruin
+173. Moonlighter
+174. Mortal Shell
+175. NieR Replicant
+176. NieR: Automata
+177. Night in the Woods
+178. Nine Sols
+179. No More Heroes
+180. No More Heroes 2: Desperate Struggle
+181. No More Heroes 3
+182. Octopath Traveler
+183. Octopath Traveler II
+184. Ori and the Blind Forest
+185. Ori and the Will of the Wisps
+186. Onimusha: Warlords
+187. Outlast: Whistleblower
+188. Paper Mario: The Thousand-Year Door
+189. Persona 3 Reload
+190. Persona 4 Golden
+191. Persona 5 Royal
+192. Persona 5 Strikers
+193. Prince of Persia (2008)
+194. Prince of Persia: The Forgotten Sands
+195. Psychonauts
+196. Psychonauts 2
+197. Quantum Break
+198. Rage
+199. Rage 2
+200. Ratchet & Clank (2016)
+201. Rayman Legends
+202. Rayman Origins
+203. Remember Me
+204. Remnant: From the Ashes
+205. Remnant II
+206. Resident Evil (1996)
+207. Resident Evil Code: Veronica
+208. Resident Evil Zero
+209. Resident Evil 6
+210. Resident Evil 7: Biohazard
+211. Resident Evil Village
+212. Resident Evil Revelations
+213. Resident Evil Revelations 2
+214. Returnal
+215. Ryse: Son of Rome
+216. S.T.A.L.K.E.R.: Shadow of Chernobyl
+217. S.T.A.L.K.E.R.: Clear Sky
+218. S.T.A.L.K.E.R.: Call of Pripyat
+219. S.T.A.L.K.E.R. 2: Heart of Chornobyl
+220. Shadow of the Colossus
+221. Shadow Warrior
+222. Shadow Warrior 2
+223. Shadow Warrior 3
+224. Shadowrun Returns
+225. Shadowrun: Dragonfall
+226. Shadowrun: Hong Kong
+227. Sherlock Holmes Chapter One
+228. Shin Megami Tensei III: Nocturne
+229. Shin Megami Tensei V: Vengeance
+230. Signalis
+231. Sifu
+232. Silent Hill
+233. Silent Hill 2 (2001)
+234. Silent Hill 3
+235. Silent Hill 4: The Room
+236. Sleeping Dogs
+237. Slime Rancher
+238. Sniper Elite V2
+239. Sniper Elite 3
+240. Sniper Elite 4
+241. Sniper Elite 5
+242. Sniper Ghost Warrior Contracts
+243. Sniper Ghost Warrior Contracts 2
+244. Solasta: Crown of the Magister
+245. Sonic Frontiers
+246. Sonic Generations
+247. Spec Ops: The Line
+248. Split/Second
+249. Star Wars Jedi: Fallen Order
+250. Star Wars Jedi: Survivor
+251. Star Wars: Knights of the Old Republic
+252. Star Wars: Knights of the Old Republic II
+253. Star Wars: The Force Unleashed
+254. Star Wars: The Force Unleashed II
+255. Starfield
+256. Stray
+257. Subnautica: Below Zero
+258. Super Mario Odyssey
+259. Tales of Arise
+260. Tales of Berseria
+261. Tales of Vesperia
+262. Tunic
+263. The Binding of Isaac
+264. The Callisto Protocol
+265. The Darkness
+266. The Darkness II
+267. The Evil Within
+268. The Evil Within 2
+269. The Last Guardian
+270. The Legend of Zelda: Breath of the Wild
+271. The Legend of Zelda: Tears of the Kingdom
+272. The Legend of Zelda: Twilight Princess
+273. The Legend of Zelda: The Wind Waker
+274. The Outer Worlds
+275. The Surge
+276. The Surge 2
+277. The Technomancer
+278. The Talos Principle
+279. The Talos Principle 2
+280. Titanfall 2
+281. Tomb Raider (2013)
+282. Shadow of the Tomb Raider
+283. Tomb Raider Anniversary
+284. Tomb Raider Legend
+285. Tomb Raider Underworld
+286. Torchlight II
+287. Triangle Strategy
+288. Trek to Yomi
+289. Unravel
+290. Unravel Two
+291. Vampyr
+292. Vanquish
+293. Watch Dogs
+294. Watch Dogs 2
+295. We Happy Few
+296. Warhammer 40,000: Space Marine
+297. Warhammer 40,000: Space Marine 2
+298. Wolfenstein: The Old Blood
+299. Wolfenstein: Youngblood
+300. XCOM: Enemy Unknown

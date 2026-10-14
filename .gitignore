@@ -34,3 +34,11 @@ yarn-error.log*
 # python
 chatbot/__pycache__/
 *.py[cod]
+
+# executables and builds
+*.exe
+PandaStoreLauncher/Publish/
+PandaStoreLauncher/bin/
+PandaStoreLauncher/obj/
+public/**/*.exe
+scratch/.dotnet_temp/

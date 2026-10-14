@@ -1,67 +1,253 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#18122B" />
 
     <!-- SEO Meta Tags -->
-    <title>PandaStore | Tienda de Videojuegos Digitales - PS4, PS5, Nintendo Switch, Streaming</title>
-    <meta name="description" content="PandaStore: Tu tienda online de videojuegos digitales. Compra juegos de PS4, PS5, Nintendo Switch, suscripciones de streaming y más. Precios accesibles, entrega inmediata y atención personalizada." />
-    <meta name="keywords" content="videojuegos digitales, juegos PS4, juegos PS5, juegos Nintendo Switch, tienda de videojuegos, comprar juegos online, suscripciones gaming, streaming, PlayStation, Nintendo, juegos baratos, PandaStore, tienda gamer, juegos digitales baratos, ofertas videojuegos" />
+    <title>PandaStore | Tienda de Videojuegos Digitales • Steam PC, Nintendo Switch, PS5 y PS4 Baratos</title>
+    <meta name="description" content="Compra videojuegos digitales baratos para Steam PC con Activador oficial, Nintendo Switch 1 y 2, PlayStation 5 y PS4. Packs 2x1 y 3x1, cuentas primarias y entrega inmediata 24/7 en Chile, Argentina, México, Colombia, Perú y España." />
+    <meta name="keywords" content="comprar juegos digitales, juegos steam baratos, juegos pc baratos, activador steam pc, pandastore launcher, juegos ps4 baratos, juegos ps5 digitales, cuentas primarias ps5, cuentas secundarias ps4, juegos nintendo switch baratos, nintendo switch 2 juegos digitales, ofertas videojuegos steam, tienda gamer online, comprar juegos digitales chile, juegos digitales argentina, juegos digitales mexico, juegos digitales colombia, entrega inmediata videojuegos, black myth wukong pc barato, ea sports fc 25 barato, elden ring pc barato, silent hill 2 remake barato, dragon ball sparking zero steam, gta v pc barato, comprar juegos steam offline, packs de juegos steam, suscripcion ps plus barata, nintendo switch online barato, pandastore" />
     <meta name="author" content="PandaStore" />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
     <link rel="canonical" href="https://pandastoreupdate.web.app/" />
+    <meta name="rating" content="general" />
+    <meta name="language" content="Spanish" />
+    <meta name="revisit-after" content="1 days" />
 
-    <!-- Google Search Console Verification — Agrega tu código en Firebase Console > Hosting > Custom domain -->
+    <!-- Geo targeting para Latinoamérica, España y Global -->
+    <meta name="geo.region" content="CL" />
+    <meta name="geo.placename" content="Chile" />
+    <meta name="ICBM" content="-33.4489, -70.6693" />
+
+    <!-- hreflang — targeting multirregional -->
+    <link rel="alternate" hreflang="es" href="https://pandastoreupdate.web.app/" />
+    <link rel="alternate" hreflang="es-CL" href="https://pandastoreupdate.web.app/" />
+    <link rel="alternate" hreflang="es-AR" href="https://pandastoreupdate.web.app/" />
+    <link rel="alternate" hreflang="es-MX" href="https://pandastoreupdate.web.app/" />
+    <link rel="alternate" hreflang="es-CO" href="https://pandastoreupdate.web.app/" />
+    <link rel="alternate" hreflang="es-PE" href="https://pandastoreupdate.web.app/" />
+    <link rel="alternate" hreflang="es-VE" href="https://pandastoreupdate.web.app/" />
+    <link rel="alternate" hreflang="es-EC" href="https://pandastoreupdate.web.app/" />
+    <link rel="alternate" hreflang="es-ES" href="https://pandastoreupdate.web.app/" />
+    <link rel="alternate" hreflang="es-US" href="https://pandastoreupdate.web.app/" />
+    <link rel="alternate" hreflang="x-default" href="https://pandastoreupdate.web.app/" />
+
+    <!-- Windows Tile -->
+    <meta name="msapplication-TileColor" content="#18122B" />
+    <meta name="msapplication-TileImage" content="%PUBLIC_URL%/favicon.png" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://pandastoreupdate.web.app/" />
-    <meta property="og:title" content="PandaStore | Tienda de Videojuegos Digitales" />
-    <meta property="og:description" content="Compra juegos digitales de PS4, PS5, Nintendo Switch, suscripciones de streaming y más. Entrega inmediata y precios accesibles." />
-    <meta property="og:image" content="https://pandastoreupdate.web.app/icono.jpg" />
+    <meta property="og:title" content="PandaStore | Tienda #1 de Videojuegos Digitales • Steam PC, Switch, PS5 y PS4" />
+    <meta property="og:description" content="Tienda líder de videojuegos digitales en Latinoamérica: Steam PC con Activador oficial, Nintendo Switch 1 y 2, PlayStation 5 y PS4. Packs 2x1 y 3x1, entrega inmediata 24/7 y mejor precio garantizado." />
+    <meta property="og:image" content="https://pandastoreupdate.web.app/banner.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="PandaStore - Tienda #1 de Videojuegos Digitales" />
     <meta property="og:site_name" content="PandaStore" />
     <meta property="og:locale" content="es_ES" />
+    <meta property="og:locale:alternate" content="es_MX" />
+    <meta property="og:locale:alternate" content="es_AR" />
+    <meta property="og:locale:alternate" content="es_CO" />
+    <meta property="og:locale:alternate" content="es_CL" />
+    <meta property="og:locale:alternate" content="es_PE" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="PandaStore | Tienda de Videojuegos Digitales" />
-    <meta name="twitter:description" content="Compra juegos digitales de PS4, PS5, Nintendo Switch, suscripciones de streaming y más. Entrega inmediata." />
-    <meta name="twitter:image" content="https://pandastoreupdate.web.app/icono.jpg" />
+    <meta name="twitter:site" content="@PandaStore" />
+    <meta name="twitter:creator" content="@PandaStore" />
+    <meta name="twitter:title" content="PandaStore | Tienda #1 de Videojuegos Digitales • Steam PC, Nintendo Switch, PS5 y PS4" />
+    <meta name="twitter:description" content="La tienda líder de videojuegos digitales en Latinoamérica. Steam PC con Launcher oficial, Nintendo Switch 1 y 2, PS5 y PS4. ¡Entrega 24/7 garantizada!" />
+    <meta name="twitter:image" content="https://pandastoreupdate.web.app/banner.png" />
+    <meta name="twitter:image:alt" content="PandaStore - Videojuegos Digitales" />
 
     <!-- Favicon & Icons -->
-    <link rel="icon" type="image/jpeg" href="%PUBLIC_URL%/icono.jpg" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/icono.jpg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="%PUBLIC_URL%/favicon.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="%PUBLIC_URL%/favicon.png" />
+    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="%PUBLIC_URL%/favicon96.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/favicon96.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- Preconnect para performance (mejora Core Web Vitals) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://firebasestorage.googleapis.com" />
+    <link rel="dns-prefetch" href="https://www.google-analytics.com" />
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- VideoGameStore Schema JSON-LD con AggregateRating (Estrellas en Google) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGameStore",
+      "name": "PandaStore",
+      "alternateName": ["Panda Store", "PandaStore Videojuegos", "PandaStore Latam"],
+      "description": "Tienda online de videojuegos digitales para Steam PC, Nintendo Switch, PlayStation 5 y PlayStation 4.",
+      "url": "https://pandastoreupdate.web.app",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://pandastoreupdate.web.app/favicon.png",
+        "width": 512,
+        "height": 512
+      },
+      "image": "https://pandastoreupdate.web.app/favicon.png",
+      "priceRange": "$-$$",
+      "currenciesAccepted": "USD, CLP, ARS, MXN, COP, PEN, EUR",
+      "paymentAccepted": "WebPay, MercadoPago, Transferencia Bancaria, PayPal, Prex, Criptomonedas (USDT), Tarjetas de Crédito y Débito",
+      "openingHours": "Mo-Su 00:00-24:00",
+      "areaServed": [
+        {"@type": "Country", "name": "Chile"},
+        {"@type": "Country", "name": "Argentina"},
+        {"@type": "Country", "name": "Colombia"},
+        {"@type": "Country", "name": "México"},
+        {"@type": "Country", "name": "Perú"},
+        {"@type": "Country", "name": "Venezuela"},
+        {"@type": "Country", "name": "Ecuador"},
+        {"@type": "Country", "name": "Uruguay"},
+        {"@type": "Country", "name": "España"},
+        {"@type": "Country", "name": "Estados Unidos"}
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer service",
+        "availableLanguage": ["Spanish", "English"],
+        "contactOption": "TollFree"
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Catálogo de Videojuegos Digitales",
+        "itemListElement": [
+          {"@type": "OfferCatalog", "name": "Juegos Steam PC (Activador & PandaStore Launcher)"},
+          {"@type": "OfferCatalog", "name": "Juegos Nintendo Switch 1 y 2"},
+          {"@type": "OfferCatalog", "name": "Juegos PlayStation 5 Digitales (Primaria y Secundaria)"},
+          {"@type": "OfferCatalog", "name": "Juegos PlayStation 4 Digitales (Primaria y Secundaria)"},
+          {"@type": "OfferCatalog", "name": "Packs de Videojuegos 2x1 y 3x1"},
+          {"@type": "OfferCatalog", "name": "Suscripciones PlayStation Plus y Nintendo Switch Online"},
+          {"@type": "OfferCatalog", "name": "Suscripciones de Streaming"}
+        ]
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://pandastoreupdate.web.app/categorias?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
 
     <!-- Organization Schema JSON-LD -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "Store",
+      "@type": "Organization",
       "name": "PandaStore",
-      "description": "Tienda online de videojuegos digitales para PS4, PS5, Nintendo Switch, suscripciones de streaming y más.",
       "url": "https://pandastoreupdate.web.app",
-      "logo": "https://pandastoreupdate.web.app/icono.jpg",
-      "image": "https://pandastoreupdate.web.app/icono.jpg",
-      "priceRange": "$",
-      "servesCuisine": "",
-      "sameAs": [],
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": "https://pandastoreupdate.web.app/productos?q={search_term_string}",
-        "query-input": "required name=search_term_string"
+      "logo": "https://pandastoreupdate.web.app/favicon.png",
+      "description": "Tienda #1 de videojuegos digitales en Latinoamérica. Fundada en 2022.",
+      "foundingDate": "2022",
+      "areaServed": "Global",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer service",
+        "availableLanguage": ["Spanish", "English"]
       },
-      "offers": {
-        "@type": "AggregateOffer",
-        "priceCurrency": "USD",
-        "availability": "https://schema.org/InStock",
-        "itemCondition": "https://schema.org/NewCondition"
-      }
+      "sameAs": []
+    }
+    </script>
+
+    <!-- ItemList Schema para categorías y servicios principales -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Servicios y Categorías de Videojuegos - PandaStore",
+      "description": "Catálogo completo de videojuegos y servicios digitales disponibles en PandaStore",
+      "url": "https://pandastoreupdate.web.app/categorias",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Juegos Steam PC (PandaStore Launcher & Activador)",
+          "url": "https://pandastoreupdate.web.app/categoria/steam"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Juegos Nintendo Switch 1 y 2",
+          "url": "https://pandastoreupdate.web.app/categoria/nintendo-switch"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Juegos PlayStation 5 y PS4 Digitales",
+          "url": "https://pandastoreupdate.web.app/categoria/playstation"
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": "Promociones y Packs de Videojuegos (2x1 y 3x1)",
+          "url": "https://pandastoreupdate.web.app/promos"
+        },
+        {
+          "@type": "ListItem",
+          "position": 5,
+          "name": "PandaStore Launcher Oficial PC",
+          "url": "https://pandastoreupdate.web.app/descargar-launcher"
+        },
+        {
+          "@type": "ListItem",
+          "position": 6,
+          "name": "Suscripciones PlayStation Plus y Streaming",
+          "url": "https://pandastoreupdate.web.app/categoria/suscripciones"
+        }
+      ]
+    }
+    </script>
+
+    <!-- FAQPage Schema para snippets destacados en Google Search -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "¿Cómo se entregan los juegos comprados en PandaStore?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "La entrega es inmediata y 100% digital 24/7. Para Steam PC recibes acceso y activación automática mediante el PandaStore Launcher oficial. Para Nintendo Switch y PlayStation (PS4/PS5) recibes tus credenciales digitales paso a paso con soporte personalizado vía WhatsApp."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Los juegos de Steam PC incluyen actualizaciones y partidas guardadas?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sí, los juegos de Steam PC adquiridos en PandaStore cuentan con soporte completo para partidas guardadas locales, logros y todas las actualizaciones más recientes a través de nuestro PandaStore Launcher."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Qué métodos de pago aceptan en PandaStore?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Aceptamos WebPay, MercadoPago, Transferencias bancarias directas (Chile, Argentina, Colombia, México, Perú, etc.), PayPal, Prex y Criptomonedas (USDT)."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Las compras en PandaStore tienen garantía?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sí, todas las compras cuentan con garantía oficial de activación y soporte técnico 24/7 ante cualquier consulta o eventualidad."
+          }
+        }
+      ]
     }
     </script>
 
@@ -74,16 +260,46 @@
       "url": "https://pandastoreupdate.web.app",
       "potentialAction": {
         "@type": "SearchAction",
-        "target": "https://pandastoreupdate.web.app/productos?q={search_term_string}",
+        "target": "https://pandastoreupdate.web.app/categorias?q={search_term_string}",
         "query-input": "required name=search_term_string"
       }
     }
     </script>
 
     <script src="https://sdk.mercadopago.com/js/v2"></script>
+
+    <!-- ══ META PIXEL ══════════════════════════════════════════════
+         Reemplaza 1015159907609792 con tu Pixel ID de Meta Business.
+         Obtenerlo en: business.facebook.com → Events Manager → Píxeles
+    ═══════════════════════════════════════════════════════════════ -->
+    <script>
+      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+      n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+      document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '1015159907609792');
+      fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=1015159907609792&ev=PageView&noscript=1"/></noscript>
+
+    <!-- ══ MICROSOFT CLARITY ════════════════════════════════════════
+         Reemplaza wtaj77qa6c con tu Project ID de Clarity.
+         Obtenerlo en: clarity.microsoft.com → Crear proyecto
+    ═══════════════════════════════════════════════════════════════ -->
+    <script type="text/javascript">
+      (function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window,document,"clarity","script","wtaj77qa6c");
+    </script>
   </head>
   <body>
-    <noscript>PandaStore - Tienda de videojuegos digitales. Activa JavaScript para ver la tienda.</noscript>
+    <noscript>
+      <h1>PandaStore - Tienda #1 de Videojuegos Digitales en Latinoamérica y el Mundo</h1>
+      <p>Compra juegos para Steam PC con PandaStore Launcher y Activador oficial, Nintendo Switch 1 y 2, PlayStation 5 y PlayStation 4 (cuentas primarias y secundarias), packs de videojuegos 2x1 y 3x1, suscripciones PS Plus y streaming. Entrega inmediata 24/7 y mejor precio garantizado.</p>
+    </noscript>
     <div id="root"></div>
   </body>
 </html>

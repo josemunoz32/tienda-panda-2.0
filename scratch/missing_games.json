@@ -1,0 +1,372 @@
+[
+  {
+    "name": "Black Myth: Wukong",
+    "category": "Acción / RPG",
+    "year": 2024
+  },
+  {
+    "name": "Warhammer 40,000: Space Marine 2",
+    "category": "Acción / Shooter",
+    "year": 2024
+  },
+  {
+    "name": "Dragon's Dogma 2",
+    "category": "RPG / Acción",
+    "year": 2024
+  },
+  {
+    "name": "S.T.A.L.K.E.R. 2: Heart of Chornobyl",
+    "category": "Shooter / FPS / Terror",
+    "year": 2024
+  },
+  {
+    "name": "Persona 3 Reload",
+    "category": "JRPG",
+    "year": 2024
+  },
+  {
+    "name": "Like a Dragon: Infinite Wealth",
+    "category": "RPG / Acción",
+    "year": 2024
+  },
+  {
+    "name": "The Last of Us Part I",
+    "category": "Acción / Terror",
+    "year": 2023
+  },
+  {
+    "name": "Baldur's Gate 3",
+    "category": "RPG",
+    "year": 2023
+  },
+  {
+    "name": "Starfield",
+    "category": "RPG / Espacio",
+    "year": 2023
+  },
+  {
+    "name": "Armored Core VI: Fires of Rubicon",
+    "category": "Acción / Mecha",
+    "year": 2023
+  },
+  {
+    "name": "Lies of P",
+    "category": "Soulslike / Acción",
+    "year": 2023
+  },
+  {
+    "name": "Remnant II",
+    "category": "Shooter Soulslike",
+    "year": 2023
+  },
+  {
+    "name": "Street Fighter 6",
+    "category": "Lucha",
+    "year": 2023
+  },
+  {
+    "name": "Dead Space Remake",
+    "category": "Terror / Sci-Fi",
+    "year": 2023
+  },
+  {
+    "name": "Hogwarts Legacy",
+    "category": "RPG / Mundo Abierto",
+    "year": 2023
+  },
+  {
+    "name": "Spider-Man: Miles Morales",
+    "category": "Acción / Superhéroes",
+    "year": 2022
+  },
+  {
+    "name": "Uncharted: Legacy of Thieves Collection",
+    "category": "Acción / Aventura",
+    "year": 2022
+  },
+  {
+    "name": "The Witcher 3: Wild Hunt",
+    "category": "RPG / Mundo Abierto",
+    "year": 2015
+  },
+  {
+    "name": "Sekiro: Shadows Die Twice",
+    "category": "Soulslike / Acción",
+    "year": 2019
+  },
+  {
+    "name": "Dark Souls III",
+    "category": "Soulslike / RPG",
+    "year": 2016
+  },
+  {
+    "name": "Dark Souls II: Scholar of the First Sin",
+    "category": "Soulslike / RPG",
+    "year": 2015
+  },
+  {
+    "name": "Monster Hunter: World",
+    "category": "Acción / RPG",
+    "year": 2018
+  },
+  {
+    "name": "Monster Hunter Rise",
+    "category": "Acción / RPG",
+    "year": 2021
+  },
+  {
+    "name": "Nier: Automata",
+    "category": "RPG / Acción",
+    "year": 2017
+  },
+  {
+    "name": "Persona 5 Royal",
+    "category": "JRPG",
+    "year": 2022
+  },
+  {
+    "name": "Tales of Arise",
+    "category": "JRPG",
+    "year": 2021
+  },
+  {
+    "name": "Dragon Quest XI S",
+    "category": "JRPG",
+    "year": 2020
+  },
+  {
+    "name": "Doom Eternal",
+    "category": "FPS / Acción",
+    "year": 2020
+  },
+  {
+    "name": "Doom (2016)",
+    "category": "FPS / Acción",
+    "year": 2016
+  },
+  {
+    "name": "Wolfenstein II: The New Colossus",
+    "category": "FPS / Acción",
+    "year": 2017
+  },
+  {
+    "name": "Wolfenstein: The New Order",
+    "category": "FPS",
+    "year": 2014
+  },
+  {
+    "name": "Call of Duty: Modern Warfare II",
+    "category": "FPS",
+    "year": 2022
+  },
+  {
+    "name": "Call of Duty: Black Ops III",
+    "category": "FPS",
+    "year": 2015
+  },
+  {
+    "name": "Borderlands 3",
+    "category": "Looter Shooter",
+    "year": 2019
+  },
+  {
+    "name": "Tiny Tina's Wonderlands",
+    "category": "Looter Shooter",
+    "year": 2022
+  },
+  {
+    "name": "PAYDAY 3",
+    "category": "Shooter Co-op",
+    "year": 2023
+  },
+  {
+    "name": "Insurgency: Sandstorm",
+    "category": "FPS Táctico",
+    "year": 2018
+  },
+  {
+    "name": "Hunt: Showdown 1896",
+    "category": "Shooter PvPvE",
+    "year": 2019
+  },
+  {
+    "name": "Titanfall 2",
+    "category": "FPS / Mecha",
+    "year": 2016
+  },
+  {
+    "name": "Half-Life: Alyx",
+    "category": "FPS VR",
+    "year": 2020
+  },
+  {
+    "name": "Resident Evil Village",
+    "category": "Terror / FPS",
+    "year": 2021
+  },
+  {
+    "name": "Resident Evil 7: Biohazard",
+    "category": "Terror FPS",
+    "year": 2017
+  },
+  {
+    "name": "The Evil Within 2",
+    "category": "Survival Horror",
+    "year": 2017
+  },
+  {
+    "name": "The Evil Within",
+    "category": "Survival Horror",
+    "year": 2014
+  },
+  {
+    "name": "Dead by Daylight",
+    "category": "Terror Asimétrico",
+    "year": 2016
+  },
+  {
+    "name": "Phasmophobia",
+    "category": "Terror Co-op",
+    "year": 2020
+  },
+  {
+    "name": "Alien: Isolation",
+    "category": "Terror / Sci-Fi",
+    "year": 2014
+  },
+  {
+    "name": "Amnesia: The Bunker",
+    "category": "Terror / Survival",
+    "year": 2023
+  },
+  {
+    "name": "Age of Empires II: Definitive Edition",
+    "category": "RTS",
+    "year": 2019
+  },
+  {
+    "name": "Total War: Warhammer III",
+    "category": "Estrategia",
+    "year": 2022
+  },
+  {
+    "name": "Cities: Skylines II",
+    "category": "Simulación de Ciudades",
+    "year": 2023
+  },
+  {
+    "name": "Cities: Skylines",
+    "category": "Simulación de Ciudades",
+    "year": 2015
+  },
+  {
+    "name": "Manor Lords",
+    "category": "Estrategia Medieval",
+    "year": 2024
+  },
+  {
+    "name": "Forza Horizon 4",
+    "category": "Carreras",
+    "year": 2018
+  },
+  {
+    "name": "Forza Motorsport",
+    "category": "Simulación de Carreras",
+    "year": 2023
+  },
+  {
+    "name": "EA SPORTS FC 24",
+    "category": "Deportes / Fútbol",
+    "year": 2023
+  },
+  {
+    "name": "Need for Speed Unbound",
+    "category": "Carreras",
+    "year": 2022
+  },
+  {
+    "name": "Assetto Corsa Competizione",
+    "category": "Simulación de Carreras",
+    "year": 2019
+  },
+  {
+    "name": "Assetto Corsa",
+    "category": "Simulación de Carreras",
+    "year": 2014
+  },
+  {
+    "name": "F1 24",
+    "category": "Deportes / Conducción",
+    "year": 2024
+  },
+  {
+    "name": "NBA 2K24",
+    "category": "Deportes",
+    "year": 2023
+  },
+  {
+    "name": "WWE 2K24",
+    "category": "Deportes / Lucha",
+    "year": 2024
+  },
+  {
+    "name": "Riders Republic",
+    "category": "Deportes Extremos",
+    "year": 2021
+  },
+  {
+    "name": "Vampire Survivors",
+    "category": "Acción Casual",
+    "year": 2022
+  },
+  {
+    "name": "Dredge",
+    "category": "Aventura / Pesca / Terror",
+    "year": 2023
+  },
+  {
+    "name": "Valheim",
+    "category": "Supervivencia / Vikingos",
+    "year": 2021
+  },
+  {
+    "name": "Project Zomboid",
+    "category": "Survival Horror / Zombis",
+    "year": 2013
+  },
+  {
+    "name": "Slay the Spire",
+    "category": "Roguelike de Cartas",
+    "year": 2019
+  },
+  {
+    "name": "Sea of Thieves",
+    "category": "Aventura Pirata / Co-op",
+    "year": 2020
+  },
+  {
+    "name": "Outer Wilds",
+    "category": "Exploración / Misterio",
+    "year": 2019
+  },
+  {
+    "name": "Kena: Bridge of Spirits",
+    "category": "Acción / Aventura",
+    "year": 2021
+  },
+  {
+    "name": "Ori and the Blind Forest",
+    "category": "Metroidvania",
+    "year": 2015
+  },
+  {
+    "name": "It Takes Two",
+    "category": "Co-op / Aventura",
+    "year": 2021
+  },
+  {
+    "name": "A Way Out",
+    "category": "Co-op / Acción",
+    "year": 2018
+  }
+]

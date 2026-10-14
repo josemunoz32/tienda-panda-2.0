@@ -1,0 +1,118 @@
+/* ==========================================================================
+   FiestasPatriasOverlay.css - Guirnaldas Dieciocheras Cruzadas en el Fondo
+   ========================================================================== */
+
+.fiestas-patrias-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  user-select: none;
+}
+
+.fiestas-garland {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  display: block;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.75));
+  will-change: transform;
+}
+
+/* 1. Arriba a la izquierda: colgando hacia el centro */
+.garland-top-left {
+  top: -15px;
+  left: -40px;
+  width: clamp(340px, 42vw, 620px);
+  transform: rotate(-10deg);
+  opacity: 0.65;
+  animation: garlandSway1 6.5s ease-in-out infinite alternate;
+}
+
+/* 2. Arriba a la derecha: cruzándose sobre la anterior */
+.garland-top-right {
+  top: -25px;
+  right: -50px;
+  width: clamp(360px, 44vw, 650px);
+  transform: scaleX(-1) rotate(-12deg);
+  opacity: 0.65;
+  animation: garlandSway2 7.5s ease-in-out infinite alternate;
+}
+
+/* 3. Mitad izquierda: cruzada a mitad de pantalla */
+.garland-mid-left {
+  top: 36%;
+  left: -60px;
+  width: clamp(280px, 34vw, 500px);
+  transform: rotate(14deg);
+  opacity: 0.45;
+  animation: garlandSway2 8s ease-in-out infinite alternate;
+}
+
+/* 4. Mitad derecha: cruzada opuesta en el fondo */
+.garland-mid-right {
+  top: 58%;
+  right: -50px;
+  width: clamp(300px, 35vw, 520px);
+  transform: scaleX(-1) rotate(11deg);
+  opacity: 0.45;
+  animation: garlandSway1 8.5s ease-in-out infinite alternate;
+}
+
+/* 5. Fondo inferior */
+.garland-bottom {
+  bottom: 6%;
+  left: 8%;
+  width: clamp(260px, 32vw, 460px);
+  transform: rotate(-7deg);
+  opacity: 0.38;
+  animation: garlandSway1 9s ease-in-out infinite alternate;
+}
+
+@keyframes garlandSway1 {
+  0%   { transform: rotate(-10deg) translateY(0); }
+  50%  { transform: rotate(-8deg) translateY(6px); }
+  100% { transform: rotate(-10deg) translateY(0); }
+}
+
+@keyframes garlandSway2 {
+  0%   { transform: scaleX(-1) rotate(-12deg) translateY(0); }
+  50%  { transform: scaleX(-1) rotate(-10deg) translateY(6px); }
+  100% { transform: scaleX(-1) rotate(-12deg) translateY(0); }
+}
+
+/* ==========================================================================
+   Adaptación Móvil (<= 700px)
+   ========================================================================== */
+@media (max-width: 700px) {
+  .garland-top-left {
+    top: -10px;
+    left: -30px;
+    width: 280px;
+    opacity: 0.6;
+  }
+  .garland-top-right {
+    top: -18px;
+    right: -35px;
+    width: 290px;
+    opacity: 0.6;
+  }
+  .garland-mid-left {
+    top: 32%;
+    left: -40px;
+    width: 230px;
+    opacity: 0.38;
+  }
+  .garland-mid-right {
+    top: 60%;
+    right: -40px;
+    width: 240px;
+    opacity: 0.38;
+  }
+  .garland-bottom {
+    display: none; /* Dejar despejado el fondo inferior en móviles */
+  }
+}

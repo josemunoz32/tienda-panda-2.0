@@ -1,22 +1,31 @@
 {
   "short_name": "PandaStore",
-  "name": "PandaStore - Tienda de Videojuegos Digitales",
-  "description": "Compra juegos digitales de PS4, PS5, Nintendo Switch, suscripciones de streaming y más. Entrega inmediata.",
+  "name": "PandaStore - Comprar Juegos Digitales PS4, PS5, Nintendo Switch",
+  "description": "Tienda #1 de videojuegos digitales. PS4, PS5, Nintendo Switch, suscripciones streaming. Entrega inmediata 24/7.",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "favicon.png",
+      "sizes": "40x40 32x32 24x24 16x16",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
   "start_url": "/home",

@@ -1,0 +1,2492 @@
+[
+  {
+    "appId": "3768760",
+    "name": "007 First Light",
+    "hasFix": true
+  },
+  {
+    "appId": "1675830",
+    "name": "1000xRESIST",
+    "hasFix": false
+  },
+  {
+    "appId": "752590",
+    "name": "A Plague Tale Innocence",
+    "hasFix": true
+  },
+  {
+    "appId": "1182900",
+    "name": "A Plague Tale Requiem",
+    "hasFix": false
+  },
+  {
+    "appId": "1222700",
+    "name": "A Way Out",
+    "hasFix": true
+  },
+  {
+    "appId": "1466860",
+    "name": "Age of Empires IV",
+    "hasFix": false
+  },
+  {
+    "appId": "108710",
+    "name": "Alan Wake",
+    "hasFix": false
+  },
+  {
+    "appId": "19680",
+    "name": "Alice Madness Returns",
+    "hasFix": false
+  },
+  {
+    "appId": "214490",
+    "name": "Alien Isolation",
+    "hasFix": false
+  },
+  {
+    "appId": "34010",
+    "name": "Alpha Protocol",
+    "hasFix": false
+  },
+  {
+    "appId": "270880",
+    "name": "American Truck Simulator",
+    "hasFix": true
+  },
+  {
+    "appId": "999220",
+    "name": "Amnesia Rebirth",
+    "hasFix": false
+  },
+  {
+    "appId": "1944430",
+    "name": "Amnesia The Bunker",
+    "hasFix": false
+  },
+  {
+    "appId": "57300",
+    "name": "Amnesia The Dark Descent",
+    "hasFix": false
+  },
+  {
+    "appId": "813230",
+    "name": "Animal Well",
+    "hasFix": false
+  },
+  {
+    "appId": "916440",
+    "name": "Anno 1800",
+    "hasFix": true
+  },
+  {
+    "appId": "1887840",
+    "name": "Another Crab's Treasure",
+    "hasFix": false
+  },
+  {
+    "appId": "813780",
+    "name": "AoE2DE",
+    "hasFix": true
+  },
+  {
+    "appId": "2187220",
+    "name": "Apollo Justice Ace Attorney Trilogy",
+    "hasFix": false
+  },
+  {
+    "appId": "280160",
+    "name": "Aragami",
+    "hasFix": true
+  },
+  {
+    "appId": "1158370",
+    "name": "Aragami 2",
+    "hasFix": true
+  },
+  {
+    "appId": "1888160",
+    "name": "Armored Core VI Fires of Rubicon",
+    "hasFix": false
+  },
+  {
+    "appId": "33230",
+    "name": "Assassin's Creed 2",
+    "steamFolderName": "Assassin's Creed 2"
+  },
+  {
+    "appId": "3751950",
+    "name": "Assassin's Creed Black Flag Resynced",
+    "hasFix": true
+  },
+  {
+    "appId": "911400",
+    "name": "Assassin's Creed III Remastered",
+    "hasFix": true
+  },
+  {
+    "appId": "242050",
+    "name": "Assassin's Creed IV Black Flag",
+    "hasFix": true
+  },
+  {
+    "appId": "3035570",
+    "name": "Assassin's Creed Mirage",
+    "hasFix": true
+  },
+  {
+    "appId": "201870",
+    "name": "Assassin's Creed Revelations",
+    "hasFix": true
+  },
+  {
+    "appId": "311560",
+    "name": "Assassin's Creed Rogue",
+    "hasFix": true
+  },
+  {
+    "appId": "3159330",
+    "name": "Assassin's Creed Shadows",
+    "hasFix": true
+  },
+  {
+    "appId": "368500",
+    "name": "Assassin's Creed Syndicate",
+    "hasFix": true
+  },
+  {
+    "appId": "289650",
+    "name": "Assassin's Creed Unity",
+    "hasFix": true
+  },
+  {
+    "appId": "2208920",
+    "name": "Assassin's Creed Valhalla",
+    "hasFix": true
+  },
+  {
+    "appId": "582160",
+    "name": "Assassin's Creed® Origins",
+    "hasFix": false
+  },
+  {
+    "appId": "812140",
+    "name": "Assassins Creed Odyssey",
+    "hasFix": true
+  },
+  {
+    "appId": "1230530",
+    "name": "Atlas Fallen",
+    "hasFix": true
+  },
+  {
+    "appId": "668580",
+    "name": "atomic heart",
+    "hasFix": true
+  },
+  {
+    "appId": "2840770",
+    "name": "avatar frontiers of pandora",
+    "hasFix": true
+  },
+  {
+    "appId": "2457220",
+    "name": "Avowed",
+    "hasFix": false
+  },
+  {
+    "appId": "2379780",
+    "name": "Balatro",
+    "hasFix": false
+  },
+  {
+    "appId": "1086940",
+    "name": "Baldur's Gate 3",
+    "hasFix": false
+  },
+  {
+    "appId": "1493640",
+    "name": "Banishers Ghosts of New Eden",
+    "hasFix": false
+  },
+  {
+    "appId": "107100",
+    "name": "Bastion",
+    "hasFix": false
+  },
+  {
+    "appId": "498240",
+    "name": "Batman - The Telltale Series",
+    "hasFix": false
+  },
+  {
+    "appId": "208650",
+    "name": "Batman™ Arkham Knight",
+    "hasFix": false
+  },
+  {
+    "appId": "209000",
+    "name": "Batman™ Arkham Origins",
+    "hasFix": false
+  },
+  {
+    "appId": "460790",
+    "name": "Bayonetta",
+    "hasFix": false
+  },
+  {
+    "appId": "1063660",
+    "name": "Bendy and the Dark Revival",
+    "hasFix": false
+  },
+  {
+    "appId": "622650",
+    "name": "Bendy and the Ink Machine",
+    "hasFix": false
+  },
+  {
+    "appId": "2556990",
+    "name": "Beyond Good and Evil 20th Anniversary Edition",
+    "hasFix": false
+  },
+  {
+    "appId": "960990",
+    "name": "Beyond Two Souls",
+    "hasFix": false
+  },
+  {
+    "appId": "409720",
+    "name": "BioShock 2 Remastered",
+    "hasFix": false
+  },
+  {
+    "appId": "8870",
+    "name": "BioShock Infinite",
+    "hasFix": false
+  },
+  {
+    "appId": "409710",
+    "name": "BioShock Remastered",
+    "hasFix": false
+  },
+  {
+    "appId": "2358720",
+    "name": "BlackMythWukong",
+    "hasFix": true
+  },
+  {
+    "appId": "774361",
+    "name": "Blasphemous",
+    "hasFix": false
+  },
+  {
+    "appId": "2114740",
+    "name": "Blasphemous 2",
+    "hasFix": false
+  },
+  {
+    "appId": "1689620",
+    "name": "BLEACH Rebirth of Souls",
+    "hasFix": true
+  },
+  {
+    "appId": "2906070",
+    "name": "Blood Reaver",
+    "hasFix": false
+  },
+  {
+    "appId": "692850",
+    "name": "Bloodstained Ritual of the Night",
+    "hasFix": true
+  },
+  {
+    "appId": "2406770",
+    "name": "Bodycam",
+    "hasFix": true
+  },
+  {
+    "appId": "397540",
+    "name": "Borderlands 3",
+    "hasFix": true
+  },
+  {
+    "appId": "1446650",
+    "name": "Bravely Default II",
+    "hasFix": false
+  },
+  {
+    "appId": "2153350",
+    "name": "Brothers A Tale of Two Sons remake",
+    "hasFix": false
+  },
+  {
+    "appId": "501590",
+    "name": "Bulletstorm full clip edition",
+    "hasFix": true
+  },
+  {
+    "appId": "12200",
+    "name": "Bully Scholarship Edition",
+    "hasFix": false
+  },
+  {
+    "appId": "7940",
+    "name": "Call of Duty 4",
+    "hasFix": true
+  },
+  {
+    "appId": "2630",
+    "name": "Call of Duty® 2",
+    "hasFix": false
+  },
+  {
+    "appId": "1114150",
+    "name": "CarX Street",
+    "hasFix": true
+  },
+  {
+    "appId": "1321440",
+    "name": "Cassette Beasts",
+    "hasFix": false
+  },
+  {
+    "appId": "239250",
+    "name": "Castlevania Lords of Shadow 2",
+    "hasFix": true
+  },
+  {
+    "appId": "234080",
+    "name": "CastlevaniaLoS",
+    "hasFix": true
+  },
+  {
+    "appId": "504230",
+    "name": "Celeste",
+    "hasFix": false
+  },
+  {
+    "appId": "1229240",
+    "name": "Chained Echoes",
+    "hasFix": false
+  },
+  {
+    "appId": "256290",
+    "name": "Child of Light",
+    "hasFix": true
+  },
+  {
+    "appId": "1133760",
+    "name": "Chrono Cross The Radical Dreamers Edition",
+    "hasFix": false
+  },
+  {
+    "appId": "967390",
+    "name": "Chronos Before the Ashes",
+    "hasFix": false
+  },
+  {
+    "appId": "255710",
+    "name": "Cities Skylines",
+    "hasFix": false
+  },
+  {
+    "appId": "949230",
+    "name": "Cities Skylines II",
+    "hasFix": false
+  },
+  {
+    "appId": "1903340",
+    "name": "Clair Obscur Expedition 33",
+    "hasFix": false
+  },
+  {
+    "appId": "2794770",
+    "name": "Clock Tower Rewind",
+    "hasFix": false
+  },
+  {
+    "appId": "678960",
+    "name": "CODE VEIN",
+    "hasFix": true
+  },
+  {
+    "appId": "2362060",
+    "name": "CODE VEIN II",
+    "hasFix": true
+  },
+  {
+    "appId": "2229870",
+    "name": "Command & Conquer Generals",
+    "hasFix": false
+  },
+  {
+    "appId": "870780",
+    "name": "CONTROL Ultimate Edition",
+    "hasFix": false
+  },
+  {
+    "appId": "1621690",
+    "name": "Core Keeper",
+    "hasFix": true
+  },
+  {
+    "appId": "1378990",
+    "name": "Crash Bandicoot 4 It's About Time",
+    "hasFix": false
+  },
+  {
+    "appId": "368340",
+    "name": "CrossCode",
+    "hasFix": false
+  },
+  {
+    "appId": "1996010",
+    "name": "Crow Country",
+    "hasFix": false
+  },
+  {
+    "appId": "1158310",
+    "name": "Crusader Kings III",
+    "hasFix": true
+  },
+  {
+    "appId": "2096600",
+    "name": "Crysis 2 Remastered",
+    "hasFix": false
+  },
+  {
+    "appId": "2096610",
+    "name": "Crysis 3 Remastered",
+    "hasFix": false
+  },
+  {
+    "appId": "1715130",
+    "name": "Crysis Remastered",
+    "hasFix": false
+  },
+  {
+    "appId": "1313140",
+    "name": "Cult of the Lamb",
+    "hasFix": false
+  },
+  {
+    "appId": "268910",
+    "name": "Cuphead",
+    "hasFix": false
+  },
+  {
+    "appId": "1091500",
+    "name": "Cyberpunk 2077",
+    "hasFix": false
+  },
+  {
+    "appId": "335300",
+    "name": "Dark Souls II Scholar of the First Sin",
+    "hasFix": false
+  },
+  {
+    "appId": "570940",
+    "name": "Dark Souls Remastered",
+    "hasFix": false
+  },
+  {
+    "appId": "374320",
+    "name": "DARK SOULS™ III",
+    "hasFix": false
+  },
+  {
+    "appId": "1940340",
+    "name": "Darkest Dungeon II",
+    "hasFix": false
+  },
+  {
+    "appId": "50620",
+    "name": "Darksiders",
+    "hasFix": true
+  },
+  {
+    "appId": "388410",
+    "name": "Darksiders II Deathinitive Edition",
+    "hasFix": false
+  },
+  {
+    "appId": "606280",
+    "name": "Darksiders III",
+    "hasFix": false
+  },
+  {
+    "appId": "710920",
+    "name": "DarksidersGenesis",
+    "hasFix": true
+  },
+  {
+    "appId": "274520",
+    "name": "Darkwood",
+    "hasFix": false
+  },
+  {
+    "appId": "1868140",
+    "name": "DAVE THE DIVER",
+    "hasFix": false
+  },
+  {
+    "appId": "1259420",
+    "name": "Days Gone",
+    "hasFix": false
+  },
+  {
+    "appId": "323470",
+    "name": "DB Xenoverse",
+    "hasFix": true
+  },
+  {
+    "appId": "588650",
+    "name": "Dead Cells",
+    "hasFix": false
+  },
+  {
+    "appId": "45740",
+    "name": "Dead Rising 2",
+    "hasFix": true
+  },
+  {
+    "appId": "265550",
+    "name": "Dead Rising 3 Apocalypse Edition",
+    "hasFix": true
+  },
+  {
+    "appId": "427190",
+    "name": "DEAD RISING®",
+    "hasFix": true
+  },
+  {
+    "appId": "543460",
+    "name": "DEAD RISING4",
+    "hasFix": true
+  },
+  {
+    "appId": "1693980",
+    "name": "Dead Space (2023)",
+    "hasFix": true
+  },
+  {
+    "appId": "47780",
+    "name": "Dead Space™ 2",
+    "hasFix": true
+  },
+  {
+    "appId": "1238060",
+    "name": "Dead Space™ 3",
+    "hasFix": false
+  },
+  {
+    "appId": "3280350",
+    "name": "DEATH STRANDING 2 ON THE BEACH",
+    "hasFix": false
+  },
+  {
+    "appId": "1850570",
+    "name": "Death Stranding Director's Cut",
+    "hasFix": false
+  },
+  {
+    "appId": "1252330",
+    "name": "DEATHLOOP",
+    "hasFix": false
+  },
+  {
+    "appId": "548430",
+    "name": "Deep Rock Galactic",
+    "hasFix": true
+  },
+  {
+    "appId": "2424110",
+    "name": "Demon Slayer -Kimetsu no Yaiba- Sweep the Board!",
+    "hasFix": false
+  },
+  {
+    "appId": "1490890",
+    "name": "Demon Slayer -Kimetsu no Yaiba- The Hinokami Chronicles",
+    "hasFix": false
+  },
+  {
+    "appId": "2928600",
+    "name": "Demon Slayer -Kimetsu no Yaiba- The Hinokami Chronicles 2",
+    "hasFix": false
+  },
+  {
+    "appId": "1222140",
+    "name": "Detroit Become Human",
+    "hasFix": false
+  },
+  {
+    "appId": "329050",
+    "name": "Devil May Cry 4 Special Edition",
+    "hasFix": false
+  },
+  {
+    "appId": "601150",
+    "name": "Devil May Cry 5",
+    "hasFix": false
+  },
+  {
+    "appId": "631510",
+    "name": "Devil May Cry HD Collection",
+    "hasFix": false
+  },
+  {
+    "appId": "2250600",
+    "name": "Disgaea 7 Vows of the Virtueless",
+    "hasFix": false
+  },
+  {
+    "appId": "403640",
+    "name": "Dishonored 2",
+    "hasFix": false
+  },
+  {
+    "appId": "435150",
+    "name": "Divinity Original Sin 2",
+    "hasFix": false
+  },
+  {
+    "appId": "322330",
+    "name": "Don't Starve Together",
+    "hasFix": false
+  },
+  {
+    "appId": "782330",
+    "name": "DOOMEternal",
+    "hasFix": true
+  },
+  {
+    "appId": "3017860",
+    "name": "DOOMTheDarkAges",
+    "hasFix": true
+  },
+  {
+    "appId": "1238040",
+    "name": "Dragon Age II",
+    "hasFix": true
+  },
+  {
+    "appId": "47810",
+    "name": "Dragon Age Origins - Ultimate Edition",
+    "hasFix": false
+  },
+  {
+    "appId": "1845910",
+    "name": "Dragon Age The Veilguard",
+    "hasFix": false
+  },
+  {
+    "appId": "678950",
+    "name": "DRAGON BALL FighterZ",
+    "hasFix": true
+  },
+  {
+    "appId": "1790600",
+    "name": "DRAGON BALL Sparking! ZERO",
+    "hasFix": true
+  },
+  {
+    "appId": "454650",
+    "name": "Dragon Ball Xenoverse 2",
+    "hasFix": false
+  },
+  {
+    "appId": "851850",
+    "name": "Dragon Ball Z Kakarot",
+    "hasFix": false
+  },
+  {
+    "appId": "2701660",
+    "name": "Dragon Quest III HD-2D Remake",
+    "hasFix": false
+  },
+  {
+    "appId": "1295510",
+    "name": "DRAGON QUEST® XI S Echoes of an Elusive Age™ - Definitive Edition",
+    "hasFix": false
+  },
+  {
+    "appId": "2054970",
+    "name": "Dragons Dogma 2",
+    "hasFix": true
+  },
+  {
+    "appId": "1562430",
+    "name": "Dredge",
+    "hasFix": false
+  },
+  {
+    "appId": "2637990",
+    "name": "Duck Detective The Secret Salami",
+    "hasFix": false
+  },
+  {
+    "appId": "steam_1172710",
+    "name": "Dune Awakening",
+    "hasFix": false
+  },
+  {
+    "appId": "519860",
+    "name": "Dusk",
+    "hasFix": true
+  },
+  {
+    "appId": "1366540",
+    "name": "Dyson Sphere Program",
+    "hasFix": false
+  },
+  {
+    "appId": "977880",
+    "name": "Eastward",
+    "hasFix": false
+  },
+  {
+    "appId": "1658280",
+    "name": "Eiyuden Chronicle Hundred Heroes",
+    "hasFix": false
+  },
+  {
+    "appId": "1581040",
+    "name": "El Shaddai ASCENSION OF THE METATRON HD Remaster",
+    "hasFix": false
+  },
+  {
+    "appId": "1245620",
+    "name": "ELDEN RING",
+    "hasFix": true
+  },
+  {
+    "appId": "2622380",
+    "name": "ELDEN RING NIGHTREIGN",
+    "hasFix": true
+  },
+  {
+    "appId": "359320",
+    "name": "Elite Dangerous",
+    "hasFix": false
+  },
+  {
+    "appId": "2725260",
+    "name": "Ender Magnolia Bloom in the Mist",
+    "hasFix": false
+  },
+  {
+    "appId": "2102450",
+    "name": "Enotria The Last Song",
+    "hasFix": false
+  },
+  {
+    "appId": "1203620",
+    "name": "Enshrouded",
+    "hasFix": true
+  },
+  {
+    "appId": "1522160",
+    "name": "Epic Mickey Rebrushed",
+    "hasFix": false
+  },
+  {
+    "appId": "227300",
+    "name": "Euro Truck Simulator 2",
+    "hasFix": true
+  },
+  {
+    "appId": "21090",
+    "name": "F.E.A.R",
+    "hasFix": false
+  },
+  {
+    "appId": "16450",
+    "name": "F.E.A.R. 2 Project Origin",
+    "hasFix": false
+  },
+  {
+    "appId": "21100",
+    "name": "F.E.A.R. 3",
+    "hasFix": false
+  },
+  {
+    "appId": "288470",
+    "name": "Fable Anniversary",
+    "hasFix": false
+  },
+  {
+    "appId": "427520",
+    "name": "Factorio",
+    "hasFix": true
+  },
+  {
+    "appId": "377160",
+    "name": "Fallout 4",
+    "hasFix": false
+  },
+  {
+    "appId": "22380",
+    "name": "Fallout New Vegas",
+    "hasFix": false
+  },
+  {
+    "appId": "2993780",
+    "name": "Fantasy Life i The Girl Who Steals Time",
+    "hasFix": false
+  },
+  {
+    "appId": "220240",
+    "name": "Far Cry 3",
+    "hasFix": true
+  },
+  {
+    "appId": "298110",
+    "name": "Far Cry 4",
+    "hasFix": true
+  },
+  {
+    "appId": "552520",
+    "name": "Far Cry 5",
+    "hasFix": true
+  },
+  {
+    "appId": "2369390",
+    "name": "Far Cry 6",
+    "hasFix": true
+  },
+  {
+    "appId": "939960",
+    "name": "Far Cry New Dawn",
+    "hasFix": true
+  },
+  {
+    "appId": "371660",
+    "name": "Far Cry Primal",
+    "hasFix": true
+  },
+  {
+    "appId": "1248130",
+    "name": "Farming Simulator 22",
+    "hasFix": true
+  },
+  {
+    "appId": "2492040",
+    "name": "FATAL FURY City of the Wolves",
+    "hasFix": false
+  },
+  {
+    "appId": "1173770",
+    "name": "FINAL FANTASY",
+    "hasFix": false
+  },
+  {
+    "appId": "1173800",
+    "name": "Final Fantasy IV",
+    "hasFix": false
+  },
+  {
+    "appId": "377840",
+    "name": "Final Fantasy IX",
+    "hasFix": false
+  },
+  {
+    "appId": "1173820",
+    "name": "Final Fantasy VI",
+    "hasFix": false
+  },
+  {
+    "appId": "2909400",
+    "name": "FINAL FANTASY VII REBIRTH",
+    "hasFix": false
+  },
+  {
+    "appId": "1462040",
+    "name": "FINAL FANTASY VII REMAKE INTERGRADE",
+    "hasFix": false
+  },
+  {
+    "appId": "39150",
+    "name": "Final Fantasy VIII",
+    "hasFix": false
+  },
+  {
+    "appId": "595520",
+    "name": "Final Fantasy XII The Zodiac Age",
+    "hasFix": false
+  },
+  {
+    "appId": "292120",
+    "name": "Final Fantasy XIII",
+    "hasFix": false
+  },
+  {
+    "appId": "39210",
+    "name": "FINAL FANTASY XIV Online",
+    "hasFix": false
+  },
+  {
+    "appId": "637650",
+    "name": "FINAL FANTASY XV WINDOWS EDITION",
+    "hasFix": false
+  },
+  {
+    "appId": "2515020",
+    "name": "FINAL FANTASY XVI",
+    "hasFix": false
+  },
+  {
+    "appId": "1832040",
+    "name": "Flintlock The Siege of Dawn",
+    "hasFix": false
+  },
+  {
+    "appId": "1680880",
+    "name": "Forspoken",
+    "hasFix": false
+  },
+  {
+    "appId": "1551360",
+    "name": "forza horizon 5",
+    "hasFix": false
+  },
+  {
+    "appId": "2483190",
+    "name": "forza horizon 6",
+    "hasFix": false
+  },
+  {
+    "appId": "323190",
+    "name": "Frostpunk",
+    "hasFix": false
+  },
+  {
+    "appId": "1601580",
+    "name": "Frostpunk 2",
+    "hasFix": false
+  },
+  {
+    "appId": "285900",
+    "name": "Gang Beasts",
+    "hasFix": true
+  },
+  {
+    "appId": "1149620",
+    "name": "Gas Station Simulator",
+    "hasFix": false
+  },
+  {
+    "appId": "2523720",
+    "name": "Gears of War Reloaded",
+    "hasFix": false
+  },
+  {
+    "appId": "2215430",
+    "name": "Ghost of Tsushima DIRECTOR'S CUT",
+    "hasFix": false
+  },
+  {
+    "appId": "1475810",
+    "name": "Ghostwire Tokyo",
+    "hasFix": false
+  },
+  {
+    "appId": "850190",
+    "name": "Goat Simulator 3",
+    "hasFix": false
+  },
+  {
+    "appId": "1593500",
+    "name": "God of War",
+    "hasFix": false
+  },
+  {
+    "appId": "2322010",
+    "name": "God of War Ragnarök",
+    "hasFix": false
+  },
+  {
+    "appId": "1496790",
+    "name": "Gotham Knights",
+    "hasFix": false
+  },
+  {
+    "appId": "881020",
+    "name": "Granblue Fantasy Relink",
+    "hasFix": true
+  },
+  {
+    "appId": "2157560",
+    "name": "Granblue Fantasy Versus Rising",
+    "hasFix": false
+  },
+  {
+    "appId": "12210",
+    "name": "Grand Theft Auto IV The Complete Edition",
+    "hasFix": true
+  },
+  {
+    "appId": "3240220",
+    "name": "Grand Theft Auto V Enhanced",
+    "hasFix": true
+  },
+  {
+    "appId": "1034860",
+    "name": "GRANDIA HD Remaster",
+    "hasFix": false
+  },
+  {
+    "appId": "330390",
+    "name": "GRANDIA II HD Remaster",
+    "hasFix": false
+  },
+  {
+    "appId": "599140",
+    "name": "Graveyard Keeper",
+    "hasFix": false
+  },
+  {
+    "appId": "815370",
+    "name": "Green Hell",
+    "hasFix": true
+  },
+  {
+    "appId": "962130",
+    "name": "Grounded",
+    "hasFix": true
+  },
+  {
+    "appId": "2661300",
+    "name": "Grounded2",
+    "hasFix": true
+  },
+  {
+    "appId": "1546970",
+    "name": "GTA III - The Definitive Edition",
+    "hasFix": true
+  },
+  {
+    "appId": "1547000",
+    "name": "GTA San Andreas - The Definitive Edition",
+    "hasFix": true
+  },
+  {
+    "appId": "1546990",
+    "name": "GTA Vice City - The Definitive Edition",
+    "hasFix": true
+  },
+  {
+    "appId": "1384160",
+    "name": "Guilty Gear Strive",
+    "hasFix": false
+  },
+  {
+    "appId": "1145360",
+    "name": "Hades",
+    "hasFix": false
+  },
+  {
+    "appId": "1145350",
+    "name": "Hades II",
+    "hasFix": false
+  },
+  {
+    "appId": "546560",
+    "name": "Half-Life Alyx",
+    "hasFix": false
+  },
+  {
+    "appId": "924750",
+    "name": "Harold Halibut",
+    "hasFix": false
+  },
+  {
+    "appId": "394360",
+    "name": "Hearts of Iron IV",
+    "hasFix": true
+  },
+  {
+    "appId": "960910",
+    "name": "Heavy Rain",
+    "hasFix": false
+  },
+  {
+    "appId": "steam_394510",
+    "name": "Helldivers",
+    "hasFix": true
+  },
+  {
+    "appId": "553850",
+    "name": "HELLDIVERS™ 2",
+    "hasFix": true
+  },
+  {
+    "appId": "1817230",
+    "name": "Hi-Fi RUSH",
+    "hasFix": false
+  },
+  {
+    "appId": "1583230",
+    "name": "High On Life",
+    "hasFix": false
+  },
+  {
+    "appId": "2069250",
+    "name": "High On Life 2",
+    "hasFix": false
+  },
+  {
+    "appId": "990080",
+    "name": "hogwart legacy",
+    "hasFix": true
+  },
+  {
+    "appId": "367520",
+    "name": "Hollow Knight",
+    "hasFix": true
+  },
+  {
+    "appId": "1030300",
+    "name": "Hollow Knight Silksong",
+    "hasFix": true
+  },
+  {
+    "appId": "2420110",
+    "name": "Horizon Forbidden West Complete Edition",
+    "hasFix": false
+  },
+  {
+    "appId": "1151640",
+    "name": "Horizon Zero Dawn Complete Edition",
+    "hasFix": false
+  },
+  {
+    "appId": "613100",
+    "name": "House Flipper",
+    "hasFix": true
+  },
+  {
+    "appId": "1190970",
+    "name": "House Flipper 2",
+    "hasFix": true
+  },
+  {
+    "appId": "4001890",
+    "name": "how to fish",
+    "hasFix": true
+  },
+  {
+    "appId": "327890",
+    "name": "I Am Bread",
+    "hasFix": false
+  },
+  {
+    "appId": "2221920",
+    "name": "Immortals Fenyx Rising",
+    "hasFix": false
+  },
+  {
+    "appId": "2009100",
+    "name": "Immortals of Aveum",
+    "hasFix": false
+  },
+  {
+    "appId": "2799860",
+    "name": "Inazuma Eleven Victory Road",
+    "hasFix": false
+  },
+  {
+    "appId": "2677660",
+    "name": "Indiana Jones and the Great Circle",
+    "hasFix": false
+  },
+  {
+    "appId": "1373960",
+    "name": "INDIKA",
+    "hasFix": false
+  },
+  {
+    "appId": "1092790",
+    "name": "Inscryption",
+    "hasFix": false
+  },
+  {
+    "appId": "304430",
+    "name": "INSIDE",
+    "hasFix": false
+  },
+  {
+    "appId": "1136160",
+    "name": "Internet Cafe Simulator",
+    "hasFix": false
+  },
+  {
+    "appId": "1563180",
+    "name": "Internet Cafe Simulator 2",
+    "hasFix": false
+  },
+  {
+    "appId": "562860",
+    "name": "Ion Fury",
+    "hasFix": false
+  },
+  {
+    "appId": "581820",
+    "name": "Judas",
+    "hasFix": false
+  },
+  {
+    "appId": "2058180",
+    "name": "Judgment",
+    "hasFix": true
+  },
+  {
+    "appId": "1244460",
+    "name": "Jurassic World Evolution 2",
+    "hasFix": false
+  },
+  {
+    "appId": "8190",
+    "name": "Just Cause 2",
+    "hasFix": false
+  },
+  {
+    "appId": "517630",
+    "name": "Just Cause 4 Reloaded",
+    "hasFix": true
+  },
+  {
+    "appId": "225540",
+    "name": "Just Cause™ 3",
+    "hasFix": true
+  },
+  {
+    "appId": "460950",
+    "name": "Katana ZERO",
+    "hasFix": false
+  },
+  {
+    "appId": "1954200",
+    "name": "Kena Bridge of Spirits",
+    "hasFix": false
+  },
+  {
+    "appId": "1771300",
+    "name": "Kingdom Come Deliverance II",
+    "hasFix": false
+  },
+  {
+    "appId": "1041720",
+    "name": "Kingdoms of Amalur Re-Reckoning",
+    "hasFix": false
+  },
+  {
+    "appId": "110800",
+    "name": "L.A.Noire",
+    "hasFix": true
+  },
+  {
+    "appId": "1998340",
+    "name": "Labyrinth of Galleria The Moon Society",
+    "hasFix": false
+  },
+  {
+    "appId": "550",
+    "name": "Left 4 Dead 2",
+    "hasFix": true
+  },
+  {
+    "appId": "2215200",
+    "name": "lego batman legacy of the dark knight",
+    "hasFix": true
+  },
+  {
+    "appId": "313690",
+    "name": "LEGO® Batman™ 3 Beyond Gotham",
+    "hasFix": false
+  },
+  {
+    "appId": "1627720",
+    "name": "Lies of P",
+    "hasFix": true
+  },
+  {
+    "appId": "532210",
+    "name": "Life is Strange 2",
+    "hasFix": false
+  },
+  {
+    "appId": "1265920",
+    "name": "Life is Strange Remastered",
+    "hasFix": false
+  },
+  {
+    "appId": "936790",
+    "name": "Life is Strange True Colors",
+    "hasFix": false
+  },
+  {
+    "appId": "2072450",
+    "name": "Like a Dragon Infinite Wealth",
+    "hasFix": false
+  },
+  {
+    "appId": "424840",
+    "name": "Little Nightmares",
+    "hasFix": false
+  },
+  {
+    "appId": "860510",
+    "name": "Little Nightmares II",
+    "hasFix": false
+  },
+  {
+    "appId": "2014380",
+    "name": "Live A Live",
+    "hasFix": false
+  },
+  {
+    "appId": "2658450",
+    "name": "Lollipop Chainsaw RePOP",
+    "hasFix": false
+  },
+  {
+    "appId": "1501750",
+    "name": "Lord of the Fallen",
+    "hasFix": false
+  },
+  {
+    "appId": "2008920",
+    "name": "Lorelei and the Laser Eyes",
+    "hasFix": false
+  },
+  {
+    "appId": "2058190",
+    "name": "Lost Judgment",
+    "hasFix": true
+  },
+  {
+    "appId": "234140",
+    "name": "Mad Max",
+    "hasFix": true
+  },
+  {
+    "appId": "1030840",
+    "name": "Mafia Definitive Edition",
+    "hasFix": false
+  },
+  {
+    "appId": "1030830",
+    "name": "Mafia II Definitive Edition",
+    "hasFix": false
+  },
+  {
+    "appId": "360430",
+    "name": "Mafia III Definitive Edition",
+    "hasFix": false
+  },
+  {
+    "appId": "1941540",
+    "name": "Mafia The Old Country",
+    "hasFix": true
+  },
+  {
+    "appId": "1732060",
+    "name": "Makai Kingdom Reclaimed and Rebound",
+    "hasFix": false
+  },
+  {
+    "appId": "1363080",
+    "name": "Manor Lords",
+    "hasFix": false
+  },
+  {
+    "appId": "368260",
+    "name": "Marvel's Midnight Suns",
+    "hasFix": false
+  },
+  {
+    "appId": "2651280",
+    "name": "Marvel's Spider-Man 2",
+    "hasFix": false
+  },
+  {
+    "appId": "1817190",
+    "name": "Marvel's Spider-Man Miles Morales",
+    "hasFix": false
+  },
+  {
+    "appId": "1817070",
+    "name": "Marvel’s Spider-Man Remastered",
+    "hasFix": false
+  },
+  {
+    "appId": "204100",
+    "name": "Max Payne 3",
+    "hasFix": true
+  },
+  {
+    "appId": "1129580",
+    "name": "Medieval Dynasty",
+    "hasFix": true
+  },
+  {
+    "appId": "1061910",
+    "name": "Metal Hellsinger",
+    "hasFix": false
+  },
+  {
+    "appId": "2679460",
+    "name": "Metaphor ReFantazio",
+    "hasFix": false
+  },
+  {
+    "appId": "286690",
+    "name": "Metro 2033 Redux",
+    "hasFix": false
+  },
+  {
+    "appId": "412020",
+    "name": "Metro Exodus",
+    "hasFix": false
+  },
+  {
+    "appId": "287390",
+    "name": "Metro Last Light Redux",
+    "hasFix": false
+  },
+  {
+    "appId": "1446780",
+    "name": "Monster Hunter Rise",
+    "hasFix": true
+  },
+  {
+    "appId": "582010",
+    "name": "Monster Hunter World",
+    "hasFix": true
+  },
+  {
+    "appId": "1971870",
+    "name": "Mortal Kombat 1",
+    "hasFix": false
+  },
+  {
+    "appId": "976310",
+    "name": "Mortal Kombat 11",
+    "hasFix": false
+  },
+  {
+    "appId": "1110910",
+    "name": "Mortal Shell",
+    "hasFix": false
+  },
+  {
+    "appId": "2584270",
+    "name": "Mortal Shell II",
+    "hasFix": false
+  },
+  {
+    "appId": "261550",
+    "name": "Mount & Blade II Bannerlord",
+    "hasFix": false
+  },
+  {
+    "appId": "1641700",
+    "name": "Moving Out 2",
+    "hasFix": true
+  },
+  {
+    "appId": "2111190",
+    "name": "Mullet MadJack",
+    "hasFix": false
+  },
+  {
+    "appId": "349040",
+    "name": "NARUTO SHIPPUDEN Ultimate Ninja STORM 4",
+    "hasFix": true
+  },
+  {
+    "appId": "1020790",
+    "name": "NARUTO X BORUTO Ultimate Ninja STORM CONNECTIONS",
+    "hasFix": true
+  },
+  {
+    "appId": "1222680",
+    "name": "Need for Speed Heat",
+    "hasFix": true
+  },
+  {
+    "appId": "1328660",
+    "name": "Need For Speed Hot Pursuit Remastered",
+    "hasFix": true
+  },
+  {
+    "appId": "1262600",
+    "name": "Need for Speed Rivals",
+    "hasFix": false
+  },
+  {
+    "appId": "1846380",
+    "name": "Need for Speed Unbound",
+    "hasFix": false
+  },
+  {
+    "appId": "1262580",
+    "name": "Need for Speed™ Payback",
+    "hasFix": false
+  },
+  {
+    "appId": "1533420",
+    "name": "Neon White",
+    "hasFix": false
+  },
+  {
+    "appId": "2420660",
+    "name": "Neva",
+    "hasFix": false
+  },
+  {
+    "appId": "589360",
+    "name": "Ni no Kuni II Revenant Kingdom",
+    "hasFix": false
+  },
+  {
+    "appId": "524220",
+    "name": "Nier Automata",
+    "hasFix": false
+  },
+  {
+    "appId": "1809540",
+    "name": "Nine Sols",
+    "hasFix": false
+  },
+  {
+    "appId": "485510",
+    "name": "Nioh",
+    "hasFix": true
+  },
+  {
+    "appId": "1325200",
+    "name": "Nioh2",
+    "hasFix": true
+  },
+  {
+    "appId": "3681010",
+    "name": "Nioh3",
+    "hasFix": true
+  },
+  {
+    "appId": "275850",
+    "name": "No Man's Sky",
+    "hasFix": true
+  },
+  {
+    "appId": "1971650",
+    "name": "OCTOPATH TRAVELER II",
+    "hasFix": false
+  },
+  {
+    "appId": "814000",
+    "name": "One Piece Odyssey",
+    "hasFix": false
+  },
+  {
+    "appId": "1089090",
+    "name": "One Piece Pirate Warriors 4",
+    "hasFix": false
+  },
+  {
+    "appId": "571720",
+    "name": "One Piece Unlimited World Red",
+    "hasFix": false
+  },
+  {
+    "appId": "755500",
+    "name": "One Piece World Seeker",
+    "hasFix": false
+  },
+  {
+    "appId": "2638890",
+    "name": "Onimusha Way of the Sword",
+    "hasFix": false
+  },
+  {
+    "appId": "1057090",
+    "name": "Ori and the Will of the Wisps",
+    "hasFix": false
+  },
+  {
+    "appId": "753640",
+    "name": "Outer Wilds",
+    "hasFix": true
+  },
+  {
+    "appId": "238320",
+    "name": "Outlast",
+    "hasFix": false
+  },
+  {
+    "appId": "414700",
+    "name": "Outlast 2",
+    "hasFix": false
+  },
+  {
+    "appId": "1243830",
+    "name": "Overcooked! All You Can Eat",
+    "hasFix": true
+  },
+  {
+    "appId": "457140",
+    "name": "OxygenNotIncluded",
+    "hasFix": true
+  },
+  {
+    "appId": "1687950",
+    "name": "P5R",
+    "hasFix": true
+  },
+  {
+    "appId": "1458140",
+    "name": "Pacific Drive",
+    "hasFix": false
+  },
+  {
+    "appId": "1623730",
+    "name": "Palworld",
+    "hasFix": true
+  },
+  {
+    "appId": "1260320",
+    "name": "Party Animals",
+    "hasFix": false
+  },
+  {
+    "appId": "1184370",
+    "name": "Pathfinder Wrath of the Righteous",
+    "hasFix": false
+  },
+  {
+    "appId": "218620",
+    "name": "payday2",
+    "hasFix": false
+  },
+  {
+    "appId": "2161700",
+    "name": "Persona 3 Reload",
+    "hasFix": false
+  },
+  {
+    "appId": "3049990",
+    "name": "Phantom Brave The Lost Hero",
+    "hasFix": false
+  },
+  {
+    "appId": "560130",
+    "name": "Pillars of Eternity II Deadfire",
+    "hasFix": false
+  },
+  {
+    "appId": "493340",
+    "name": "Planet Coaster",
+    "hasFix": false
+  },
+  {
+    "appId": "2688950",
+    "name": "Planet Coaster 2",
+    "hasFix": false
+  },
+  {
+    "appId": "703080",
+    "name": "Planet Zoo",
+    "hasFix": false
+  },
+  {
+    "appId": "1290000",
+    "name": "PowerWash Simulator",
+    "hasFix": true
+  },
+  {
+    "appId": "2968420",
+    "name": "PowerWash Simulator 2",
+    "hasFix": true
+  },
+  {
+    "appId": "3357650",
+    "name": "Pragmata",
+    "hasFix": true
+  },
+  {
+    "appId": "480490",
+    "name": "Prey",
+    "hasFix": false
+  },
+  {
+    "appId": "2751000",
+    "name": "Prince of Persia The Lost Crown",
+    "hasFix": false
+  },
+  {
+    "appId": "13530",
+    "name": "Prince of Persia The Two Thrones™",
+    "hasFix": false
+  },
+  {
+    "appId": "13500",
+    "name": "Prince of Persia Warrior Within™",
+    "hasFix": false
+  },
+  {
+    "appId": "13600",
+    "name": "Prince of Persia® The Sands of Time",
+    "hasFix": false
+  },
+  {
+    "appId": "964800",
+    "name": "Prodeus",
+    "hasFix": false
+  },
+  {
+    "appId": "108600",
+    "name": "ProjectZomboid",
+    "hasFix": true
+  },
+  {
+    "appId": "10150",
+    "name": "Prototype",
+    "hasFix": true
+  },
+  {
+    "appId": "115320",
+    "name": "Prototype 2",
+    "hasFix": true
+  },
+  {
+    "appId": "607080",
+    "name": "Psychonauts 2",
+    "hasFix": false
+  },
+  {
+    "appId": "474960",
+    "name": "Quantum Break",
+    "hasFix": false
+  },
+  {
+    "appId": "1895880",
+    "name": "Ratchet & Clank Rift Apart",
+    "hasFix": false
+  },
+  {
+    "appId": "1144200",
+    "name": "ready or not",
+    "hasFix": false
+  },
+  {
+    "appId": "1890950",
+    "name": "REAVER",
+    "hasFix": false
+  },
+  {
+    "appId": "2668510",
+    "name": "Red Dead Redemption",
+    "hasFix": true
+  },
+  {
+    "appId": "1174180",
+    "name": "red dead redemption 2",
+    "hasFix": true
+  },
+  {
+    "appId": "1294810",
+    "name": "Redfall",
+    "hasFix": false
+  },
+  {
+    "appId": "1282100",
+    "name": "Remnant2",
+    "hasFix": true
+  },
+  {
+    "appId": "883710",
+    "name": "Resident Evil 2",
+    "hasFix": false
+  },
+  {
+    "appId": "952060",
+    "name": "Resident Evil 3",
+    "hasFix": false
+  },
+  {
+    "appId": "2050650",
+    "name": "Resident Evil 4",
+    "hasFix": false
+  },
+  {
+    "appId": "21690",
+    "name": "Resident Evil 5",
+    "hasFix": false
+  },
+  {
+    "appId": "3764200",
+    "name": "resident evil requiem",
+    "hasFix": true
+  },
+  {
+    "appId": "1649240",
+    "name": "Returnal",
+    "hasFix": false
+  },
+  {
+    "appId": "2738750",
+    "name": "Reynatis",
+    "hasFix": false
+  },
+  {
+    "appId": "294100",
+    "name": "RimWorld",
+    "hasFix": false
+  },
+  {
+    "appId": "391220",
+    "name": "Rise of the Tomb Raider",
+    "hasFix": false
+  },
+  {
+    "appId": "632360",
+    "name": "Risk of Rain 2",
+    "hasFix": true
+  },
+  {
+    "appId": "1466640",
+    "name": "Road 96",
+    "hasFix": false
+  },
+  {
+    "appId": "2455640",
+    "name": "Romancing SaGa 2 Revenge of the Seven",
+    "hasFix": false
+  },
+  {
+    "appId": "1643320",
+    "name": "S.T.A.L.K.E.R. 2 Heart of Chornobyl",
+    "hasFix": false
+  },
+  {
+    "appId": "1599660",
+    "name": "Sackboy A Big Adventure",
+    "hasFix": false
+  },
+  {
+    "appId": "742420",
+    "name": "Saints Row",
+    "hasFix": true
+  },
+  {
+    "appId": "301910",
+    "name": "Saints Row Gat out of Hell",
+    "hasFix": true
+  },
+  {
+    "appId": "206420",
+    "name": "Saints Row IV",
+    "hasFix": true
+  },
+  {
+    "appId": "55230",
+    "name": "Saints Row The Third",
+    "hasFix": true
+  },
+  {
+    "appId": "283640",
+    "name": "Salt and Sanctuary",
+    "hasFix": false
+  },
+  {
+    "appId": "526870",
+    "name": "Satisfactory",
+    "hasFix": true
+  },
+  {
+    "appId": "775500",
+    "name": "Scarlet Nexus",
+    "hasFix": false
+  },
+  {
+    "appId": "1196090",
+    "name": "Scars Above",
+    "hasFix": false
+  },
+  {
+    "appId": "3164500",
+    "name": "Schedule I",
+    "hasFix": true
+  },
+  {
+    "appId": "1244090",
+    "name": "Sea of Stars Sunset Edition",
+    "hasFix": false
+  },
+  {
+    "appId": "814380",
+    "name": "Sekiro Shadows Die Twice",
+    "hasFix": true
+  },
+  {
+    "appId": "1592280",
+    "name": "Selaco",
+    "hasFix": false
+  },
+  {
+    "appId": "750920",
+    "name": "Shadow of the Tomb Raider",
+    "hasFix": true
+  },
+  {
+    "appId": "324800",
+    "name": "Shadow Warrior 2",
+    "hasFix": false
+  },
+  {
+    "appId": "1036890",
+    "name": "Shadow Warrior 3",
+    "hasFix": false
+  },
+  {
+    "appId": "986130",
+    "name": "Shadows of Doubt",
+    "hasFix": false
+  },
+  {
+    "appId": "1875830",
+    "name": "Shin Megami Tensei V Vengeance",
+    "hasFix": false
+  },
+  {
+    "appId": "289070",
+    "name": "Sid Meier's Civilization VI",
+    "hasFix": false
+  },
+  {
+    "appId": "2138710",
+    "name": "SIFU",
+    "hasFix": false
+  },
+  {
+    "appId": "2124490",
+    "name": "SILENT HILL 2",
+    "hasFix": false
+  },
+  {
+    "appId": "2947440",
+    "name": "SILENT HILL f",
+    "hasFix": false
+  },
+  {
+    "appId": "1492070",
+    "name": "Sker Ritual",
+    "hasFix": false
+  },
+  {
+    "appId": "1096530",
+    "name": "Slasta_COTM",
+    "hasFix": true
+  },
+  {
+    "appId": "646570",
+    "name": "Slay the Spire",
+    "hasFix": true
+  },
+  {
+    "appId": "2868840",
+    "name": "Slay the Spire 2",
+    "hasFix": true
+  },
+  {
+    "appId": "307690",
+    "name": "Sleeping Dogs Definitive Edition",
+    "hasFix": true
+  },
+  {
+    "appId": "433340",
+    "name": "Slime Rancher",
+    "hasFix": true
+  },
+  {
+    "appId": "1657630",
+    "name": "Slime Rancher 2",
+    "hasFix": true
+  },
+  {
+    "appId": "2631250",
+    "name": "Slitterhead",
+    "hasFix": false
+  },
+  {
+    "appId": "1029690",
+    "name": "Sniper Elite 5",
+    "hasFix": false
+  },
+  {
+    "appId": "2055290",
+    "name": "SonicColorsUltimate",
+    "hasFix": true
+  },
+  {
+    "appId": "1326470",
+    "name": "Sons Of The Forest",
+    "hasFix": true
+  },
+  {
+    "appId": "1535610",
+    "name": "Soul Nomad & the World Eaters",
+    "hasFix": false
+  },
+  {
+    "appId": "1214650",
+    "name": "south park snow",
+    "hasFix": false
+  },
+  {
+    "appId": "2238900",
+    "name": "Star Ocean The Second Story R",
+    "hasFix": false
+  },
+  {
+    "appId": "2842040",
+    "name": "Star Wars Outlaws",
+    "hasFix": false
+  },
+  {
+    "appId": "2075800",
+    "name": "STAR WARS Zero Company™",
+    "hasFix": false
+  },
+  {
+    "appId": "413150",
+    "name": "Stardew Valley",
+    "hasFix": true
+  },
+  {
+    "appId": "1716740",
+    "name": "Starfield",
+    "hasFix": false
+  },
+  {
+    "appId": "1283400",
+    "name": "Steelrising",
+    "hasFix": false
+  },
+  {
+    "appId": "3489700",
+    "name": "StellarBlade",
+    "hasFix": true
+  },
+  {
+    "appId": "281990",
+    "name": "Stellaris",
+    "hasFix": true
+  },
+  {
+    "appId": "313120",
+    "name": "Stranded Deep",
+    "hasFix": true
+  },
+  {
+    "appId": "1332010",
+    "name": "Stray",
+    "hasFix": false
+  },
+  {
+    "appId": "586200",
+    "name": "Street Fighter 30th Anniversary Collection",
+    "hasFix": true
+  },
+  {
+    "appId": "310950",
+    "name": "Street Fighter V",
+    "hasFix": false
+  },
+  {
+    "appId": "1364780",
+    "name": "Street Fighter6",
+    "hasFix": false
+  },
+  {
+    "appId": "2140020",
+    "name": "Stronghold Definitive Edition",
+    "hasFix": true
+  },
+  {
+    "appId": "264710",
+    "name": "Subnautica",
+    "hasFix": true
+  },
+  {
+    "appId": "1962700",
+    "name": "subnautica2",
+    "hasFix": true
+  },
+  {
+    "appId": "315210",
+    "name": "Suicide Squad Kill the Justice League",
+    "hasFix": false
+  },
+  {
+    "appId": "847370",
+    "name": "Sunset Overdrive",
+    "hasFix": false
+  },
+  {
+    "appId": "45760",
+    "name": "Super Street Fighter IV - Arcade Edition",
+    "hasFix": true
+  },
+  {
+    "appId": "690040",
+    "name": "Superhot Mind Control Delete",
+    "hasFix": false
+  },
+  {
+    "appId": "2670630",
+    "name": "Supermarket Simulator",
+    "hasFix": true
+  },
+  {
+    "appId": "482400",
+    "name": "System Shock",
+    "hasFix": true
+  },
+  {
+    "appId": "866570",
+    "name": "System Shock 2 Remastered",
+    "hasFix": true
+  },
+  {
+    "appId": "1451090",
+    "name": "Tactics Ogre Reborn",
+    "hasFix": false
+  },
+  {
+    "appId": "740130",
+    "name": "Tales of Arise",
+    "hasFix": false
+  },
+  {
+    "appId": "3070070",
+    "name": "TCG Card Shop Simulator",
+    "hasFix": false
+  },
+  {
+    "appId": "389730",
+    "name": "Tekken 7",
+    "hasFix": true
+  },
+  {
+    "appId": "1778820",
+    "name": "Tekken 8",
+    "hasFix": false
+  },
+  {
+    "appId": "105600",
+    "name": "Terraria",
+    "hasFix": true
+  },
+  {
+    "appId": "250900",
+    "name": "The Binding of Isaac Rebirth",
+    "hasFix": true
+  },
+  {
+    "appId": "3751260",
+    "name": "The Blood of Dawnwalker",
+    "hasFix": false
+  },
+  {
+    "appId": "1544020",
+    "name": "The Callisto Protocol",
+    "hasFix": false
+  },
+  {
+    "appId": "1567020",
+    "name": "The Dark Pictures Anthology Devil in Me",
+    "hasFix": false
+  },
+  {
+    "appId": "1281590",
+    "name": "The Dark Pictures Anthology House of Ashes",
+    "hasFix": false
+  },
+  {
+    "appId": "489830",
+    "name": "The Elder Scrolls V Skyrim Special Edition",
+    "hasFix": false
+  },
+  {
+    "appId": "2680010",
+    "name": "The First Berserker Khazan",
+    "hasFix": true
+  },
+  {
+    "appId": "242760",
+    "name": "The Forest",
+    "hasFix": true
+  },
+  {
+    "appId": "1888930",
+    "name": "the last of us 1",
+    "hasFix": false
+  },
+  {
+    "appId": "2531310",
+    "name": "The Last of Us™ Part II Remastered",
+    "hasFix": false
+  },
+  {
+    "appId": "2138610",
+    "name": "The Legend of Heroes Trails through Daybreak",
+    "hasFix": false
+  },
+  {
+    "appId": "2668430",
+    "name": "The Legend of Heroes Trails through Daybreak II",
+    "hasFix": false
+  },
+  {
+    "appId": "1304930",
+    "name": "The Outlast Trials",
+    "hasFix": false
+  },
+  {
+    "appId": "1627570",
+    "name": "The Plucky Squire",
+    "hasFix": false
+  },
+  {
+    "appId": "24880",
+    "name": "The Saboteur",
+    "hasFix": false
+  },
+  {
+    "appId": "644830",
+    "name": "The Surge 2",
+    "hasFix": false
+  },
+  {
+    "appId": "835960",
+    "name": "The Talos Principle 2",
+    "hasFix": false
+  },
+  {
+    "appId": "292030",
+    "name": "The Witcher 3 Wild Hunt - Complete Edition",
+    "hasFix": false
+  },
+  {
+    "appId": "1343240",
+    "name": "Thymesia",
+    "hasFix": false
+  },
+  {
+    "appId": "1286680",
+    "name": "Tiny Tina's Wonderlands",
+    "hasFix": true
+  },
+  {
+    "appId": "1237970",
+    "name": "Titanfall 2",
+    "hasFix": false
+  },
+  {
+    "appId": "587260",
+    "name": "Tokyo Xanadu eX+",
+    "hasFix": false
+  },
+  {
+    "appId": "2478970",
+    "name": "Tomb Raider I-III Remastered",
+    "hasFix": false
+  },
+  {
+    "appId": "1142710",
+    "name": "Total War WARHAMMER III",
+    "hasFix": false
+  },
+  {
+    "appId": "1850510",
+    "name": "Triangle Strategy",
+    "hasFix": false
+  },
+  {
+    "appId": "492720",
+    "name": "Tropico 6",
+    "hasFix": true
+  },
+  {
+    "appId": "553420",
+    "name": "Tunic",
+    "hasFix": false
+  },
+  {
+    "appId": "1328350",
+    "name": "Turbo Overkill",
+    "hasFix": false
+  },
+  {
+    "appId": "1649080",
+    "name": "Two Point Campus",
+    "hasFix": false
+  },
+  {
+    "appId": "535930",
+    "name": "Two Point Hospital",
+    "hasFix": false
+  },
+  {
+    "appId": "1229490",
+    "name": "ULTRAKILL",
+    "hasFix": true
+  },
+  {
+    "appId": "1659420",
+    "name": "Uncharted Legacy of Thieves Collection",
+    "hasFix": false
+  },
+  {
+    "appId": "2076010",
+    "name": "Under Night In-Birth II Sys Celes",
+    "hasFix": false
+  },
+  {
+    "appId": "1477940",
+    "name": "Unknown 9 Awakening",
+    "hasFix": false
+  },
+  {
+    "appId": "2172010",
+    "name": "Until Dawn",
+    "hasFix": true
+  },
+  {
+    "appId": "1604030",
+    "name": "V Rising",
+    "hasFix": true
+  },
+  {
+    "appId": "3265700",
+    "name": "Vampire Crawlers The Turbo Wildcard from Vampire Survivors",
+    "hasFix": false
+  },
+  {
+    "appId": "1794680",
+    "name": "Vampire Survivors",
+    "hasFix": false
+  },
+  {
+    "appId": "532790",
+    "name": "Vampire The Masquerade Bloodlines 2",
+    "hasFix": false
+  },
+  {
+    "appId": "2490990",
+    "name": "Visions of Mana",
+    "hasFix": false
+  },
+  {
+    "appId": "2186680",
+    "name": "Warhammer 40,000 Rogue Trader",
+    "hasFix": false
+  },
+  {
+    "appId": "552500",
+    "name": "Warhammer Vermintide 2",
+    "hasFix": true
+  },
+  {
+    "appId": "719040",
+    "name": "Wasteland 3",
+    "hasFix": true
+  },
+  {
+    "appId": "447040",
+    "name": "Watch_Dogs 2",
+    "hasFix": false
+  },
+  {
+    "appId": "2239550",
+    "name": "WatchDogs_Legion",
+    "hasFix": true
+  },
+  {
+    "appId": "3564740",
+    "name": "Where Winds Meet",
+    "hasFix": false
+  },
+  {
+    "appId": "460930",
+    "name": "Wildlands",
+    "hasFix": true
+  },
+  {
+    "appId": "612880",
+    "name": "Wolfenstein II The New Colossus",
+    "hasFix": false
+  },
+  {
+    "appId": "201810",
+    "name": "Wolfenstein The New Order",
+    "hasFix": false
+  },
+  {
+    "appId": "228380",
+    "name": "Wreckfest",
+    "hasFix": true
+  },
+  {
+    "appId": "1203190",
+    "name": "Wreckfest 2",
+    "hasFix": true
+  },
+  {
+    "appId": "2277560",
+    "name": "Wuchang Fallen Feathers",
+    "hasFix": false
+  },
+  {
+    "appId": "268500",
+    "name": "XCOM 2",
+    "hasFix": false
+  },
+  {
+    "appId": "2988580",
+    "name": "Yakuza 0 Director's Cut",
+    "hasFix": false
+  },
+  {
+    "appId": "1088710",
+    "name": "Yakuza 3 Remastered",
+    "hasFix": false
+  },
+  {
+    "appId": "3717330",
+    "name": "Yakuza Kiwami",
+    "hasFix": false
+  },
+  {
+    "appId": "3717340",
+    "name": "Yakuza Kiwami 2",
+    "hasFix": false
+  },
+  {
+    "appId": "1235140",
+    "name": "Yakuza Like a Dragon",
+    "hasFix": false
+  },
+  {
+    "appId": "1351630",
+    "name": "Ys IX Monstrum Nox",
+    "hasFix": false
+  },
+  {
+    "appId": "2731870",
+    "name": "Ys X Nordics",
+    "hasFix": false
+  }
+]

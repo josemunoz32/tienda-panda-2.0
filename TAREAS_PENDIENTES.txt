@@ -1,0 +1,60 @@
+# 🐼 LISTA DE TAREAS PANDASTORE - SISTEMA Y LAUNCHER
+
+================================================================================
+ESTADO ACTUAL DEL SISTEMA
+================================================================================
+📌 BOT DE TELEGRAM (RECORDATORIO PARA MAÑANA):
+   - Se publicaron exitosamente: 861 de 1.437 packs (59.9%).
+   - Último pack subido: #PACK-10706 (Nick: 佑佑).
+   - Quedan pendientes exactamente: 576 packs (desde el pack 862 al 1.437).
+   - Mañana continuaremos desde el pack 862 sin reiniciar.
+
+1. Parches y Fixes:
+   - El Launcher consulta con prioridad 1 la API oficial de Ryuu (generator.ryuu.lol).
+   - Descarga parches oficiales y archivos de manifiestos/LUA con autenticación de reseller.
+   - Mantiene GoFile únicamente como respaldo si Ryuu no tiene registro del juego.
+
+2. Botón "Jugar":
+   - Implementado con escaneo inteligente de ejecutables (`FindGameExecutable`).
+   - Detecta ejecutables modificados conocidos (Launcher.exe, PlayGTAV.exe, etc.).
+   - Pendiente: Añadir ejecutables específicos como `PlayRDR2.exe` para asegurar compatibilidad 100% con parches de Red Dead Redemption 2.
+
+================================================================================
+TAREAS PENDIENTES PRIORITARIAS
+================================================================================
+
+[x] TAREA 1: Generación y Envío Automático de Keys de Steam al Cliente [LISTA]
+    ----------------------------------------------------------------------------
+    Estado: ¡COMPLETADA E IMPLEMENTADA!
+    - Cloud Functions:
+      * Template `htmlEntregaKeySteam` en `functions/emailTemplates.js` con diseño
+        gamer morado neón, Clave destacada PANDA-XXXX-YYYY, lista de juegos y botón
+        con enlace directo a /descargar-launcher con tutorial guiado.
+      * Función `generatePandaLicenseAndSendEmail` en `functions/index.js` que detecta
+        juegos de Steam, genera la clave única en Firestore `licenses`, la vincula a la
+        orden y envía el correo.
+      * Webhook Mercado Pago: automatizado en `processApprovedOrder` al aprobar pago.
+      * Transferencias / Cripto / Prex: automatizado en `onOrderChange` cuando el admin
+        cambia el estado a 'exitoso' y endpoint `entregarKeyPedido` para disparo directo.
+    - Frontend Panel Admin:
+      * `MisPedidos.js` muestra la clave generada `PANDA-XXXX-YYYY` con insignia verde.
+      * Botón de respaldo "🔑 Generar / Reenviar Clave Steam" disponible para el admin.
+
+[x] TAREA 2: Refuerzo de Ejecutables de Parches en PandaStoreLauncher [LISTA]
+    ----------------------------------------------------------------------------
+    Estado: ¡COMPLETADA!
+    - Añadidos `PlayRDR2.exe` y `RDR2.exe` al array prioritario `customLauncherNames`
+      en `SteamManager.cs` para garantizar ejecución inmediata de parches sin pasar
+      por el launcher oficial de Rockstar.
+
+[ ] TAREA 3: Eliminación o Bloqueo Estricto de Parches No Oficiales
+    ----------------------------------------------------------------------------
+    - Opción de desactivar por completo el fallback a GoFile si se desea que
+      el Launcher sea 100% exclusivo de Ryuu para evitar parches antiguos o no compatibles.
+
+[ ] TAREA 4: Automatización de Activaciones Denuvo (PandaActivador)
+    ----------------------------------------------------------------------------
+    - Verificar la integración del bot de Discord para responder los tokens de activación
+      Denuvo de los ~90 juegos que no llevan fix de Ryuu.
+
+================================================================================

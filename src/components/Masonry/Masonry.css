@@ -1,0 +1,81 @@
+.masonry-list {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  transition: height 0.4s ease;
+}
+
+.masonry-item-wrapper {
+  position: absolute;
+  will-change: transform, width, height, opacity;
+  padding: 8px;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+}
+
+.masonry-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  background: rgba(20, 8, 46, 0.85);
+  border: 1px solid rgba(162, 89, 255, 0.25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.masonry-item-wrapper:hover .masonry-card {
+  border-color: rgba(162, 89, 255, 0.75);
+  box-shadow: 0 12px 32px rgba(162, 89, 255, 0.35);
+}
+
+.masonry-img-container {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
+  background: #0f051e;
+}
+
+.masonry-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover !important;
+  object-position: center top !important;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.masonry-item-wrapper:hover .masonry-img {
+  transform: scale(1.05);
+}
+
+.masonry-card-info {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, rgba(20, 8, 46, 0.9) 0%, rgba(10, 4, 25, 0.98) 100%);
+  border-top: 1px solid rgba(162, 89, 255, 0.2);
+  gap: 4px;
+}
+
+.masonry-card-title {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.92rem;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.masonry-card-price {
+  color: #00f5d4;
+  font-weight: 800;
+  font-size: 0.98rem;
+}

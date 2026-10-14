@@ -165,7 +165,9 @@
 
                     <!-- Brand with Official Panda Logo & Client Email -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Image Source="pack://application:,,,/Assets/miicono.png" Width="44" Height="44" Margin="0,0,12,0"/>
+                        <Border Width="48" Height="48" Margin="0,0,12,0" CornerRadius="14" Background="#17122A" BorderBrush="#453072" BorderThickness="1" Padding="4">
+                            <Image Source="pack://application:,,,/Assets/miicono.png" Stretch="Uniform"/>
+                        </Border>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="PANDA STORE" Foreground="{StaticResource PrimaryGoldBrush}" FontSize="22" FontWeight="Bold"/>
                             <TextBlock Text="GESTOR OFICIAL DE JUEGOS STEAM" Foreground="{StaticResource TextMutedBrush}" FontSize="10" FontWeight="Bold"/>
@@ -183,7 +185,7 @@
                     <!-- Top Action Buttons -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button x:Name="btnOpenProfile" 
-                                Content="👤 Mi Perfil &amp; Fidelidad" 
+                                Content="🧑‍🚀 Mi cuenta"
                                 Style="{StaticResource GoldButtonStyle}" 
                                 Padding="14,9"
                                 FontSize="12"
@@ -193,7 +195,7 @@
                                 Click="BtnOpenProfile_Click"/>
 
                         <Button x:Name="btnOpenAdminPanel" 
-                                Content="👑 Panel Admin" 
+                                Content="⚙ Administración"
                                 Style="{StaticResource GoldButtonStyle}" 
                                 Padding="14,9"
                                 FontSize="12"
@@ -202,15 +204,16 @@
                                 Click="BtnOpenAdminPanel_Click"/>
 
                         <Button x:Name="btnCheckUpdate" 
-                                Content="🚀 Actualizar App" 
+                                Content="⬆ Actualización disponible"
                                 Style="{StaticResource PurpleButtonStyle}" 
                                 Padding="16,9"
                                 FontSize="12"
                                 Margin="0,0,10,0"
+                                Visibility="Collapsed"
                                 Click="BtnCheckUpdate_Click"/>
 
                         <Button x:Name="btnOpenSaves" 
-                                Content="💾 Mis Partidas" 
+                                Content="▣ Guardados"
                                 Style="{StaticResource VacButtonStyle}" 
                                 Foreground="#FBBF24"
                                 BorderBrush="#78350F"
@@ -223,7 +226,7 @@
                                 Click="BtnOpenSaves_Click"/>
 
                         <Button x:Name="btnRefreshGames" 
-                                Content="🔄 Refrescar" 
+                                Content="⟳ Sincronizar"
                                 Style="{StaticResource VacButtonStyle}" 
                                 Foreground="#FFFFFF"
                                 BorderBrush="#2A2248"
@@ -284,7 +287,7 @@
 
                         <Button Grid.Column="1"
                                 x:Name="btnCopySteamPath"
-                                Content="📋 Copiar Ruta Steam"
+                                Content="⌁ Copiar ruta"
                                 Style="{StaticResource VacButtonStyle}"
                                 Foreground="#FBBF24"
                                 BorderBrush="#78350F"
@@ -298,7 +301,7 @@
 
                         <Button Grid.Column="2"
                                 x:Name="btnRepararSteam"
-                                Content="🩺 Reparar Steam"
+                                Content="🛠 Reparar Steam"
                                 Style="{StaticResource VacButtonStyle}"
                                 Foreground="#38BDF8"
                                 BorderBrush="#0369A1"
@@ -383,7 +386,7 @@
                         <!-- Left Side: Navigation Tabs -->
                         <WrapPanel VerticalAlignment="Center">
                             <Button x:Name="btnTabAuthorized" 
-                                    Content="📅 Mis Juegos" 
+                                Content="▣ Mi biblioteca"
                                     Style="{StaticResource PurpleButtonStyle}" 
                                     Background="#1A1430"
                                     Padding="14,8" 
@@ -392,7 +395,7 @@
                                     Click="BtnTabAuthorized_Click"/>
 
                             <Button x:Name="btnTabInstalled" 
-                                    Content="🖥️ Instalados en PC" 
+                                Content="▣ Instalados"
                                     Style="{StaticResource PurpleButtonStyle}" 
                                     Background="#1A1430"
                                     Padding="14,8" 
@@ -401,16 +404,17 @@
                                     Click="BtnTabInstalled_Click"/>
 
                             <Button x:Name="btnTabNeedsFix" 
-                                    Content="🩹 Requieren Fix" 
+                                Content="✦ Atención requerida"
                                     Style="{StaticResource PurpleButtonStyle}" 
                                     Background="#1A1430"
                                     Padding="14,8" 
                                     FontSize="12" 
                                     Margin="0,0,6,6" 
+                                    Visibility="Collapsed"
                                     Click="BtnTabNeedsFix_Click"/>
 
                             <Button x:Name="btnTabAllCatalog" 
-                                    Content="📰 Catálogo Total (+150 Juegos)" 
+                                Content="⌕ Explorar catálogo"
                                     Style="{StaticResource PurpleButtonStyle}" 
                                     Background="#1A1430"
                                     Padding="14,8" 
@@ -440,10 +444,11 @@
                                     Padding="12,8"
                                     FontSize="11"
                                     Margin="0,0,6,6"
+                                    Visibility="Collapsed"
                                     Click="BtnBatchFixAll_Click"/>
 
                             <Button x:Name="btnSelectVisible" 
-                                    Content="☑️ Seleccionar Visibles" 
+                                Content="☑ Seleccionar visibles"
                                     Style="{StaticResource PurpleButtonStyle}" 
                                     Background="#1A1430"
                                     Padding="12,8"
@@ -452,7 +457,7 @@
                                     Click="BtnSelectVisible_Click"/>
 
                             <Button x:Name="btnActivateAll" 
-                                    Content="⚡ Activar Seleccionados" 
+                                Content="➕ Agregar seleccionados"
                                     Style="{StaticResource GoldButtonStyle}" 
                                     Padding="16,8"
                                     FontSize="12"
@@ -958,12 +963,12 @@
                         <!-- Header -->
                         <Grid Grid.Row="0" Margin="0,0,0,20">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#251648" CornerRadius="12" Width="48" Height="48" Margin="0,0,14,0">
-                                    <TextBlock Text="🐼" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border Background="#251648" CornerRadius="12" Width="48" Height="48" Margin="0,0,14,0" Padding="5">
+                                    <Image Source="pack://application:,,,/Assets/miicono.png" Stretch="Uniform"/>
                                 </Border>
                                 <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="MI PERFIL &amp; FIDELIDAD GAMER" Foreground="{StaticResource PrimaryGoldBrush}" FontSize="18" FontWeight="Bold"/>
-                                    <TextBlock Text="PandaStore Club VIP • Cada 10 juegos comprados recibes 1 de regalo" Foreground="{StaticResource TextMutedBrush}" FontSize="11"/>
+                                    <TextBlock Text="TU CUENTA PANDASTORE" Foreground="{StaticResource PrimaryGoldBrush}" FontSize="18" FontWeight="Bold"/>
+                                    <TextBlock Text="Licencia, beneficios y progreso de fidelidad" Foreground="{StaticResource TextMutedBrush}" FontSize="11"/>
                                 </StackPanel>
                             </StackPanel>
 
@@ -985,7 +990,7 @@
                                 <!-- License Details Card -->
                                 <Border Background="#16102E" BorderBrush="#2C2050" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,16">
                                     <StackPanel>
-                                        <TextBlock Text="🔑 ESTADO DE TU LICENCIA" Foreground="{StaticResource AccentCyanBrush}" FontSize="12" FontWeight="Bold" Margin="0,0,0,12"/>
+                                        <TextBlock Text="⌁ ESTADO DE TU LICENCIA" Foreground="{StaticResource AccentCyanBrush}" FontSize="12" FontWeight="Bold" Margin="0,0,0,12"/>
                                         
                                         <Grid Margin="0,0,0,10">
                                             <Grid.ColumnDefinitions>
@@ -1022,6 +1027,7 @@
                                             <StackPanel Grid.Column="1">
                                                 <TextBlock Text="Estado:" Foreground="#9CA3AF" FontSize="11"/>
                                                 <TextBlock x:Name="lblProfileStatus" Text="✔ Activa &amp; Verificada" Foreground="#10B981" FontSize="12" FontWeight="Bold"/>
+                                                <TextBlock x:Name="lblProfileValidity" Text="Vigencia: permanente" Foreground="#A78BFA" FontSize="11" Margin="0,3,0,0"/>
                                             </StackPanel>
                                         </Grid>
 
@@ -1047,8 +1053,8 @@
                                     <StackPanel>
                                         <Grid Margin="0,0,0,10">
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                <TextBlock Text="🏆 " FontSize="14"/>
-                                                <TextBlock Text="PROGRAMA DE FIDELIDAD PANDA" Foreground="{StaticResource PrimaryGoldBrush}" FontSize="13" FontWeight="Bold"/>
+                                                <TextBlock Text="✦ " FontSize="14"/>
+                                                <TextBlock Text="BENEFICIOS Y FIDELIDAD" Foreground="{StaticResource PrimaryGoldBrush}" FontSize="13" FontWeight="Bold"/>
                                             </StackPanel>
                                             <Border x:Name="borderGamerRank" 
                                                     HorizontalAlignment="Right" 

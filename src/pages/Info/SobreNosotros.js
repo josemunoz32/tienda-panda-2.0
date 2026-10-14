@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "./SobreNosotros.css";
 
 // Definición de iconos SVG
@@ -8,24 +8,54 @@ const icons = {
       <path d="M4 4h16v16H4V4zm0 0l8 8 8-8" stroke="#a084e8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
-  whatsapp: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      {/* El color de stroke en WhatsApp se cambia a verde para mantener la iconografía estándar, aunque el CSS general es morado */}
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.472-.148-.67.15-.198.297-.767.967-.94 1.164-.173.198-.347.223-.644.075-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.372-.025-.521-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.007-.372-.009-.571-.009-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.099 3.205 5.077 4.372.71.306 1.263.489 1.695.626.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.288.173-1.413-.074-.124-.272-.198-.57-.347z" stroke="#25d366" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  ),
   instagram: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      {/* El color de stroke en Instagram se cambia al característico rosa/rojo */}
-      <rect x="2" y="2" width="20" height="20" rx="6" stroke="#e1306c" strokeWidth="2"/>
-      <circle cx="12" cy="12" r="5" stroke="#e1306c" strokeWidth="2"/>
-      <circle cx="17" cy="7" r="1.2" fill="#e1306c"/>
+      <rect x="2" y="2" width="20" height="20" rx="5" stroke="#e1306c" strokeWidth="2" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke="#e1306c" strokeWidth="2" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="#e1306c" strokeWidth="2" strokeLinecap="round" />
     </svg>
   ),
 };
 
 // Componente principal
 function SobreNosotros() {
+  useEffect(() => {
+    document.title = 'Sobre Nosotros | PandaStore - Tienda de Videojuegos Digitales';
+    const setMeta = (attr, key, content) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`);
+      if (el) el.setAttribute('content', content);
+    };
+    setMeta('name', 'description', 'Conoce PandaStore, la tienda #1 de videojuegos digitales en Latinoamérica fundada en 2022. Entrega inmediata 24/7, Steam PC con Activador oficial, Nintendo Switch 1 y 2, PlayStation 5, PS4 y packs con garantía total.');
+    setMeta('property', 'og:title', 'Sobre Nosotros | PandaStore - Tienda de Videojuegos Digitales');
+    setMeta('property', 'og:url', 'https://pandastoreupdate.web.app/sobre-nosotros');
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) canonical.setAttribute('href', 'https://pandastoreupdate.web.app/sobre-nosotros');
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "AboutPage",
+      "name": "Sobre PandaStore",
+      "description": "PandaStore: Tienda #1 de videojuegos digitales en Latinoamérica. Fundada en 2022. Steam PC con Activador, PS5, PS4, Nintendo Switch 1 y 2 y suscripciones.",
+      "url": "https://pandastoreupdate.web.app/sobre-nosotros",
+      "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://pandastoreupdate.web.app/home" },
+          { "@type": "ListItem", "position": 2, "name": "Sobre Nosotros", "item": "https://pandastoreupdate.web.app/sobre-nosotros" }
+        ]
+      }
+    };
+    let scriptEl = document.querySelector('script#about-jsonld');
+    if (!scriptEl) { scriptEl = document.createElement('script'); scriptEl.id = 'about-jsonld'; scriptEl.type = 'application/ld+json'; document.head.appendChild(scriptEl); }
+    scriptEl.textContent = JSON.stringify(schema);
+    return () => {
+      document.title = 'PandaStore | Tienda de Videojuegos Digitales';
+      const s = document.querySelector('script#about-jsonld');
+      if (s) s.remove();
+      let canonical2 = document.querySelector('link[rel="canonical"]');
+      if (canonical2) canonical2.setAttribute('href', 'https://pandastoreupdate.web.app/');
+    };
+  }, []);
+
   return (
     <div className="sobre-root">
       <h1 className="sobre-title">Sobre Nosotros</h1>
@@ -54,8 +84,17 @@ function SobreNosotros() {
         <h2>Contacto</h2>
         <ul className="sobre-contacto-list">
           <li>{icons.email} <span>Email:</span> pandastore2.0soporte@gmail.com</li>
-          <li>{icons.whatsapp} <span>WhatsApp:</span> +56 9 7475 1810</li>
-          <li>{icons.instagram} <span>Instagram:</span> @juegos_nintendo_switch_chile2</li>
+          <li>
+            {icons.instagram} <span>Instagram Oficial:</span>{" "}
+            <a
+              href="https://www.instagram.com/pandastoregaming.cl/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "#ff70a6", fontWeight: "bold", textDecoration: "none" }}
+            >
+              @pandastoregaming.cl
+            </a>
+          </li>
         </ul>
         <p>Puedes escribirnos por cualquiera de estos medios y te responderemos a la brevedad.</p>
       </section>

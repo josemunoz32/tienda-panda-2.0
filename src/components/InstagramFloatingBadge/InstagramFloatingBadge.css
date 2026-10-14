@@ -1,0 +1,233 @@
+/* ── BOTÓN FLOTANTE DE INSTAGRAM (SIMÉTRICO CON WHATSAPP) ── */
+.panda-ig-fab-wrap {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 9999;
+  animation: pandaIgFabEnter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes pandaIgFabEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.panda-ig-fab-container {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Botón cerrar sutil */
+.panda-ig-fab-close {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: #1c182a;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #c4b5fd;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  padding: 0;
+  line-height: 1;
+}
+
+.panda-ig-fab-close:hover {
+  background: #e1306c;
+  border-color: #fff;
+  color: #fff;
+  transform: scale(1.15);
+}
+
+/* Enlace / Trigger del botón */
+.panda-ig-fab-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(20, 16, 32, 0.9);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(225, 48, 108, 0.45);
+  border-radius: 40px;
+  padding: 6px 18px 6px 6px;
+  text-decoration: none;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 22px rgba(225, 48, 108, 0.3);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+}
+
+.panda-ig-fab-trigger:hover {
+  transform: translateY(-4px) scale(1.04);
+  border-color: rgba(253, 29, 29, 0.85);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.6), 0 0 34px rgba(225, 48, 108, 0.5);
+  background: rgba(28, 20, 44, 0.96);
+}
+
+/* Textos */
+.panda-ig-fab-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  user-select: none;
+  text-align: left;
+}
+
+.panda-ig-fab-label-title {
+  font-size: 13px;
+  font-weight: 900;
+  color: #ff3377;
+  letter-spacing: 0.4px;
+  line-height: 1.2;
+}
+
+.panda-ig-fab-label-subtitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.2;
+}
+
+/* Contenedor externo para ring + shell */
+.panda-ig-fab-shell-wrap {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Avatar del icono - sin fondo extra ya que el logo tiene su propio degradado */
+.panda-ig-fab-shell {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(225, 48, 108, 0.4);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.panda-ig-fab-icon {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 12px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+}
+
+.panda-ig-fab-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 14px;
+  border: 2px solid rgba(225, 48, 108, 0.6);
+  animation: pandaIgFabPulse 2s infinite;
+  pointer-events: none;
+}
+
+@keyframes pandaIgFabPulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+}
+
+/* ── MÓVIL: badge compacto con texto '¡Síguenos!' ── */
+@media (max-width: 600px) {
+  .panda-ig-fab-wrap {
+    bottom: 18px;
+    left: 12px;
+  }
+
+  /* En mobile mostramos layout vertical: ícono arriba + texto abajo */
+  .panda-ig-fab-trigger {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 10px 7px;
+    border-radius: 16px;
+    background: rgba(18, 13, 28, 0.92);
+    border: 1.5px solid rgba(225, 48, 108, 0.5);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 18px rgba(225, 48, 108, 0.4);
+  }
+
+  .panda-ig-fab-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .panda-ig-fab-label-title {
+    font-size: 10px;
+    font-weight: 900;
+    color: #ff3377;
+    letter-spacing: 0.2px;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+
+  .panda-ig-fab-label-subtitle {
+    display: none;
+  }
+
+  .panda-ig-fab-shell-wrap {
+    width: 42px;
+    height: 42px;
+  }
+
+  .panda-ig-fab-shell {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(225, 48, 108, 0.5);
+    overflow: hidden;
+  }
+
+  .panda-ig-fab-icon {
+    width: 42px;
+    height: 42px;
+    object-fit: cover;
+    border-radius: 12px;
+  }
+
+  .panda-ig-fab-ring {
+    border-radius: 14px;
+  }
+
+  .panda-ig-fab-close {
+    top: -5px;
+    right: -5px;
+    width: 18px;
+    height: 18px;
+    font-size: 9px;
+  }
+}

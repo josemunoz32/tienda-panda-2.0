@@ -1,0 +1,110 @@
+[
+  {
+    "id": "Sr9XGvwjTEeMNPWNdiUM",
+    "name": "Among Us",
+    "app_id": "",
+    "matchedPattern": "/\\bamong us\\b/i"
+  },
+  {
+    "id": "0PTPucnx5xFu6amje4cl",
+    "name": "ARK: Survival Evolved",
+    "app_id": "",
+    "matchedPattern": "/\\bark:\\s*survival\\b/i"
+  },
+  {
+    "id": "AWAkobONIfIZTYGJPQYF",
+    "name": "Counter-Strike: Condition Zero Deleted Scenes",
+    "app_id": "",
+    "matchedPattern": "/\\bcounter-strike\\b/i"
+  },
+  {
+    "id": "6yFqKV8OcqCA4k8wYC29",
+    "name": "Counter-Strike: Source",
+    "app_id": "",
+    "matchedPattern": "/\\bcounter-strike\\b/i"
+  },
+  {
+    "id": "9sN9mBx3kRJ4qml5NC5A",
+    "name": "DAYZ",
+    "app_id": "",
+    "matchedPattern": "/\\bdayz\\b/i"
+  },
+  {
+    "id": "pSYUFoBox3NjWwUfzCHR",
+    "name": "FINAL FANTASY XIV Online",
+    "app_id": "",
+    "matchedPattern": "/\\bfinal fantasy xiv\\b/i"
+  },
+  {
+    "id": "Soo295yqRMt19zlGXPkJ",
+    "name": "Gang Beasts",
+    "app_id": "",
+    "matchedPattern": "/\\bgang beasts\\b/i"
+  },
+  {
+    "id": "QdCUFM1kc4VH6kOFv9BJ",
+    "name": "Golf It",
+    "app_id": "",
+    "matchedPattern": "/\\bgolf it\\b/i"
+  },
+  {
+    "id": "KNmfwUy9UusB8Jci8zFW",
+    "name": "HellDivers 2",
+    "app_id": "",
+    "matchedPattern": "/\\bhelldivers\\s*2\\b/i"
+  },
+  {
+    "id": "ncQPu1DtvDuQGcPw9qT0",
+    "name": "Killing Floor 2",
+    "app_id": "",
+    "matchedPattern": "/\\bkilling floor\\b/i"
+  },
+  {
+    "id": "TWsbsaJtT5dODZAk2CWx",
+    "name": "Lethal Company",
+    "app_id": "",
+    "matchedPattern": "/\\blethal company\\b/i"
+  },
+  {
+    "id": "KIwWIQHHAjUGoY1w3Qsx",
+    "name": "Pacify",
+    "app_id": "",
+    "matchedPattern": "/\\bpacify\\b/i"
+  },
+  {
+    "id": "QNg0ww9p2VSMdN9bxlPv",
+    "name": "PHASMOPHOBIA",
+    "app_id": "",
+    "matchedPattern": "/\\bphasmophobia\\b/i"
+  },
+  {
+    "id": "Dhl7zAg5qGCK1E8bvg4V",
+    "name": "RUST",
+    "app_id": "",
+    "matchedPattern": "/\\brust\\b/i"
+  },
+  {
+    "id": "vwMRZa3CTdmGI0LNBcU3",
+    "name": "Sea of Thieves",
+    "app_id": "",
+    "matchedPattern": "/\\bsea of thieves\\b/i"
+  },
+  {
+    "id": "qSh0VhpW5iGJtKHqK0CM",
+    "name": "Team Fortress 2",
+    "app_id": "",
+    "matchedPattern": "/\\bteam fortress\\b/i"
+  },
+  {
+    "id": "Y4VBmjHA0Ho9DFz1MR0O",
+    "name": "Team Fortress Classic",
+    "app_id": "",
+    "matchedPattern": "/\\bteam fortress\\b/i"
+  },
+  {
+    "id": "FqDDciyrJMkOjNf2sbfD",
+    "name": "The Division",
+    "app_id": "",
+    "matchedPattern": "/\\bthe division\\b/i"
+  }
+]

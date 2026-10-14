@@ -5,7 +5,7 @@ skip_appinfo_wait = true
 paths = ["plugins", "config/st-plugin", "config/stplug-in"]
 
 [cloud]
-enabled = true
+enabled = false
 
 [update]
 auto = false

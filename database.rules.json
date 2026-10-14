@@ -3,10 +3,10 @@
     "presence": {
       "$sessionId": {
         ".read": true,
-        ".write": "newData.hasChildren(['online', 'lastSeen']) && newData.child('online').isBoolean() && newData.child('online').val() === true",
-        ".validate": "newData.hasChildren(['online', 'lastSeen'])"
+        ".write": "!newData.exists() || (newData.hasChildren(['online', 'lastSeen']) && newData.child('online').isBoolean() && newData.child('online').val() === true)",
+        ".validate": "!newData.exists() || newData.hasChildren(['online', 'lastSeen'])"
       },
-      ".read": true
+      ".read": "auth != null && auth.token.role === 'admin'"
     },
     ".read": false,
     ".write": false

@@ -1,10 +1,23 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Imágenes de productos: cualquier usuario autenticado puede escribir, todos pueden leer
+    function isAdmin() {
+      return request.auth != null &&
+        (
+          request.auth.token.pandaStorageAdmin == true ||
+          (firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
+            (
+              firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == "admin" ||
+              firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == "super_admin" ||
+              firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == "superadmin"
+            )
+          )
+        );
+    }
+    // Imágenes de productos: solo admin puede escribir, todos pueden leer
     match /products/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
     // Imágenes de perfil: solo el usuario puede leer/escribir
     match /user_uploads/{userId}/{allPaths=**} {
@@ -13,13 +26,29 @@ service firebase.storage {
     // Imágenes de testimonios: solo admin puede escribir, todos pueden leer
     match /testimonios/{allPaths=**} {
       allow read: if true;
-      // El rol debe estar en el token de autenticación como custom claim
-      allow write: if request.auth != null && request.auth.token.role == "admin";
+      allow write: if isAdmin();
     }
-    // Comprobantes de pago: usuario autenticado puede subir, admin puede leer
-    match /comprobantes/{allPaths=**} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+    // Comprobantes privados por usuario; el panel los gestiona mediante Admin SDK.
+    match /comprobantes/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    // Comprobantes de distribuidores B2B
+    match /comprobantes_distribuidor/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+    }
+    // Comprobantes de recargas de billetera B2B.
+    match /comprobantes_billetera/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+    }
+    // Fotos de reseñas: subida solo por el dueño; lectura pública para mostrarlas.
+    match /reviews/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    // Fixes y parches de juegos para PandaStore Launcher
+    match /fixes/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }
