@@ -74,7 +74,7 @@ namespace PandaStoreLauncher
             }
         }
 
-        private const string CurrentVersion = "2.4.27"; // Current client executable version
+        private const string CurrentVersion = "2.4.28"; // Current client executable version
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
