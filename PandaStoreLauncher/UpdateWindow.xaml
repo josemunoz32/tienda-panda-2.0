@@ -15,9 +15,16 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <TextBlock Text="🚀 Actualizando PandaStore Launcher" 
-                       Foreground="White" FontSize="20" FontWeight="Bold" 
-                       HorizontalAlignment="Center" Margin="0,0,0,15" />
+            <Grid Grid.Row="0" Margin="0,0,0,15">
+                <TextBlock Text="🚀 Actualizando PandaStore Launcher" 
+                           Foreground="White" FontSize="18" FontWeight="Bold" 
+                           HorizontalAlignment="Center" />
+                <Button Content="✕" Click="BtnClose_Click" 
+                        HorizontalAlignment="Right" VerticalAlignment="Top" 
+                        Background="Transparent" Foreground="#888888" BorderThickness="0" 
+                        FontSize="14" FontWeight="Bold" Cursor="Hand" Margin="0,-5,-5,0"
+                        ToolTip="Omitir actualización por ahora y abrir el Launcher"/>
+            </Grid>
 
             <TextBlock x:Name="lblStatus" 
                        Text="Descargando nueva versión..." 
@@ -29,10 +36,15 @@
                          Foreground="#A259FF" Background="#2A2438" 
                          Grid.Row="2" Margin="0,15,0,5" />
 
-            <TextBlock x:Name="lblProgress" 
-                       Text="0%" 
-                       Foreground="White" FontSize="12" 
-                       HorizontalAlignment="Right" Grid.Row="3" />
+            <Grid Grid.Row="3" Margin="0,5,0,0">
+                <Button Content="Omitir por ahora" Click="BtnClose_Click"
+                        HorizontalAlignment="Left" Background="#211833" Foreground="#B3A2C7" BorderBrush="#3D2B5E" BorderThickness="1"
+                        Padding="10,4" FontSize="11" Cursor="Hand"/>
+                <TextBlock x:Name="lblProgress" 
+                           Text="0%" 
+                           Foreground="White" FontSize="12" 
+                           HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            </Grid>
         </Grid>
     </Border>
 </Window>

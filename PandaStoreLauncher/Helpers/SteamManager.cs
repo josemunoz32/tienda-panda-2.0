@@ -217,6 +217,23 @@ namespace PandaStoreLauncher.Helpers
             // Pausa de seguridad para que el sistema operativo y Steam liberen sockets, archivos IPC y descriptores
             System.Threading.Thread.Sleep(800);
 
+            // Asegurar cierre forzado mediante taskkill en Windows para evitar procesos zombies
+            if (!IsLinuxEnvironment())
+            {
+                try
+                {
+                    using var p = Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "taskkill.exe",
+                        Arguments = "/F /T /IM steam.exe /IM steamwebhelper.exe /IM steamservice.exe /IM gameoverlayui.exe",
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    });
+                    p?.WaitForExit(2000);
+                }
+                catch { }
+            }
+
             // If running on Linux/Steam Deck under Wine/Proton, attempt to kill native Linux Steam process
             if (IsLinuxEnvironment())
             {
@@ -2078,6 +2095,107 @@ namespace PandaStoreLauncher.Helpers
                 }
             }
             catch { }
+        }
+
+        /// <summary>
+        /// Solución integral para cuando Steam no abre, se cierra solo o queda trabado en bucle.
+        /// Cierra procesos zombis con taskkill, purga appcache corrupta, reinstala inyectores y verifica Defender.
+        /// </summary>
+        public static async Task<(bool Success, string Details)> RepararSteamIntegralAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    string steamPath = GetSteamPath();
+
+                    // 1. Matar procesos colgados / fantasmas de raíz
+                    KillSteam();
+
+                    // 2. Limpiar appcache corrupta
+                    string appcache = Path.Combine(steamPath, "appcache");
+                    if (Directory.Exists(appcache))
+                    {
+                        try
+                        {
+                            string appinfo = Path.Combine(appcache, "appinfo.vdf");
+                            string pkginfo = Path.Combine(appcache, "packageinfo.vdf");
+                            if (File.Exists(appinfo)) File.Delete(appinfo);
+                            if (File.Exists(pkginfo)) File.Delete(pkginfo);
+                        }
+                        catch
+                        {
+                            try { Directory.Delete(appcache, true); } catch { }
+                        }
+                    }
+
+                    // 3. Limpiar descargas trabadas en staging
+                    string downloading = Path.Combine(steamPath, "steamapps", "downloading");
+                    if (Directory.Exists(downloading))
+                    {
+                        try
+                        {
+                            foreach (var d in Directory.GetDirectories(downloading))
+                            {
+                                try { Directory.Delete(d, true); } catch { }
+                            }
+                        }
+                        catch { }
+                    }
+
+                    // 4. Re-extraer inyectores limpios (por si Antivirus los corrompió)
+                    ExtractInjectorComponents(steamPath);
+
+                    // 5. Aplicar exclusión de Defender automática para Steam y AppData
+                    if (!IsLinuxEnvironment())
+                    {
+                        try
+                        {
+                            string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PandaStore");
+                            string launcherDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\');
+                            string psCommand = $"Add-MpPreference -ExclusionPath '{steamPath}','{appDataDir}','{launcherDir}' -ErrorAction SilentlyContinue";
+                            using var proc = Process.Start(new ProcessStartInfo
+                            {
+                                FileName = "powershell.exe",
+                                Arguments = $"-NoProfile -ExecutionPolicy Bypass -Command \"{psCommand}\"",
+                                Verb = "runas",
+                                CreateNoWindow = true,
+                                UseShellExecute = true
+                            });
+                            proc?.WaitForExit(4000);
+                        }
+                        catch { }
+                    }
+
+                    // 6. Iniciar Steam limpio
+                    StartSteam();
+
+                    // 7. Verificar si arrancó el proceso en los siguientes 4 segundos
+                    bool isRunning = false;
+                    for (int i = 0; i < 8; i++)
+                    {
+                        System.Threading.Thread.Sleep(500);
+                        if (Process.GetProcessesByName("steam").Length > 0)
+                        {
+                            isRunning = true;
+                            break;
+                        }
+                    }
+
+                    if (isRunning)
+                    {
+                        return (true, $"¡Steam ha sido reparado con éxito y ya está activo en tu PC!\n\nRuta: {steamPath}");
+                    }
+                    else
+                    {
+                        return (false, $"Se limpiaron los procesos y la caché, pero Steam no inició automáticamente.\n\nEs posible que tu antivirus (Avast, AVG, McAfee, Norton) esté bloqueando la apertura. Te recomendamos presionar '📋 Copiar Ruta Steam' y agregar '{steamPath}' a las excepciones de tu antivirus.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return (false, $"Error al reparar Steam: {ex.Message}");
+                }
+            });
         }
     }
 }
