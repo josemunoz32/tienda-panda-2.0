@@ -19,7 +19,6 @@ namespace PandaStoreLauncher.Helpers
         {
             "OpenSteamTool.dll",
             "dwmapi.dll",
-            "xinput1_4.dll",
             "opensteamtool.toml"
         };
 
@@ -355,7 +354,8 @@ namespace PandaStoreLauncher.Helpers
                 "BetterSteamTools.dll",
                 "BetterSteamTools.exe",
                 "opensteamtool_update.dll",
-                "cloud_redirect_update.dll"
+                "cloud_redirect_update.dll",
+                "xinput1_4.dll"
             };
             foreach (var stale in staleFiles)
             {
@@ -1325,7 +1325,8 @@ namespace PandaStoreLauncher.Helpers
                 KillSteam();
 
                 // 2. Delete injector DLLs
-                foreach (var filename in InjectorFiles)
+                var filesToDelete = InjectorFiles.Concat(new[] { "xinput1_4.dll", "winmm.dll", "winmm_real.dll", "BetterSteamTools.dll", "BetterSteamTools.exe" });
+                foreach (var filename in filesToDelete)
                 {
                     string filePath = Path.Combine(steamPath, filename);
                     if (File.Exists(filePath))
@@ -1391,9 +1392,10 @@ namespace PandaStoreLauncher.Helpers
                     KillSteam();
 
                     // 2. Delete injector DLLs
+                    var filesToDelete = InjectorFiles.Concat(new[] { "xinput1_4.dll", "winmm.dll", "winmm_real.dll", "BetterSteamTools.dll", "BetterSteamTools.exe" });
                     foreach (var sPath in allSteamPaths)
                     {
-                        foreach (var filename in InjectorFiles)
+                        foreach (var filename in filesToDelete)
                         {
                             string filePath = Path.Combine(sPath, filename);
                             if (File.Exists(filePath))
