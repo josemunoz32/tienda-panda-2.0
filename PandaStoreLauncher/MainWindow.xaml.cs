@@ -184,37 +184,66 @@ namespace PandaStoreLauncher
             {
                 try
                 {
-                    // ANTI-LOOP FIX: If a flag exists, the update was just installed.
-                    // Skip the update check THIS boot to prevent the infinite loop.
                     string pandaDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PandaStore");
+                    if (!Directory.Exists(pandaDir)) Directory.CreateDirectory(pandaDir);
+
+                    string attemptFile = Path.Combine(pandaDir, "last_update_attempt.json");
+                    bool suppressModal = false;
+                    if (File.Exists(attemptFile))
+                    {
+                        try
+                        {
+                            var attemptJson = await File.ReadAllTextAsync(attemptFile);
+                            using var doc = System.Text.Json.JsonDocument.Parse(attemptJson);
+                            if (doc.RootElement.TryGetProperty("timestamp", out var timeProp) &&
+                                long.TryParse(timeProp.GetString(), out long timeVal))
+                            {
+                                var attTime = DateTimeOffset.FromUnixTimeSeconds(timeVal);
+                                // Si ya se intentó actualizar en los últimos 20 minutos, no bloquear con modal automático
+                                if ((DateTimeOffset.UtcNow - attTime).TotalMinutes < 20)
+                                {
+                                    suppressModal = true;
+                                }
+                            }
+                        }
+                        catch { }
+                    }
+
                     string flagPath = Path.Combine(pandaDir, "update_just_installed.flag");
                     if (File.Exists(flagPath))
                     {
-                        // Delete the flag and skip update check — we just updated successfully.
                         try { File.Delete(flagPath); } catch { }
-                        return;
+                        suppressModal = true;
                     }
 
                     // 1. Primary: Check GitHub Releases API (Fast CDN, unlimited bandwidth)
                     var ghUpdate = await GitHubUpdateHelper.CheckForUpdatesAsync(CurrentVersion, "PandaStoreSetup.exe");
-                    if (ghUpdate.HasUpdate && !string.IsNullOrEmpty(ghUpdate.DownloadUrl))
-                    {
-                        Dispatcher.Invoke(() =>
-                        {
-                            UpdateWindow updateWindow = new UpdateWindow(ghUpdate.DownloadUrl, ghUpdate.LatestVersion);
-                            updateWindow.ShowDialog();
-                        });
-                        return;
-                    }
+                    string? targetUrl = ghUpdate.HasUpdate ? ghUpdate.DownloadUrl : null;
+                    string? targetVer = ghUpdate.HasUpdate ? ghUpdate.LatestVersion : null;
 
                     // 2. Secondary: Fallback to Firebase system_config/launcher
-                    var updateInfo = await _firebaseService.CheckForUpdatesAsync(CurrentVersion);
-                    if (updateInfo.HasUpdate && !string.IsNullOrEmpty(updateInfo.DownloadUrl))
+                    if (string.IsNullOrEmpty(targetUrl))
+                    {
+                        var updateInfo = await _firebaseService.CheckForUpdatesAsync(CurrentVersion);
+                        if (updateInfo.HasUpdate && !string.IsNullOrEmpty(updateInfo.DownloadUrl))
+                        {
+                            targetUrl = updateInfo.DownloadUrl;
+                            targetVer = updateInfo.LatestVersion;
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(targetUrl) && !string.IsNullOrEmpty(targetVer))
                     {
                         Dispatcher.Invoke(() =>
                         {
-                            UpdateWindow updateWindow = new UpdateWindow(updateInfo.DownloadUrl, updateInfo.LatestVersion);
-                            updateWindow.ShowDialog();
+                            btnCheckUpdate.Content = $"🚀 Actualizar a v{targetVer}";
+                            btnCheckUpdate.Style = (Style)FindResource("GoldButtonStyle");
+
+                            if (!suppressModal)
+                            {
+                                UpdateWindow updateWindow = new UpdateWindow(targetUrl, targetVer);
+                                updateWindow.ShowDialog();
+                            }
                         });
                     }
                 }
@@ -1877,14 +1906,77 @@ namespace PandaStoreLauncher
             }
         }
 
+        private void BtnCopySteamPath_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string steamPath = SteamManager.GetSteamPath();
+                Clipboard.SetText(steamPath);
+
+                MessageBox.Show(
+                    $"✅ RUTA EXACTA DE TU STEAM DETECTADA Y COPIADA:\n\n{steamPath}\n\n" +
+                    "📌 CÓMO AGREGARLA A TU ANTIVIRUS:\n" +
+                    "• Avast / AVG: Menú ➔ Opciones ➔ Excepciones ➔ 'Añadir Excepción' ➔ Pega la ruta (Ctrl + V).\n" +
+                    "• McAfee: Configuración ➔ Análisis en tiempo real ➔ Archivos excluidos ➔ Pega la ruta.\n" +
+                    "• Norton / Kaspersky / Bitdefender: Protección / Exclusiones ➔ Agregar carpeta ➔ Pega la ruta.\n" +
+                    "• Windows Defender: Presiona el botón '🛡️ Auto-Excepción Defender' para aplicarlo en 1 segundo.\n\n" +
+                    "¡Con esta excepción, tus juegos activados nunca serán bloqueados ni fallarán al iniciar!",
+                    "PandaStore - Exclusión de Antivirus",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"No se pudo obtener la ruta de Steam: {ex.Message}", "PandaStore", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private async void BtnRepararSteam_Click(object sender, RoutedEventArgs e)
+        {
+            var confirm = MessageBox.Show(
+                "¿Deseas ejecutar la reparación integral de Steam?\n\n" +
+                "Esta herramienta soluciona automáticamente los siguientes problemas:\n" +
+                "• Steam no abre, se cierra solo o queda en bucle tras activar un juego.\n" +
+                "• Cierra procesos 'fantasma' o zombis colgados en segundo plano.\n" +
+                "• Elimina caché binaria dañada (appcache, appinfo.vdf, descargas trabadas).\n" +
+                "• Reinstala y valida los componentes de inyección oficiales.\n" +
+                "• Aplica exclusiones de antivirus para que no sea bloqueado.\n\n" +
+                "¿Deseas iniciar la reparación ahora?",
+                "PandaStore - Reparar Steam",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (confirm != MessageBoxResult.Yes) return;
+
+            btnRepararSteam.IsEnabled = false;
+            btnRepararSteam.Content = "⏳ Reparando...";
+
+            try
+            {
+                var (success, details) = await SteamManager.RepararSteamIntegralAsync();
+                MessageBox.Show(details, success ? "PandaStore - Reparación Exitosa" : "PandaStore - Diagnóstico", MessageBoxButton.OK, success ? MessageBoxImage.Information : MessageBoxImage.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al ejecutar la reparación: {ex.Message}", "PandaStore Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                btnRepararSteam.Content = "🩺 Reparar Steam";
+                btnRepararSteam.IsEnabled = true;
+            }
+        }
+
         private void BtnAddAntivirusExclusion_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 string steamPath = SteamManager.GetSteamPath();
                 string tempPath = Path.GetTempPath();
+                string appDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PandaStore");
+                string launcherDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\');
 
-                string psCommand = $"Set-MpPreference -EnableControlledFolderAccess Disabled -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionPath '{steamPath}','{tempPath}' -ErrorAction SilentlyContinue";
+                string psCommand = $"Set-MpPreference -EnableControlledFolderAccess Disabled -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionPath '{steamPath}','{tempPath}','{appDataDir}','{launcherDir}' -ErrorAction SilentlyContinue";
 
                 ProcessStartInfo psi = new ProcessStartInfo
                 {
@@ -1899,11 +1991,11 @@ namespace PandaStoreLauncher
 
                 Task.Run(() => SteamManager.EnsureAllInstalledSteamAppIdFiles());
 
-                MessageBox.Show($"🛡️ ¡Protección del sistema configurada exitosamente!\n\n• Acceso controlado a carpetas ajustado para permitir el guardado de juegos sin errores.\n• Exclusiones añadidas para Steam y carpetas de juegos.\n• Verificación y reparación de archivos de juegos completada.", "PandaStore Seguridad", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show($"🛡️ ¡Protección del sistema configurada exitosamente!\n\n• Acceso controlado a carpetas ajustado para permitir el guardado de juegos sin errores.\n• Exclusiones añadidas para Steam ({steamPath}), datos temporales y carpeta de PandaStore.\n• Verificación y reparación de archivos de juegos completada.", "PandaStore Seguridad", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"No se pudo aplicar la exclusión automática: {ex.Message}\n\nPuedes desactivar Defender manualmente si algún archivo es bloqueado.", "PandaStore Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show($"No se pudo aplicar la exclusión automática: {ex.Message}\n\nPuedes presionar '📋 Copiar Ruta Steam' y agregar la exclusión manualmente en tu antivirus.", "PandaStore Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 

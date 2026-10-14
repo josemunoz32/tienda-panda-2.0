@@ -271,9 +271,11 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border x:Name="borderAntivirusWarning" Grid.Column="0" Background="#0A1C14" BorderBrush="#10B981" BorderThickness="1" CornerRadius="10" Padding="12,8" Margin="0,0,10,0">
+                        <Border x:Name="borderAntivirusWarning" Grid.Column="0" Background="#0A1C14" BorderBrush="#10B981" BorderThickness="1" CornerRadius="10" Padding="12,8" Margin="0,0,8,0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock x:Name="lblAntivirusWarningTag" Text="🛡️ ANTIVIRUS OK:" Foreground="#10B981" FontWeight="Bold" FontSize="11" Margin="0,0,8,0"/>
                                 <TextBlock x:Name="lblAntivirusWarningText" Text="Protección pausada o carpetas en excepción. Los parches se instalarán limpiamente." Foreground="#D1FAE5" FontSize="11"/>
@@ -281,6 +283,34 @@
                         </Border>
 
                         <Button Grid.Column="1"
+                                x:Name="btnCopySteamPath"
+                                Content="📋 Copiar Ruta Steam"
+                                Style="{StaticResource VacButtonStyle}"
+                                Foreground="#FBBF24"
+                                BorderBrush="#78350F"
+                                Background="#1A1208"
+                                Padding="12,8"
+                                FontSize="11"
+                                FontWeight="SemiBold"
+                                Margin="0,0,8,0"
+                                ToolTip="Copia la ruta exacta de tu Steam al portapapeles para añadirla a Avast, AVG, McAfee u otros antivirus"
+                                Click="BtnCopySteamPath_Click"/>
+
+                        <Button Grid.Column="2"
+                                x:Name="btnRepararSteam"
+                                Content="🩺 Reparar Steam"
+                                Style="{StaticResource VacButtonStyle}"
+                                Foreground="#38BDF8"
+                                BorderBrush="#0369A1"
+                                Background="#081826"
+                                Padding="12,8"
+                                FontSize="11"
+                                FontWeight="SemiBold"
+                                Margin="0,0,8,0"
+                                ToolTip="Cierra procesos colgados de Steam, purga caché corrupta y comprueba inyectores automáticamente"
+                                Click="BtnRepararSteam_Click"/>
+
+                        <Button Grid.Column="3"
                                 Content="🛡️ Auto-Excepción Defender"
                                 Style="{StaticResource VacButtonStyle}"
                                 Foreground="#FFFFFF"
@@ -288,11 +318,11 @@
                                 Background="#16122C"
                                 Padding="12,8"
                                 FontSize="11"
-                                Margin="0,0,10,0"
+                                Margin="0,0,8,0"
                                 ToolTip="Añade automáticamente la carpeta de Steam a las excepciones de Windows Defender"
                                 Click="BtnAddAntivirusExclusion_Click"/>
 
-                        <Border Grid.Column="2" Background="#13102B" BorderBrush="#251E3D" BorderThickness="1" CornerRadius="10" Padding="14,8">
+                        <Border Grid.Column="4" Background="#13102B" BorderBrush="#251E3D" BorderThickness="1" CornerRadius="10" Padding="14,8">
                             <TextBlock x:Name="lblSystemSpecs" Text="💻 Mi PC: Windows" Foreground="{StaticResource AccentCyanBrush}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
                         </Border>
                     </Grid>

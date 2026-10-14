@@ -70,6 +70,7 @@ namespace PandaStoreLauncher
                 lblStatus.Text = "Instalando...";
                 pbDownload.IsIndeterminate = true;
 
+                string currentExe = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? "";
                 string installedExe = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "PandaStore", "PandaStoreLauncher.exe");
                 string installedExe86 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "PandaStore", "PandaStoreLauncher.exe");
                 int currentPid = Process.GetCurrentProcess().Id;
@@ -81,29 +82,40 @@ Start-Sleep -Seconds 2
 try {{ Stop-Process -Id {currentPid} -Force -ErrorAction SilentlyContinue }} catch {{}}
 Start-Sleep -Seconds 1
 
-# Instalar la nueva version silenciosamente
-Start-Process -FilePath '{tempSetupExe}' -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART' -Wait
+# Instalar la nueva version silenciosamente con elevacion de Administrador
+Start-Process -FilePath '{tempSetupExe}' -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART' -Verb RunAs -Wait
+
+# Si el launcher actual no estaba en Program Files (ej: en el Escritorio o Descargas),
+# y el instalador instalo el nuevo en Program Files, actualizamos tambien el EXE en la ruta original
+if (Test-Path '{installedExe}') {{
+    if ('{currentExe}' -ne '' -and '{currentExe}' -ne '{installedExe}' -and (Test-Path '{currentExe}')) {{
+        try {{ Copy-Item -Path '{installedExe}' -Destination '{currentExe}' -Force }} catch {{}}
+    }}
+    Start-Process -FilePath '{installedExe}'
+}} elseif (Test-Path '{installedExe86}') {{
+    if ('{currentExe}' -ne '' -and '{currentExe}' -ne '{installedExe86}' -and (Test-Path '{currentExe}')) {{
+        try {{ Copy-Item -Path '{installedExe86}' -Destination '{currentExe}' -Force }} catch {{}}
+    }}
+    Start-Process -FilePath '{installedExe86}'
+}} elseif ('{currentExe}' -ne '' -and (Test-Path '{currentExe}')) {{
+    Start-Process -FilePath '{currentExe}'
+}}
 
 # Limpiar el instalador temporal
 try {{ Remove-Item -Path '{tempSetupExe}' -Force -ErrorAction SilentlyContinue }} catch {{}}
-
-# Abrir el launcher RECIEN INSTALADO (no el exe viejo)
-if (Test-Path '{installedExe}') {{
-    Start-Process -FilePath '{installedExe}'
-}} elseif (Test-Path '{installedExe86}') {{
-    Start-Process -FilePath '{installedExe86}'
-}}
 ";
 
                 await File.WriteAllTextAsync(scriptPath, psScript);
 
-                // ANTI-LOOP FIX: Write a flag so the newly installed launcher
-                // skips the update check on its first boot (breaks the infinite loop).
+                // Guardar registro de actualizacion para prevenir bucles
                 try
                 {
                     string pandaDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PandaStore");
                     if (!Directory.Exists(pandaDir)) Directory.CreateDirectory(pandaDir);
                     await File.WriteAllTextAsync(Path.Combine(pandaDir, "update_just_installed.flag"), _latestVersion);
+                    
+                    var attempt = new { version = _latestVersion, timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds() };
+                    await File.WriteAllTextAsync(Path.Combine(pandaDir, "last_update_attempt.json"), System.Text.Json.JsonSerializer.Serialize(attempt));
                 }
                 catch { }
 
@@ -122,6 +134,11 @@ if (Test-Path '{installedExe}') {{
                 MessageBox.Show($"Error al actualizar: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 Close();
             }
+        }
+
+        private void BtnClose_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
     }
 }
