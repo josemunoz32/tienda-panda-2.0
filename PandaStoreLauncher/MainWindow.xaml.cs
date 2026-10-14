@@ -187,35 +187,6 @@ namespace PandaStoreLauncher
                     string pandaDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PandaStore");
                     if (!Directory.Exists(pandaDir)) Directory.CreateDirectory(pandaDir);
 
-                    string attemptFile = Path.Combine(pandaDir, "last_update_attempt.json");
-                    bool suppressModal = false;
-                    if (File.Exists(attemptFile))
-                    {
-                        try
-                        {
-                            var attemptJson = await File.ReadAllTextAsync(attemptFile);
-                            using var doc = System.Text.Json.JsonDocument.Parse(attemptJson);
-                            if (doc.RootElement.TryGetProperty("timestamp", out var timeProp) &&
-                                long.TryParse(timeProp.GetString(), out long timeVal))
-                            {
-                                var attTime = DateTimeOffset.FromUnixTimeSeconds(timeVal);
-                                // Si ya se intentó actualizar en los últimos 20 minutos, no bloquear con modal automático
-                                if ((DateTimeOffset.UtcNow - attTime).TotalMinutes < 20)
-                                {
-                                    suppressModal = true;
-                                }
-                            }
-                        }
-                        catch { }
-                    }
-
-                    string flagPath = Path.Combine(pandaDir, "update_just_installed.flag");
-                    if (File.Exists(flagPath))
-                    {
-                        try { File.Delete(flagPath); } catch { }
-                        suppressModal = true;
-                    }
-
                     // 1. Primary: Check GitHub Releases API (Fast CDN, unlimited bandwidth)
                     var ghUpdate = await GitHubUpdateHelper.CheckForUpdatesAsync(CurrentVersion, "PandaStoreSetup.exe");
                     string? targetUrl = ghUpdate.HasUpdate ? ghUpdate.DownloadUrl : null;
@@ -239,11 +210,8 @@ namespace PandaStoreLauncher
                             btnCheckUpdate.Content = $"🚀 Actualizar a v{targetVer}";
                             btnCheckUpdate.Style = (Style)FindResource("GoldButtonStyle");
 
-                            if (!suppressModal)
-                            {
-                                UpdateWindow updateWindow = new UpdateWindow(targetUrl, targetVer);
-                                updateWindow.ShowDialog();
-                            }
+                            UpdateWindow updateWindow = new UpdateWindow(targetUrl, targetVer);
+                            updateWindow.ShowDialog();
                         });
                     }
                 }

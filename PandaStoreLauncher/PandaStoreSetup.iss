@@ -15,8 +15,8 @@ SolidCompression=yes
 PrivilegesRequired=admin
 DisableDirPage=yes
 DisableProgramGroupPage=yes
-; CloseApplications ensures the old exe is released before overwriting it
-CloseApplications=yes
+; CloseApplications ensures running processes are terminated so files can be overwritten cleanly
+CloseApplications=force
 RestartApplications=no
 
 [Languages]
@@ -54,4 +54,15 @@ Filename: "schtasks.exe"; Parameters: "/Delete /TN ""PandaStore License Checker"
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"
+
+[Code]
+function InitializeSetup(): Boolean;
+var
+  ErrorCode: Integer;
+begin
+  // Forzar terminacion inmediata de ejecutables para asegurar que ningun archivo este bloqueado
+  Exec('taskkill.exe', '/F /T /IM PandaStoreLauncher.exe /IM PandaChecker.exe /IM PandaStoreActivator.exe', '', SW_HIDE, ewWaitUntilTerminated, ErrorCode);
+  Sleep(600);
+  Result := True;
+end;
 

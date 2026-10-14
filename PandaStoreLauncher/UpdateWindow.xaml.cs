@@ -78,8 +78,10 @@ namespace PandaStoreLauncher
                 string scriptPath = Path.Combine(Path.GetTempPath(), "pandastore_updater.ps1");
                 string psScript = $@"
 # Esperar que el launcher se cierre completamente
-Start-Sleep -Seconds 2
+Start-Sleep -Seconds 1
 try {{ Stop-Process -Id {currentPid} -Force -ErrorAction SilentlyContinue }} catch {{}}
+try {{ Stop-Process -Name PandaStoreLauncher, PandaChecker, PandaStoreActivator -Force -ErrorAction SilentlyContinue }} catch {{}}
+taskkill /F /T /IM PandaStoreLauncher.exe /IM PandaChecker.exe /IM PandaStoreActivator.exe 2>$null
 Start-Sleep -Seconds 1
 
 # Instalar la nueva version silenciosamente con elevacion de Administrador
