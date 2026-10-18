@@ -724,7 +724,7 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
                       <div className="sidebar-special-title">Panda Launcher Steam + Activador</div>
                       <div className="sidebar-special-subtitle">Descarga todo en 1, DLCs y tutoriales</div>
                     </div>
-                    <span className="sidebar-special-badge gold">v2.4.22</span>
+                    <span className="sidebar-special-badge gold">v2.4.32</span>
                   </Link>
                 </li>
 

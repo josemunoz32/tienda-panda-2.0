@@ -33,7 +33,7 @@ export default function LauncherDownloadPage() {
     setTimeout(() => setCopiedCmd(false), 2500);
   };
 
-  const WIN_GOFILE_URL = "https://github.com/josemunoz32/tienda-panda-2.0/releases/download/v2.4.25/PandaStoreSetup.exe"; // Instalador Todo en 1 v2.4.25 oficial (GitHub Releases CDN alta velocidad)
+  const WIN_GOFILE_URL = "https://github.com/josemunoz32/tienda-panda-2.0/releases/download/v2.4.32/PandaStoreSetup.exe"; // Instalador Todo en 1 v2.4.32 oficial (GitHub Releases CDN alta velocidad)
   const DECK_CARD_ELEMENT = (
     <div className="platform-card deck disabled">
       <div className="card-badge coming-soon">PRÓXIMAMENTE</div>
@@ -103,14 +103,14 @@ export default function LauncherDownloadPage() {
     <div className="launcher-download-container">
       <Helmet>
         <title>Descargar Panda Launcher Steam + Activador Oficial | PandaStore PC</title>
-        <meta name="description" content="Descarga el instalador oficial todo en 1 de Panda Launcher Steam + Activador v2.4.22 para Windows 10/11. Todo en 1: gestiona biblioteca, añade DLCs y activa cualquier juego de Steam en 1 click." />
+        <meta name="description" content="Descarga el instalador oficial todo en 1 de Panda Launcher Steam + Activador v2.4.32 para Windows 10/11. Todo en 1: gestiona biblioteca, añade DLCs y activa cualquier juego de Steam en 1 click." />
         <meta name="keywords" content="descargar pandastore launcher, activador steam pc, panda launcher steam activador, pandastore setup exe, launcher juegos pc, activador steam pandastore, instalador steam deck" />
         <meta property="og:title" content="Descargar Panda Launcher Steam + Activador Oficial | PandaStore PC" />
         <meta property="og:description" content="Instala y activa tus juegos de Steam en segundos con Panda Launcher + Activador integrado. Compatible con Windows 10/11 y Steam Deck." />
         <meta property="og:url" content="https://pandastoreupdate.web.app/descargar-launcher" />
         <meta property="og:image" content="https://pandastoreupdate.web.app/favicon.png" />
         <meta name="twitter:title" content="Panda Launcher Steam + Activador Oficial | PandaStore PC" />
-        <meta name="twitter:description" content="Descarga oficial y segura del instalador todo en 1 Panda Launcher Steam + Activador v2.4.22 para Windows y SteamOS." />
+        <meta name="twitter:description" content="Descarga oficial y segura del instalador todo en 1 Panda Launcher Steam + Activador v2.4.32 para Windows y SteamOS." />
         <meta name="twitter:image" content="https://pandastoreupdate.web.app/favicon96.png" />
         <link rel="canonical" href="https://pandastoreupdate.web.app/descargar-launcher" />
         <script type="application/ld+json">
@@ -120,7 +120,7 @@ export default function LauncherDownloadPage() {
             "name": "Panda Launcher Steam + Activador",
             "operatingSystem": "Windows 10, Windows 11, SteamOS (Linux)",
             "applicationCategory": "GameApplication",
-            "softwareVersion": "2.4.22",
+            "softwareVersion": "2.4.32",
             "offers": {
               "@type": "Offer",
               "price": "0",
@@ -150,12 +150,12 @@ export default function LauncherDownloadPage() {
             />
             <h1 className="launcher-title">
               Panda Launcher Steam <br />
-              <span className="title-purple">+ Activador</span> <span className="title-version">v2.4.22</span>
+              <span className="title-purple">+ Activador</span> <span className="title-version">v2.4.32</span>
             </h1>
           </div>
 
           <p className="launcher-subtitle">
-            Todo en un solo instalador: Panda Launcher oficial y Activador Steam integrado. Sincroniza tus juegos autorizados, añade DLCs y activa cualquier juego VIP en 1 solo click.
+            Todo en un solo instalador: Panda Launcher oficial y Activador Steam integrado. Sincroniza tus juegos autorizados, añade DLCs, compatibilidad universal con ejecutables modificados y activa cualquier juego VIP en 1 solo click.
           </p>
 
           {/* Download Button Component */}
@@ -167,8 +167,8 @@ export default function LauncherDownloadPage() {
                     <img src={winLogo} alt="Windows" style={{ width: 26, height: 26, objectFit: 'contain' }} />
                   </div>
                   <div className="btn-download-text-wrap">
-                    <span className="btn-download-title">Descargar Panda Launcher + Activador (109 MB)</span>
-                    <span className="btn-download-sub">Versión v2.4.24 oficial • Todo en 1 (Launcher + Activador) • Windows 10/11</span>
+                    <span className="btn-download-title">Descargar Panda Launcher + Activador (111 MB)</span>
+                    <span className="btn-download-sub">Versión v2.4.32 oficial • Todo en 1 (Launcher + Activador) • Windows 10/11</span>
                   </div>
                 </button>
 
@@ -198,6 +198,51 @@ export default function LauncherDownloadPage() {
             )}
           </div>
 
+          {/* Release Notes Banner v2.4.32 */}
+          <div className="launcher-release-notes-banner">
+            <div className="release-notes-header">
+              <span className="release-badge">✨ NOVEDADES DE LA VERSIÓN v2.4.32</span>
+              <span className="release-date">Última actualización oficial</span>
+            </div>
+            <ul className="release-notes-list">
+              <li>
+                <span className="note-icon">🎮</span>
+                <div>
+                  <strong>Soporte Universal de Launchers y Fixes:</strong>
+                  <span>Compatibilidad directa con juegos que tienen ejecutables propios o modificados como Red Dead Redemption 2, saga GTA, Online Fixes (Spacewar) y parches Ryuu.</span>
+                </div>
+              </li>
+              <li>
+                <span className="note-icon">⚡</span>
+                <div>
+                  <strong>Botón "Jugar" Directo y Anti-Bloqueos:</strong>
+                  <span>Ejecuta el juego directamente reconociendo el lanzador correcto e inyectando steam_appid.txt para evitar bloqueos o cierres de Steam.</span>
+                </div>
+              </li>
+              <li>
+                <span className="note-icon">📂</span>
+                <div>
+                  <strong>Reconocimiento de Carpetas Locales:</strong>
+                  <span>Detecta juegos descargados en cualquier biblioteca de Steam (steamapps/common/) al instante, incluso sin archivos de manifiesto .acf.</span>
+                </div>
+              </li>
+              <li>
+                <span className="note-icon">🛡️</span>
+                <div>
+                  <strong>Respaldo Automático de Partidas:</strong>
+                  <span>Guarda copias de seguridad de tu progreso localmente en tu PC antes de cada inicio de juego para que nunca pierdas tu partida.</span>
+                </div>
+              </li>
+              <li>
+                <span className="note-icon">🔑</span>
+                <div>
+                  <strong>Activador Steam VIP Integrado:</strong>
+                  <span>Incluye el activador oficial para juegos con DRM y activación en 1 solo clic.</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+
           <section className="launcher-entitlements-guide" aria-label="Guía de biblioteca y DLC">
             <div>
               <span className="launcher-guide-eyebrow">GUÍA ÚNICA</span>
@@ -205,7 +250,7 @@ export default function LauncherDownloadPage() {
               <p>Ingresa con la clave entregada por PandaStore. El launcher conserva tus licencias anteriores y sincroniza los DLC nuevos sin quitar el juego base.</p>
             </div>
             <div className="launcher-guide-steps">
-              <div><strong>1. Descarga</strong><span>Instala Panda Launcher + Activador v2.4.22 con el instalador oficial.</span></div>
+              <div><strong>1. Descarga</strong><span>Instala Panda Launcher + Activador v2.4.32 con el instalador oficial.</span></div>
               <div><strong>2. Sincroniza</strong><span>Consulta tu biblioteca y las compras pendientes.</span></div>
               <div><strong>3. Agrega DLC</strong><span>Cuando compres DLC después, abre el mismo launcher y selecciónalos desde tu biblioteca.</span></div>
               <div><strong>4. Códigos oficiales</strong><span>Si tu pedido incluye una clave oficial o activación VIP, usa el Activador integrado en tu PC.</span></div>
@@ -369,7 +414,7 @@ export default function LauncherDownloadPage() {
                     <span className="material-icons play-square-icon" style={{ color: '#ffd700', fontSize: 26 }}>rocket_launch</span>
                     <div>
                       <h3 style={{ fontSize: 17, margin: 0, color: '#fff' }}>1. Descarga e Instalación del Launcher</h3>
-                      <span style={{ fontSize: 12, color: '#ffd700', fontWeight: 600 }}>Panda Launcher v2.4.22 Oficial</span>
+                      <span style={{ fontSize: 12, color: '#ffd700', fontWeight: 600 }}>Panda Launcher v2.4.32 Oficial</span>
                     </div>
                   </div>
                   <p style={{ fontSize: 13, color: '#c9c5e8', margin: 0, lineHeight: 1.45 }}>
@@ -612,9 +657,9 @@ export default function LauncherDownloadPage() {
             cards={[
               {
                 color: 'rgba(18, 14, 34, 0.9)',
-                title: 'Combinación Inteligente de Activaciones v2.4.8',
-                description: 'Instalación optimizada de manifiestos oficiales PandaStore y parches en la nube para garantizar 100% compatibilidad.',
-                label: 'NUEVO v2.4.8',
+                title: 'Compatibilidad Universal v2.4.32',
+                description: 'Soporte inteligente para launchers modificados (RDR2, GTA, Online Fixes), inyección directa de AppID y ejecución 100% optimizada sin bloqueos de Steam.',
+                label: 'NUEVO v2.4.32',
                 icon: '⚡'
               },
               {
