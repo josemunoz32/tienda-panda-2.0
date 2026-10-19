@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 
-const GOFILE_TOKEN = "REDACTED_SECRET";
+const GOFILE_TOKEN = process.env.GOFILE_TOKEN || "";
 
 const envPath = path.join(process.cwd(), '.env');
 const envContent = fs.readFileSync(envPath, 'utf8');

@@ -3,7 +3,7 @@ import { getFirestore, doc, setDoc } from "firebase/firestore";
 import fs from 'fs';
 import path from 'path';
 
-const GOFILE_TOKEN = "REDACTED_SECRET";
+const GOFILE_TOKEN = process.env.GOFILE_TOKEN || "";
 
 const envPath = path.join(process.cwd(), '.env');
 const envContent = fs.readFileSync(envPath, 'utf8');
