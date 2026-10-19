@@ -28,6 +28,7 @@ function ConfirmacionExitosa() {
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [nombre, setNombre] = useState("");
   const [copiedId, setCopiedId] = useState(false);
+  const [copiedKey, setCopiedKey] = useState(false);
   const [orderData, setOrderData] = useState(location.state || null);
   const [loadingOrder, setLoadingOrder] = useState(!location.state);
 
@@ -71,6 +72,14 @@ function ConfirmacionExitosa() {
           orders.sort((a, b) => new Date(b.fecha || 0).getTime() - new Date(a.fecha || 0).getTime());
           const latest = orders[0];
           if (latest) {
+            let plat = latest.plataforma || "";
+            if (plat === "Nintendo Switch / PC") plat = "Nintendo Switch";
+            if (!plat && Array.isArray(latest.productos) && latest.productos.length > 0) {
+              const p0 = latest.productos[0];
+              plat = p0.plataforma === "Nintendo Switch / PC" ? "Nintendo Switch" : (p0.plataforma || "");
+            }
+            if (!plat) plat = "PC / Steam";
+
             setOrderData({
               orderId: latest.globalOrderId || latest.id,
               pedidoId: latest.globalOrderId || latest.id,
@@ -78,7 +87,8 @@ function ConfirmacionExitosa() {
               producto: Array.isArray(latest.productos) && latest.productos.length > 0
                 ? latest.productos.map((p) => p.nombre || p.title || p.name).join(", ")
                 : (latest.producto || "Juegos PandaStore"),
-              plataforma: latest.plataforma && latest.plataforma !== "Nintendo Switch / PC" ? latest.plataforma : "PC / Steam",
+              plataforma: plat,
+              licenseKey: latest.licenseKey || null,
               total: latest.totalCLP || latest.total || 0,
               moneda: latest.moneda || "CLP",
               metodoPago: latest.metodoPago || "Aprobado",
@@ -260,6 +270,114 @@ function ConfirmacionExitosa() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* PLATFORM SPECIFIC DELIVERY SECTION */}
+        {platformInfo.platformKey === "steam" && orderData?.licenseKey && (
+          <div style={{
+            margin: "0 24px 20px 24px",
+            background: "linear-gradient(135deg, rgba(0, 245, 212, 0.12) 0%, rgba(162, 89, 255, 0.12) 100%)",
+            border: "1.5px solid rgba(0, 245, 212, 0.4)",
+            borderRadius: "16px",
+            padding: "16px 18px",
+            boxShadow: "0 8px 24px rgba(0, 245, 212, 0.15)"
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: 800, letterSpacing: "1px", color: "#00f5d4", textTransform: "uppercase" }}>
+                🔑 Tu Clave PandaStore Launcher
+              </span>
+              <span style={{ fontSize: "0.7rem", color: "#34d399", fontWeight: 700, background: "rgba(52, 211, 153, 0.15)", padding: "2px 8px", borderRadius: 999 }}>
+                Activa y Verificada
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(0, 0, 0, 0.4)", padding: "10px 14px", borderRadius: "10px", border: "1px solid rgba(255, 255, 255, 0.1)" }}>
+              <code style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff", letterSpacing: "2px", fontFamily: "monospace" }}>
+                {orderData.licenseKey}
+              </code>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(orderData.licenseKey);
+                  setCopiedKey(true);
+                  setTimeout(() => setCopiedKey(false), 2000);
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: copiedKey ? "#10b981" : "rgba(255, 255, 255, 0.12)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "8px",
+                  padding: "6px 12px",
+                  fontSize: "0.78rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  transition: "all 0.2s"
+                }}
+              >
+                {copiedKey ? <Check size={14} /> : <Copy size={14} />}
+                <span>{copiedKey ? "Copiada" : "Copiar"}</span>
+              </button>
+            </div>
+            <div style={{ fontSize: "0.74rem", color: "#cbd5e1", marginTop: 8, lineHeight: 1.4 }}>
+              💡 Descarga e instala <strong>PandaStore Launcher</strong> en tu PC, ingresa tu clave y tus juegos y DLCs comprados se desbloquearán al instante.
+            </div>
+          </div>
+        )}
+
+        {platformInfo.platformKey === "nintendo" && (
+          <div style={{
+            margin: "0 24px 20px 24px",
+            background: "linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.06) 100%)",
+            border: "1.5px solid rgba(239, 68, 68, 0.35)",
+            borderRadius: "16px",
+            padding: "16px 18px"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <span style={{ fontSize: "1.2rem" }}>🔴</span>
+              <strong style={{ color: "#f87171", fontSize: "0.95rem" }}>Instalación en Nintendo Switch</strong>
+            </div>
+            <p style={{ margin: 0, fontSize: "0.82rem", color: "#e2e8f0", lineHeight: 1.5 }}>
+              Para instalar tu juego en la consola, pulsa el botón de WhatsApp abajo con tu N° de Pedido para que nuestro equipo te entregue el perfil oficial y te guíe paso a paso.
+            </p>
+          </div>
+        )}
+
+        {platformInfo.platformKey === "playstation" && (
+          <div style={{
+            margin: "0 24px 20px 24px",
+            background: "linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(37, 99, 235, 0.06) 100%)",
+            border: "1.5px solid rgba(59, 130, 246, 0.35)",
+            borderRadius: "16px",
+            padding: "16px 18px"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <span style={{ fontSize: "1.2rem" }}>🔵</span>
+              <strong style={{ color: "#60a5fa", fontSize: "0.95rem" }}>Entrega de Cuenta PlayStation (PS4 / PS5)</strong>
+            </div>
+            <p style={{ margin: 0, fontSize: "0.82rem", color: "#e2e8f0", lineHeight: 1.5 }}>
+              Para recibir los accesos de tu cuenta PlayStation, pulsa el botón de WhatsApp abajo con tu N° de Pedido para coordinar la entrega inmediata y la activación en tu consola.
+            </p>
+          </div>
+        )}
+
+        {platformInfo.platformKey === "streaming" && (
+          <div style={{
+            margin: "0 24px 20px 24px",
+            background: "linear-gradient(135deg, rgba(236, 72, 153, 0.12) 0%, rgba(219, 39, 119, 0.06) 100%)",
+            border: "1.5px solid rgba(236, 72, 153, 0.35)",
+            borderRadius: "16px",
+            padding: "16px 18px"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <span style={{ fontSize: "1.2rem" }}>🍿</span>
+              <strong style={{ color: "#f472b6", fontSize: "0.95rem" }}>Entrega de Cuenta Streaming</strong>
+            </div>
+            <p style={{ margin: 0, fontSize: "0.82rem", color: "#e2e8f0", lineHeight: 1.5 }}>
+              Escríbenos directamente a WhatsApp con tu N° de Pedido para enviarte al instante las credenciales y el perfil asignado para tu servicio.
+            </p>
           </div>
         )}
 

@@ -41,4 +41,28 @@ PandaStoreLauncher/Publish/
 PandaStoreLauncher/bin/
 PandaStoreLauncher/obj/
 public/**/*.exe
-scratch/.dotnet_temp/
+
+# Carpetas de pruebas, depuración y utilidades locales
+scratch/
+.firebase/
+artes-panda-store/
+
+# Reglas de seguridad Firebase (se mantienen locales para firebase deploy)
+firestore.rules
+storage.rules
+database.rules.json
+
+# Planes de trabajo y notas internas
+PLAN_*.md
+PLAN_*.txt
+PROMPT_*.md
+PROMPT_*.txt
+TAREAS_*.txt
+*.plan
+*.log
+
+# Sesiones de Telegram
+*.session
+*.session-journal
+botTele-main/botTele-main/*.session
+

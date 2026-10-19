@@ -128,6 +128,14 @@ namespace PandaStoreLauncher.Helpers
             "1670810",
             // Sid Meier's Civilization VII
             "2358720",
+            // ACE COMBAT 8: WINGS OF THEVE
+            "2288340",
+            // GRID Legends
+            "1307710",
+            // Planet Zoo 2
+            "3219030",
+            // STAR WARS: Galactic Racer
+            "4078430",
             // Ubisoft VIP Games
             "66088",   // Assassin's Creed Black Flag Resynced
             "1081",    // Assassin's Creed Shadows
@@ -156,7 +164,11 @@ namespace PandaStoreLauncher.Helpers
             "198188",   // Lost in Random (EA)
             "1035208",  // Need for Speed Payback
             "196787",   // Need for Speed Unbound (EA ID)
-            "1846380"   // Need for Speed Unbound (Steam ID)
+            "1846380",  // Need for Speed Unbound (Steam ID)
+            "195133",   // Need for Speed Heat (EA ID)
+            "1222680",  // Need for Speed Heat (Steam ID)
+            "16425769", // WILD HEARTS (EA ID)
+            "2074920"   // WILD HEARTS (Steam ID)
         };
 
         // Normalized keywords/titles from user's 100 Denuvo games list
@@ -299,7 +311,16 @@ namespace PandaStoreLauncher.Helpers
             "lost in random",
             "star force legacy collection",
             "chaos gate - daemonhunters",
-            "chaos gate daemonhunters"
+            "chaos gate daemonhunters",
+            "ace combat 8",
+            "wings of theve",
+            "grid legends",
+            "planet zoo 2",
+            "galactic racer",
+            "star wars: galactic racer",
+            "need for speed heat",
+            "nfs heat",
+            "wild hearts"
         };
 
         /// <summary>

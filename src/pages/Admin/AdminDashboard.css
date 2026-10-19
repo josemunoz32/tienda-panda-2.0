@@ -190,6 +190,14 @@
   font-weight: 600;
   letter-spacing: 0.03em;
 }
+.adm-kpi-detail {
+  display: block;
+  margin-top: 7px;
+  color: rgba(196, 181, 253, 0.48);
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
 
 /* --- REVENUE ROW --- */
 .adm-revenue-row {
@@ -690,6 +698,14 @@
 .adm-event-page { font-size: 0.7rem; color: rgba(255,255,255,0.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px; }
 .adm-event-prod { font-size: 0.72rem; color: rgba(255,255,255,0.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
 .adm-event-val { font-size: 0.72rem; font-weight: 700; color: #4ade80; margin-left: auto; }
+
+/* Daily traffic is intentionally a compact audit table: each total can be
+   traced to the page_view events stored in Firestore. */
+.adm-daily-traffic { display: grid; gap: 5px; max-height: 240px; overflow-y: auto; }
+.adm-daily-head, .adm-daily-row { display: grid; grid-template-columns: minmax(78px, 1.5fr) repeat(3, .75fr); gap: 6px; align-items: center; }
+.adm-daily-head { padding: 0 8px 6px; color: rgba(196,181,253,.48); font-size: .62rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.adm-daily-row { padding: 7px 8px; border-radius: 8px; background: rgba(255,255,255,.035); color: rgba(255,255,255,.66); font-size: .74rem; }
+.adm-daily-row b { color: #a7f3d0; font-size: .78rem; }
 
 /* ── Abandoned carts status ── */
 .adm-abandoned-stats {

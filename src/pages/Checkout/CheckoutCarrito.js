@@ -757,7 +757,38 @@ export default function CheckoutCarrito({ user: propUser }) {
           const orderUnitPrice = Number(resellerPricing?.precioFinal) || Number(item.priceCLP || item.precio || 0);
           const isSaga = Boolean(item.isSaga || prodInfo.isSaga);
           const isPromo = Boolean(item.isPromo || prodInfo.isPromo);
-          const isSteam = Boolean(item.isSteam || prodInfo.isSteam || isSaga || (item.plataforma && String(item.plataforma).toLowerCase().includes('steam')) || (prodInfo.plataforma && String(prodInfo.plataforma).toLowerCase().includes('steam')) || item.categoryId === 'steam' || prodInfo.categoryId === 'steam');
+          const combined = [
+            item.plataforma, item.platform, item.categoria, item.category, item.categoryName, item.categoryId, item.name, item.title,
+            prodInfo.plataforma, prodInfo.platform, prodInfo.categoria, prodInfo.category, prodInfo.categoryName, prodInfo.categoryId, prodInfo.name, prodInfo.title
+          ].filter(Boolean).join(' ').toLowerCase();
+
+          const isConsoleOrStream = Boolean(
+            item.switchCompat || prodInfo.switchCompat ||
+            item.pricePrimariaCLP || prodInfo.pricePrimariaCLP ||
+            item.priceSecundariaCLP || prodInfo.priceSecundariaCLP ||
+            combined.includes('switch') || combined.includes('nintendo') ||
+            combined.includes('playstation') || combined.includes('ps4') || combined.includes('ps5') || combined.includes('ps3') ||
+            combined.includes('streaming') || combined.includes('netflix') || combined.includes('disney') || combined.includes('spotify') || combined.includes('crunchyroll') ||
+            combined.includes('cuentas')
+          );
+
+          const isSteam = !isConsoleOrStream && Boolean(
+            item.isSteam || prodInfo.isSteam || isSaga || isPromo ||
+            (item.plataforma && String(item.plataforma).toLowerCase().includes('steam')) ||
+            (prodInfo.plataforma && String(prodInfo.plataforma).toLowerCase().includes('steam')) ||
+            item.categoryId === 'steam' || prodInfo.categoryId === 'steam' ||
+            item.category_id === 'steam' || prodInfo.category_id === 'steam'
+          );
+
+          let detectedPlatform = "PC / Steam";
+          if (combined.includes('switch') || combined.includes('nintendo') || item.switchCompat || prodInfo.switchCompat) {
+            detectedPlatform = "Nintendo Switch";
+          } else if (combined.includes('playstation') || combined.includes('ps4') || combined.includes('ps5') || item.pricePrimariaCLP || prodInfo.pricePrimariaCLP || item.priceSecundariaCLP || prodInfo.priceSecundariaCLP) {
+            detectedPlatform = "PlayStation";
+          } else if (combined.includes('streaming') || combined.includes('netflix') || combined.includes('disney') || combined.includes('spotify')) {
+            detectedPlatform = "Streaming";
+          }
+
           const dlcNames = Array.isArray(item.selectedDlcs) && item.selectedDlcs.length > 0
             ? item.selectedDlcs.map(d => d.name).join(', ')
             : '';
@@ -769,10 +800,10 @@ export default function CheckoutCarrito({ user: propUser }) {
             cantidad: item.cantidad || item.quantity || 1,
             precio: orderUnitPrice,
             description: item.isPromo ? fullDesc : (item.description || item.name),
-            category_id: item.category_id || item.categoryId || prodInfo.categoryId || (isSaga || isSteam ? "steam" : "others"),
-            categoryId: item.categoryId || item.category_id || prodInfo.categoryId || (isSaga || isSteam ? "steam" : "others"),
-            categoryName: item.categoryName || prodInfo.categoryName || (isSaga || isSteam ? "Steam" : null),
-            plataforma: item.plataforma || prodInfo.plataforma || (isSaga || isSteam ? "steam" : null),
+            category_id: item.category_id || item.categoryId || prodInfo.categoryId || (isSteam ? "steam" : (isConsoleOrStream ? "consolas" : "others")),
+            categoryId: item.categoryId || item.category_id || prodInfo.categoryId || (isSteam ? "steam" : (isConsoleOrStream ? "consolas" : "others")),
+            categoryName: item.categoryName || prodInfo.categoryName || (isSteam ? "Steam" : detectedPlatform),
+            plataforma: detectedPlatform,
             isSaga,
             isPromo,
             isSteam,

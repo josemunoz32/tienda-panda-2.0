@@ -91,14 +91,15 @@ function CompraConfirmada() {
               orders.sort((a, b) => new Date(b.fecha || 0).getTime() - new Date(a.fecha || 0).getTime());
               const latest = orders[0];
               if (latest) {
-                const isNint = (latest.plataforma || "").toLowerCase().includes("nintendo") || (latest.productos || []).some(p => ((p.plataforma || '') + (p.nombre || '')).toLowerCase().includes('nintendo'));
+                const isNint = (latest.plataforma || "").toLowerCase().includes("switch") || (latest.plataforma || "").toLowerCase().includes("nintendo") || (latest.productos || []).some(p => ((p.plataforma || '') + (p.nombre || '') + (p.category || '')).toLowerCase().includes('nintendo') || ((p.plataforma || '') + (p.nombre || '') + (p.category || '')).toLowerCase().includes('switch'));
                 const isPlay = (latest.plataforma || "").toLowerCase().includes("playstation") || (latest.productos || []).some(p => ((p.plataforma || '') + (p.nombre || '')).toLowerCase().includes('playstation'));
+                const isStream = (latest.plataforma || "").toLowerCase().includes("streaming") || (latest.productos || []).some(p => ((p.plataforma || '') + (p.nombre || '')).toLowerCase().includes('streaming') || ((p.plataforma || '') + (p.nombre || '')).toLowerCase().includes('netflix'));
                 setOrderSummary({
                   orderId: latest.globalOrderId || latest.id,
                   pedidoId: latest.globalOrderId || latest.id,
                   productos: latest.productos || [],
                   producto: latest.producto || "Juegos PandaStore",
-                  plataforma: isNint ? "Nintendo Switch" : isPlay ? "PlayStation" : (latest.plataforma && latest.plataforma !== "Nintendo Switch / PC" ? latest.plataforma : "PC / Steam"),
+                  plataforma: isNint ? "Nintendo Switch" : isPlay ? "PlayStation" : isStream ? "Streaming / Cuentas" : (latest.plataforma === "Nintendo Switch / PC" ? "Nintendo Switch" : (latest.plataforma || "PC / Steam")),
                   total: latest.totalCLP || latest.total || 0,
                   moneda: latest.moneda || "CLP",
                   metodoPago: latest.metodoPago || "Aprobado",

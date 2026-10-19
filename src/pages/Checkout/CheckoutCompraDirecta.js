@@ -545,7 +545,45 @@ export default function CheckoutCompraDirecta({ user: propUser }) {
 
       const isSaga = Boolean(producto.isSaga);
       const isPromo = Boolean(producto.isPromo);
-      const isSteam = Boolean(producto.isSteam || isSaga || (producto.plataforma && String(producto.plataforma).toLowerCase().includes('steam')) || producto.categoryId === 'steam');
+
+      const combinedText = [
+        producto.plataforma, producto.platform, producto.categoria, producto.category,
+        producto.categoryName, producto.categoryId, producto.name, producto.title, producto.description
+      ].filter(Boolean).join(' ').toLowerCase();
+
+      const isConsoleOrStream = Boolean(
+        producto.switchCompat ||
+        producto.pricePrimariaCLP ||
+        producto.priceSecundariaCLP ||
+        combinedText.includes('switch') ||
+        combinedText.includes('nintendo') ||
+        combinedText.includes('playstation') ||
+        combinedText.includes('ps4') ||
+        combinedText.includes('ps5') ||
+        combinedText.includes('ps3') ||
+        combinedText.includes('streaming') ||
+        combinedText.includes('netflix') ||
+        combinedText.includes('disney') ||
+        combinedText.includes('spotify') ||
+        combinedText.includes('crunchyroll') ||
+        combinedText.includes('cuentas')
+      );
+
+      const isSteam = !isConsoleOrStream && Boolean(
+        producto.isSteam || isSaga || isPromo ||
+        (producto.plataforma && String(producto.plataforma).toLowerCase().includes('steam')) ||
+        producto.categoryId === 'steam' ||
+        producto.category_id === 'steam'
+      );
+
+      let detectedPlatform = "PC / Steam";
+      if (combinedText.includes('switch') || combinedText.includes('nintendo') || producto.switchCompat) {
+        detectedPlatform = "Nintendo Switch";
+      } else if (combinedText.includes('playstation') || combinedText.includes('ps4') || combinedText.includes('ps5') || producto.pricePrimariaCLP || producto.priceSecundariaCLP) {
+        detectedPlatform = "PlayStation";
+      } else if (combinedText.includes('streaming') || combinedText.includes('netflix') || combinedText.includes('disney') || combinedText.includes('spotify')) {
+        detectedPlatform = "Streaming";
+      }
 
       const pedido = {
         productos: [
@@ -555,10 +593,10 @@ export default function CheckoutCompraDirecta({ user: propUser }) {
             cantidad,
             precio: basePrice,
             description: producto.description || producto.name,
-            category_id: producto.category_id || producto.categoryId || (isSaga || isSteam ? "steam" : "others"),
-            categoryId: producto.categoryId || producto.category_id || (isSaga || isSteam ? "steam" : "others"),
-            categoryName: producto.categoryName || (isSaga || isSteam ? "Steam" : null),
-            plataforma: producto.plataforma || (isSaga || isSteam ? "steam" : null),
+            category_id: producto.category_id || producto.categoryId || (isSteam ? "steam" : (isConsoleOrStream ? "consolas" : "others")),
+            categoryId: producto.categoryId || producto.category_id || (isSteam ? "steam" : (isConsoleOrStream ? "consolas" : "others")),
+            categoryName: producto.categoryName || (isSteam ? "Steam" : detectedPlatform),
+            plataforma: detectedPlatform,
             isSaga,
             isPromo,
             isSteam,
@@ -689,8 +727,7 @@ export default function CheckoutCompraDirecta({ user: propUser }) {
         });
       } catch (err) {}
 
-      const _platLc = String(producto?.plataforma || producto?.platform || '').toLowerCase();
-      const detectedPlat = _platLc.includes('nintendo') ? 'Nintendo Switch' : _platLc.includes('playstation') || _platLc.includes('ps4') || _platLc.includes('ps5') ? 'PlayStation' : (producto?.plataforma || producto?.platform || (isSteam ? 'PC / Steam' : 'PC / Steam'));
+      const detectedPlat = detectedPlatform;
 
       const navOrderState = {
         orderId: orderRef.id,

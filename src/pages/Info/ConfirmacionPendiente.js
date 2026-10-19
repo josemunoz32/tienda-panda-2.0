@@ -68,6 +68,14 @@ function ConfirmacionPendiente() {
           orders.sort((a, b) => new Date(b.fecha || 0).getTime() - new Date(a.fecha || 0).getTime());
           const latest = orders[0];
           if (latest) {
+            let plat = latest.plataforma || "";
+            if (plat === "Nintendo Switch / PC") plat = "Nintendo Switch";
+            if (!plat && Array.isArray(latest.productos) && latest.productos.length > 0) {
+              const p0 = latest.productos[0];
+              plat = p0.plataforma === "Nintendo Switch / PC" ? "Nintendo Switch" : (p0.plataforma || "");
+            }
+            if (!plat) plat = "PC / Steam";
+
             setOrderData({
               orderId: latest.globalOrderId || latest.id,
               pedidoId: latest.globalOrderId || latest.id,
@@ -75,7 +83,7 @@ function ConfirmacionPendiente() {
               producto: Array.isArray(latest.productos) && latest.productos.length > 0
                 ? latest.productos.map((p) => p.nombre || p.title || p.name).join(", ")
                 : (latest.producto || "Juegos PandaStore"),
-              plataforma: latest.plataforma && latest.plataforma !== "Nintendo Switch / PC" ? latest.plataforma : "PC / Steam",
+              plataforma: plat,
               total: latest.totalCLP || latest.total || 0,
               moneda: latest.moneda || "CLP",
               metodoPago: latest.metodoPago || "Transferencia",

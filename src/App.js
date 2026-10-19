@@ -75,6 +75,18 @@ const VIEWPORT_MODE_STORAGE_KEY = 'pandaViewportMode';
 // Fallback de carga elegante
 const PageFallback = () => <Loader text="Cargando..." subtext="PandaStore" fullScreen={true} />;
 
+function ScrollToTop({ userId, authLoading }) {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Wait for the initial auth lookup so a returning signed-in customer is
+    // not incorrectly stored as a guest on the first page of the session.
+    if (!authLoading) trackPageView(pathname, userId || null);
+    captureReferralFromUrl();
+  }, [pathname, userId, authLoading]);
+  return null;
+}
+
 // Rutas protegidas
 function PrivateRoute({ user, authLoading, children }) {
   if (authLoading) return <PageFallback />;
@@ -91,16 +103,6 @@ function AdminRoute({ user, role, authLoading, children }) {
 
 function App() {
   usePresence();
-  
-  function ScrollToTop() {
-    const { pathname } = useLocation();
-    useEffect(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      trackPageView(pathname);
-      captureReferralFromUrl();
-    }, [pathname]);
-    return null;
-  }
 
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
@@ -295,7 +297,7 @@ function App() {
           <meta name="twitter:image" content="https://pandastoreupdate.web.app/banner.png" />
         </Helmet>
 
-        <ScrollToTop />
+        <ScrollToTop userId={user?.uid} authLoading={authLoading} />
         <ErrorBoundary>
           <Suspense fallback={<PageFallback />}>
             <Routes>

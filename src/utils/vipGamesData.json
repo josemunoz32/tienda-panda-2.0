@@ -1,5 +1,14 @@
 [
   {
+    "id": "vip-ace-combat-8-wings-of-theve",
+    "name": "ACE COMBAT 8: WINGS OF THEVE",
+    "priceCLP": 8000,
+    "isTopTier": false,
+    "app_id": "2288340",
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/2288340/header.jpg",
+    "platform": "Steam"
+  },
+  {
     "id": "vip-atomfall",
     "name": "Atomfall",
     "priceCLP": 8000,
@@ -81,6 +90,24 @@
     "platform": "Steam"
   },
   {
+    "id": "vip-dragon-ball-sparking-zero",
+    "name": "DRAGON BALL: Sparking! ZERO",
+    "priceCLP": 8000,
+    "isTopTier": false,
+    "app_id": "1790600",
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1790600/header.jpg",
+    "platform": "Steam"
+  },
+  {
+    "id": "vip-dragons-dogma-2",
+    "name": "Dragon's Dogma 2",
+    "priceCLP": 8000,
+    "isTopTier": false,
+    "app_id": "2054970",
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/2054970/header.jpg",
+    "platform": "Steam"
+  },
+  {
     "id": "vip-echoes-of-aincrad",
     "name": "Echoes of Aincrad",
     "priceCLP": 8000,
@@ -135,6 +162,15 @@
     "platform": "Steam"
   },
   {
+    "id": "vip-grid-legends",
+    "name": "GRID Legends",
+    "priceCLP": 8000,
+    "isTopTier": false,
+    "app_id": "1307710",
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1307710/header.jpg",
+    "platform": "Steam"
+  },
+  {
     "id": "vip-hatsune-miku-diva",
     "name": "Hatsune Miku: Project DIVA Mega Mix+",
     "priceCLP": 8000,
@@ -186,6 +222,15 @@
     "isTopTier": false,
     "app_id": "2215200",
     "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/2215200/header.jpg",
+    "platform": "Steam"
+  },
+  {
+    "id": "vip-lies-of-p",
+    "name": "Lies of P",
+    "priceCLP": 8000,
+    "isTopTier": false,
+    "app_id": "1627720",
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1627720/header.jpg",
     "platform": "Steam"
   },
   {
@@ -414,6 +459,15 @@
     "platform": "Steam"
   },
   {
+    "id": "vip-planet-zoo-2",
+    "name": "Planet Zoo 2",
+    "priceCLP": 8000,
+    "isTopTier": false,
+    "app_id": "3219030",
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/3219030/header.jpg",
+    "platform": "Steam"
+  },
+  {
     "id": "vip-pragmata",
     "name": "PRAGMATA",
     "priceCLP": 8000,
@@ -474,6 +528,15 @@
     "isTopTier": false,
     "app_id": "1295660",
     "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1295660/header.jpg",
+    "platform": "Steam"
+  },
+  {
+    "id": "vip-silent-hill-2",
+    "name": "SILENT HILL 2",
+    "priceCLP": 8000,
+    "isTopTier": false,
+    "app_id": "2124490",
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/2124490/header.jpg",
     "platform": "Steam"
   },
   {
@@ -564,6 +627,24 @@
     "isTopTier": false,
     "app_id": "1777620",
     "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1777620/header.jpg",
+    "platform": "Steam"
+  },
+  {
+    "id": "vip-star-wars-jedi-survivor",
+    "name": "STAR WARS Jedi: Survivor™",
+    "priceCLP": 8000,
+    "isTopTier": false,
+    "app_id": "1774580",
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1774580/header.jpg",
+    "platform": "Steam"
+  },
+  {
+    "id": "vip-star-wars-galactic-racer",
+    "name": "STAR WARS: Galactic Racer™",
+    "priceCLP": 8000,
+    "isTopTier": false,
+    "app_id": "4078430",
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/4078430/header.jpg",
     "platform": "Steam"
   },
   {
@@ -729,51 +810,6 @@
     "platform": "Steam"
   },
   {
-    "id": "vip-dragon-ball-sparking-zero",
-    "name": "DRAGON BALL: Sparking! ZERO",
-    "priceCLP": 8000,
-    "isTopTier": false,
-    "app_id": "1790600",
-    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1790600/header.jpg",
-    "platform": "Steam"
-  },
-  {
-    "id": "vip-silent-hill-2",
-    "name": "SILENT HILL 2",
-    "priceCLP": 8000,
-    "isTopTier": false,
-    "app_id": "2124490",
-    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/2124490/header.jpg",
-    "platform": "Steam"
-  },
-  {
-    "id": "vip-dragons-dogma-2",
-    "name": "Dragon's Dogma 2",
-    "priceCLP": 8000,
-    "isTopTier": false,
-    "app_id": "2054970",
-    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/2054970/header.jpg",
-    "platform": "Steam"
-  },
-  {
-    "id": "vip-lies-of-p",
-    "name": "Lies of P",
-    "priceCLP": 8000,
-    "isTopTier": false,
-    "app_id": "1627720",
-    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1627720/header.jpg",
-    "platform": "Steam"
-  },
-  {
-    "id": "vip-star-wars-jedi-survivor",
-    "name": "STAR WARS Jedi: Survivor™",
-    "priceCLP": 8000,
-    "isTopTier": false,
-    "app_id": "1774580",
-    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1774580/header.jpg",
-    "platform": "Steam"
-  },
-  {
     "id": "vip-ac-black-flag-resynced",
     "name": "Assassin's Creed Black Flag Resynced",
     "priceCLP": 12000,
@@ -882,6 +918,15 @@
     "platform": "EA"
   },
   {
+    "id": "vip-need-for-speed-heat",
+    "name": "Need for Speed™ Heat",
+    "priceCLP": 15000,
+    "isTopTier": true,
+    "app_id": "195133",
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1222680/header.jpg",
+    "platform": "EA"
+  },
+  {
     "id": "vip-need-for-speed-payback",
     "name": "Need for Speed™ Payback",
     "priceCLP": 15000,
@@ -897,6 +942,15 @@
     "isTopTier": true,
     "app_id": "196787",
     "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/196787/header.jpg",
+    "platform": "EA"
+  },
+  {
+    "id": "vip-wild-hearts",
+    "name": "WILD HEARTS™",
+    "priceCLP": 15000,
+    "isTopTier": true,
+    "app_id": "16425769",
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/2074920/header.jpg",
     "platform": "EA"
   }
 ]

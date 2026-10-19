@@ -7,5 +7,13 @@ Disallow: /mispedidos
 Disallow: /checkoutcarrito
 Disallow: /comprar-ahora
 Disallow: /compra-confirmada
+Disallow: /confirmacion-exitosa
+Disallow: /confirmacion-pendiente
+Disallow: /iniciar-sesion
+Disallow: /registro
+Disallow: /portal-distribuidor
+Disallow: /mi-rutina-fit
+Disallow: /rutina-gym
+Disallow: /pandafit
 
 Sitemap: https://pandastoreupdate.web.app/sitemap.xml

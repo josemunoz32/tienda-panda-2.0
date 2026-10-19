@@ -4,6 +4,7 @@ const https = require('https');
 const PROJECT_ID = 'pandastoreupdate';
 const URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/products`;
 const SITEMAP_PATH = './public/sitemap.xml';
+const SITE_URL = 'https://pandastoreupdate.web.app';
 
 async function fetchProducts() {
   return new Promise((resolve, reject) => {
@@ -27,6 +28,7 @@ async function generateSitemap() {
   try {
     const products = await fetchProducts();
     
+    const today = new Date().toISOString().slice(0, 10);
     let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Rutas Estáticas y Categorías Principales -->
@@ -137,8 +139,10 @@ async function generateSitemap() {
       const name = doc.fields?.name?.stringValue || productId;
       const slug = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
+      const lastmod = doc.updateTime ? String(doc.updateTime).slice(0, 10) : today;
       xml += `  <url>
-    <loc>https://pandastoreupdate.web.app/producto/${slug}--${productId}</loc>
+    <loc>${SITE_URL}/producto/${slug}--${productId}</loc>
+    <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>\n`;

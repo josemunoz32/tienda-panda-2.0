@@ -59,7 +59,13 @@ exports.htmlConfirmacionCompra = (nombre, orderId, totalLine, metodoPagoLabel, p
       ${productosHtml}
     </ul>
 
-    <p style="font-size: 16px; line-height: 1.6;">En breve recibirás un nuevo correo con las instrucciones de instalación y datos de acceso.</p>
+    <p style="font-size: 16px; line-height: 1.6;">Si compraste juegos para <strong>Nintendo Switch, PlayStation o Streaming</strong>, contáctanos directamente a nuestro WhatsApp oficial para coordinar tu entrega o instalación inmediata:</p>
+    <div style="text-align: center; margin: 25px 0;">
+      <a href="https://wa.me/56974751810" style="background: linear-gradient(135deg, #25D366, #128C7E); color: #fff; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 30px; display: inline-block;">
+        📲 Coordinar Entrega por WhatsApp
+      </a>
+    </div>
+    <p style="font-size: 14px; line-height: 1.5; color: #94a3b8;">Si tu compra es de Steam, tu clave oficial te llegará en un correo independiente con el acceso al PandaStore Launcher.</p>
     <p style="font-size: 16px; line-height: 1.6;">¡Prepárate para jugar!</p>
     ${baseFooter}
   `;

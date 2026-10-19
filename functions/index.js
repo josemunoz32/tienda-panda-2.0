@@ -537,8 +537,116 @@ const client = new MercadoPagoConfig({
 });
 
 /**
+ * Detecta si un producto individual corresponde a Consola (Nintendo/PlayStation) o Streaming.
+ * @param {Object} item Producto a analizar
+ * @return {string|boolean} Tipo de consola/streaming o false
+ */
+function isConsoleOrStreamingItem(item) {
+  if (!item) return false;
+  const nom = (item.name || item.title || item.nombre || "").toLowerCase();
+  const plat = (item.plataforma || item.platform || "").toLowerCase();
+  const cat = (item.categoryName || item.category || item.categoria || item.categoriaNombre || "").toLowerCase();
+  const catId = (item.categoryId || "").toLowerCase();
+
+  // Nintendo Switch
+  if (
+    item.switchCompat ||
+    plat.includes("switch") ||
+    plat.includes("nintendo") ||
+    cat.includes("switch") ||
+    cat.includes("nintendo") ||
+    catId.includes("switch") ||
+    catId.includes("nintendo") ||
+    nom.includes("nintendo switch") ||
+    nom.includes("switch 2")
+  ) {
+    return "nintendo";
+  }
+
+  // PlayStation
+  if (
+    item.pricePrimariaCLP ||
+    item.priceSecundariaCLP ||
+    plat.includes("playstation") ||
+    plat.includes("ps4") ||
+    plat.includes("ps5") ||
+    cat.includes("playstation") ||
+    cat.includes("ps4") ||
+    cat.includes("ps5") ||
+    catId.includes("playstation") ||
+    catId.includes("ps4") ||
+    catId.includes("ps5") ||
+    nom.includes("cuenta primaria") ||
+    nom.includes("cuenta secundaria")
+  ) {
+    return "playstation";
+  }
+
+  // Streaming / Cuentas
+  if (
+    plat.includes("streaming") ||
+    plat.includes("cuenta") ||
+    cat.includes("streaming") ||
+    cat.includes("cuentas") ||
+    catId.includes("streaming") ||
+    nom.includes("netflix") ||
+    nom.includes("disney") ||
+    nom.includes("spotify") ||
+    nom.includes("crunchyroll") ||
+    nom.includes("streaming") ||
+    nom.includes("hbo") ||
+    nom.includes("max ")
+  ) {
+    return "streaming";
+  }
+
+  return false;
+}
+
+/**
+ * Detecta la plataforma general del pedido para aislar Steam de consolas y streaming.
+ * @param {Object} pedido Pedido a analizar
+ * @return {Object} Objeto con platformKey, platformLabel e isSteam
+ */
+function detectOrderPlatform(pedido) {
+  if (!pedido) return {platformKey: "steam", platformLabel: "PC / Steam", isSteam: true};
+
+  const rawPlat = (pedido.plataforma || pedido.platform || "").trim().toLowerCase();
+  const prods = Array.isArray(pedido.productos) ? pedido.productos : (Array.isArray(pedido.cart) ? pedido.cart : []);
+
+  if (rawPlat.includes("switch") || rawPlat.includes("nintendo")) {
+    return {platformKey: "nintendo", platformLabel: "Nintendo Switch", isSteam: false};
+  }
+  if (rawPlat.includes("playstation") || rawPlat.includes("ps4") || rawPlat.includes("ps5")) {
+    return {platformKey: "playstation", platformLabel: "PlayStation (PS4/PS5)", isSteam: false};
+  }
+  if (rawPlat.includes("streaming") || rawPlat.includes("cuenta")) {
+    return {platformKey: "streaming", platformLabel: "Streaming / Cuentas", isSteam: false};
+  }
+
+  let hasNintendo = false;
+  let hasPlayStation = false;
+  let hasStreaming = false;
+
+  for (const item of prods) {
+    const t = isConsoleOrStreamingItem(item);
+    if (t === "nintendo") hasNintendo = true;
+    else if (t === "playstation") hasPlayStation = true;
+    else if (t === "streaming") hasStreaming = true;
+  }
+
+  if (hasNintendo) return {platformKey: "nintendo", platformLabel: "Nintendo Switch", isSteam: false};
+  if (hasPlayStation) return {platformKey: "playstation", platformLabel: "PlayStation (PS4/PS5)", isSteam: false};
+  if (hasStreaming) return {platformKey: "streaming", platformLabel: "Streaming / Cuentas", isSteam: false};
+
+  return {platformKey: "steam", platformLabel: "PC / Steam", isSteam: true};
+}
+
+/**
  * Envía una notificación instantánea al bot de Telegram del administrador
- * con los datos del pedido y la clave generada si es Steam/Saga.
+ * con los datos del pedido y la clave generada SOLO si es Steam y pago verificado.
+ * @param {Object} params Parámetros del pedido y clave
+ * @return {Promise<void>}
  */
 async function sendTelegramAdminNotification({orderId, pedido, key = null, juegosList = [], tipo = "COMPRA"}) {
   try {
@@ -546,6 +654,7 @@ async function sendTelegramAdminNotification({orderId, pedido, key = null, juego
     const adminChatId = process.env.ADMIN_ID;
     if (!telegramToken || !adminChatId) return;
 
+    const platInfo = detectOrderPlatform(pedido);
     const clienteNombre = pedido.nombre || pedido.firstName || "Cliente";
     const clienteEmail = pedido.email || pedido.clienteEmail || "Sin correo";
     const clientePhone = pedido.phone || "Sin teléfono";
@@ -555,7 +664,7 @@ async function sendTelegramAdminNotification({orderId, pedido, key = null, juego
 
     const prods = Array.isArray(pedido.productos) ? pedido.productos : (Array.isArray(pedido.cart) ? pedido.cart : []);
     const prodsTxt = prods.map((p) => {
-      const nom = p.name || p.title || "Producto";
+      const nom = p.name || p.title || p.nombre || "Producto";
       const cant = p.cantidad || p.quantity || 1;
       let extra = "";
       if (Array.isArray(p.promoGames) && p.promoGames.length > 0) {
@@ -567,13 +676,14 @@ async function sendTelegramAdminNotification({orderId, pedido, key = null, juego
     }).join("\n");
 
     const encabezado = tipo === "ENTREGA_KEY" ?
-      `🔑 <b>¡CLAVE GENERADA Y ASIGNADA!</b> (Pedido #${orderId})` :
+      `🔑 <b>¡CLAVE STEAM GENERADA Y ASIGNADA!</b> (Pedido #${orderId})` :
       tipo === "PAGO_CONFIRMADO" ?
         `✅ <b>¡PAGO CONFIRMADO EXITOSO!</b> (Pedido #${orderId})` :
         `🛒 <b>¡NUEVA SOLICITUD DE COMPRA!</b> (Pedido #${orderId})`;
 
     let msg = `${encabezado}\n`;
     msg += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+    msg += `🎮 <b>Plataforma:</b> <b>${platInfo.platformLabel}</b>\n`;
     msg += `👤 <b>Cliente:</b> ${clienteNombre}\n`;
     msg += `📧 <b>Email:</b> ${clienteEmail}\n`;
     if (clientePhone && clientePhone !== "Sin teléfono") {
@@ -584,15 +694,42 @@ async function sendTelegramAdminNotification({orderId, pedido, key = null, juego
     msg += `━━━━━━━━━━━━━━━━━━━━━━\n`;
     msg += `📦 <b>Productos:</b>\n${prodsTxt || "Sin detalle"}\n`;
 
-    if (key) {
+    if (platInfo.platformKey === "nintendo") {
       msg += `━━━━━━━━━━━━━━━━━━━━━━\n`;
-      msg += `🔑 <b>CLAVE STEAM / SAGA GENERADA:</b>\n`;
-      msg += `<code>${key}</code>\n`;
-      if (Array.isArray(juegosList) && juegosList.length > 0) {
-        const juegosNombres = juegosList.slice(0, 10).map((j) => `  • ${j.name || j}`).join("\n");
-        msg += `🎮 <b>Juegos autorizados (${juegosList.length}):</b>\n${juegosNombres}${juegosList.length > 10 ? "\n  ... y más" : ""}\n`;
+      msg += `🔴 <b>GESTIÓN NINTENDO SWITCH:</b>\n`;
+      msg += `📲 Coordinar instalación por WhatsApp con el cliente.\n`;
+      msg += `📖 Guía de instalación: https://pandastoreupdate.web.app/instalacion-nintendo\n`;
+      msg += `🚫 <i>(NO requiere Launcher ni Clave Steam)</i>\n`;
+    } else if (platInfo.platformKey === "playstation") {
+      msg += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+      msg += `🔵 <b>GESTIÓN PLAYSTATION:</b>\n`;
+      msg += `📲 Coordinar cuenta (Primaria/Secundaria) por WhatsApp.\n`;
+      msg += `📖 Guía de instalación: https://pandastoreupdate.web.app/instalacion-playstation\n`;
+      msg += `🚫 <i>(NO requiere Launcher ni Clave Steam)</i>\n`;
+    } else if (platInfo.platformKey === "streaming") {
+      msg += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+      msg += `🟣 <b>GESTIÓN STREAMING:</b>\n`;
+      msg += `📲 Entregar datos de la cuenta por WhatsApp.\n`;
+      msg += `🚫 <i>(NO requiere Launcher ni Clave Steam)</i>\n`;
+    } else {
+      // Steam
+      if (key) {
+        msg += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+        msg += `🔑 <b>CLAVE STEAM LAUNCHER GENERADA:</b>\n`;
+        msg += `<code>${key}</code>\n`;
+        if (Array.isArray(juegosList) && juegosList.length > 0) {
+          const juegosNombres = juegosList.slice(0, 10).map((j) => `  • ${j.name || j}`).join("\n");
+          msg += `🎮 <b>Juegos autorizados (${juegosList.length}):</b>\n${juegosNombres}${juegosList.length > 10 ? "\n  ... y más" : ""}\n`;
+        }
+        msg += `✨ <i>(El cliente ya puede activarla en PandaStore Launcher)</i>\n`;
+      } else {
+        const esManual = ["transferencia", "prex", "crypto"].includes(pedido.metodoPago);
+        if (esManual) {
+          msg += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+          msg += `⏳ <b>CLAVE STEAM PROTEGIDA:</b>\n`;
+          msg += `<i>Pago pendiente de verificación. La clave se creará automáticamente cuando confirmes el pago en el panel.</i>\n`;
+        }
       }
-      msg += `✨ <i>(El cliente ya puede activarla en PandaStore Launcher)</i>\n`;
     }
 
     msg += `━━━━━━━━━━━━━━━━━━━━━━\n`;
@@ -627,6 +764,23 @@ async function generatePandaLicenseAndSendEmail(pedido, orderId) {
     const orderSnap = await orderRef.get();
     const orderData = orderSnap.exists ? orderSnap.data() : pedido;
 
+    // 1. VERIFICAR QUE LA PLATAFORMA SEA STEAM
+    const platInfo = detectOrderPlatform(orderData);
+    if (!platInfo.isSteam) {
+      console.log(`[generatePandaLicense] Pedido #${orderId} es de plataforma ${platInfo.platformLabel}. No requiere clave Steam.`);
+      return null;
+    }
+
+    // 2. VERIFICAR QUE EL PAGO ESTÉ APROBADO / EXITOSO
+    const esManual = ["transferencia", "prex", "crypto"].includes(orderData.metodoPago);
+    const estado = orderData.transferenciaEstado || orderData.estado || orderData.status;
+    const esAprobado = (estado === "exitoso" || estado === "approved" || estado === "completado") || (!esManual && Boolean(orderData.metodoPago));
+
+    if (!esAprobado) {
+      console.log(`[generatePandaLicense] Pedido #${orderId} no está confirmado (Método: ${orderData.metodoPago}, Estado: ${estado}). Omitiendo clave hasta confirmación.`);
+      return null;
+    }
+
     // Evitar generar clave duplicada si ya existe una asignada a este pedido
     if (orderData.licenseKey) {
       console.log(`[generatePandaLicense] Pedido #${orderId} ya tiene clave asignada: ${orderData.licenseKey}`);
@@ -644,57 +798,22 @@ async function generatePandaLicenseAndSendEmail(pedido, orderId) {
     let isFullCatalog = false;
 
     for (const item of productos) {
+      // Descartar de manera estricta si el producto es consola o streaming
+      if (isConsoleOrStreamingItem(item)) {
+        continue;
+      }
+
       const name = (item.name || item.title || "").trim();
       const cleanName = name.toLowerCase();
       const plataforma = (item.plataforma || item.platform || "").toLowerCase();
       const catName = (item.categoryName || item.category || item.categoria || "").toLowerCase();
       const catId = (item.categoryId || "").toLowerCase();
       const tags = Array.isArray(item.tags) ? item.tags.map((t) => String(t).toLowerCase()) : [];
-      
+
       let appId = item.app_id || item.appId || item.steamAppId || null;
       if (!appId && item.id) {
         const m = String(item.id).match(/^(?:ryuu_|vip-)?(\d+)$/);
         if (m) appId = m[1];
-      }
-
-      // Descartar si es consola (Switch o PlayStation) o Streaming
-      const isConsoleOrStreaming = (
-        item.switchCompat ||
-        item.pricePrimariaCLP ||
-        item.priceSecundariaCLP ||
-        plataforma.includes("switch") ||
-        plataforma.includes("nintendo") ||
-        plataforma.includes("playstation") ||
-        plataforma.includes("ps4") ||
-        plataforma.includes("ps5") ||
-        plataforma.includes("streaming") ||
-        plataforma.includes("cuenta") ||
-        catName.includes("switch") ||
-        catName.includes("nintendo") ||
-        catName.includes("playstation") ||
-        catName.includes("ps4") ||
-        catName.includes("ps5") ||
-        catName.includes("streaming") ||
-        catName.includes("cuentas") ||
-        catId.includes("switch") ||
-        catId.includes("nintendo") ||
-        catId.includes("playstation") ||
-        catId.includes("ps4") ||
-        catId.includes("ps5") ||
-        catId.includes("streaming") ||
-        cleanName.includes("nintendo switch") ||
-        cleanName.includes("switch 2") ||
-        cleanName.includes("cuenta primaria") ||
-        cleanName.includes("cuenta secundaria") ||
-        cleanName.includes("netflix") ||
-        cleanName.includes("disney") ||
-        cleanName.includes("spotify") ||
-        cleanName.includes("crunchyroll") ||
-        cleanName.includes("streaming")
-      );
-
-      if (isConsoleOrStreaming && !plataforma.includes("steam") && !catName.includes("steam") && !item.isSteam) {
-        continue;
       }
 
       // Pack completo Steam
@@ -714,10 +833,10 @@ async function generatePandaLicenseAndSendEmail(pedido, orderId) {
 
       // Identificar si es Saga de Steam
       const isSaga = Boolean(
-        item.isSaga ||
-        cleanName.includes("saga") ||
-        (item.id && String(item.id).startsWith("promo-saga-")) ||
-        (item.key && String(item.key).startsWith("promo-saga-")),
+          item.isSaga ||
+          cleanName.includes("saga") ||
+          (item.id && String(item.id).startsWith("promo-saga-")) ||
+          (item.key && String(item.key).startsWith("promo-saga-")),
       );
 
       // Es un juego o pack de Steam legítimo
@@ -1202,21 +1321,31 @@ exports.onOrderChange = functionsV1.firestore
       const orderId = context.params.orderId;
       const clienteEmail = pedido.email;
 
+      // Modo silencioso: no enviar correos ni Telegram
+      if (pedido.silencioso) {
+        console.log(`[onOrderChange] Pedido #${orderId} marcado como silencioso, omitiendo correos y Telegram.`);
+        return null;
+      }
+
       // Verificar si es nuevo o si cambió el estado a exitoso
       const isNew = !change.before.exists;
-      const estadoAnterior = pedidoBefore ? (pedidoBefore.transferenciaEstado || pedidoBefore.estado) : null;
-      const estadoActual = pedido.transferenciaEstado || pedido.estado;
+      const estadoAnterior = pedidoBefore ? (pedidoBefore.transferenciaEstado || pedidoBefore.estado || pedidoBefore.status) : null;
+      const estadoActual = pedido.transferenciaEstado || pedido.estado || pedido.status;
 
-      const changedToExitoso = (estadoAnterior !== "exitoso" && estadoActual === "exitoso");
+      const isExitosoAnterior = (estadoAnterior === "exitoso" || estadoAnterior === "approved" || estadoAnterior === "completado");
+      const isExitosoActual = (estadoActual === "exitoso" || estadoActual === "approved" || estadoActual === "completado");
 
-      // Solo enviar correos en la creación o cuando el pago se aprueba
+      const changedToExitoso = (!isExitosoAnterior && isExitosoActual);
+
+      // Solo enviar notificaciones en la creación o cuando el pago se aprueba
       if (!isNew && !changedToExitoso) {
         return null;
       }
 
       console.log(`[onOrderChange] orderId: ${orderId}, isNew: ${isNew}, changedToExitoso: ${changedToExitoso}`);
 
-      const esConfirmado = estadoActual === "exitoso";
+      const esManual = ["transferencia", "prex", "crypto"].includes(pedido.metodoPago);
+      const esConfirmado = isExitosoActual || (!esManual && Boolean(pedido.metodoPago));
 
       // Construir línea de total con moneda local si aplica
       const monedaLocal = pedido.monedaLocal || pedido.moneda || "";
@@ -1233,10 +1362,11 @@ exports.onOrderChange = functionsV1.firestore
 
       // Construir lista de productos
       let productosTxt = "";
-      if (Array.isArray(pedido.productos)) {
-        productosTxt = pedido.productos
+      const prods = Array.isArray(pedido.productos) ? pedido.productos : (Array.isArray(pedido.cart) ? pedido.cart : []);
+      if (prods.length > 0) {
+        productosTxt = prods
             .map((p) => {
-              const nombre = p.name || p.title || "Producto";
+              const nombre = p.name || p.title || p.nombre || "Producto";
               const cantidad = p.cantidad || p.quantity || 1;
               return `  - ${nombre} x${cantidad}`;
             })
@@ -1252,7 +1382,6 @@ exports.onOrderChange = functionsV1.firestore
       }[pedido.metodoPago] || pedido.metodoPago;
 
       // ── Correo al ADMIN ──
-      // Solo notificar al admin para métodos manuales o si es un nuevo pedido
       if (isNew || changedToExitoso) {
         const adminSubject = esConfirmado ?
           `✅ PEDIDO APROBADO #${orderId} — ${metodoPagoLabel}` :
@@ -1275,7 +1404,7 @@ exports.onOrderChange = functionsV1.firestore
             `${totalLine}\n` +
             `Método de pago: ${metodoPagoLabel}\n\n` +
             `Productos:\n${productosTxt}\n\n` +
-            `Revisa el panel de administración para aprobar el pedido.`;
+            `Revisa el panel de administración para verificar el comprobante y aprobar el pedido.`;
 
         try {
           await transporter.sendMail({
@@ -1294,7 +1423,7 @@ exports.onOrderChange = functionsV1.firestore
       let keyGenerada = null;
       // ── Correo al CLIENTE ──
       if (clienteEmail) {
-        // Si el pago es exitoso / confirmado, generar la clave de Steam y enviar correo con la clave
+        // Solo generar clave de Steam si el pago está plenamente confirmado
         if (esConfirmado) {
           try {
             keyGenerada = await generatePandaLicenseAndSendEmail(pedido, orderId);
@@ -1303,8 +1432,8 @@ exports.onOrderChange = functionsV1.firestore
           }
         }
 
-        // Si se generó la clave de Steam, el correo específico (htmlEntregaKeySteam) ya fue enviado.
-        // Si NO fue compra de Steam o ya se había enviado, enviar el correo general correspondiente:
+        // Si se generó la clave de Steam, el correo específico (htmlEntregaKeySteam) ya fue enviado por generatePandaLicenseAndSendEmail.
+        // Si NO fue compra de Steam (Nintendo/PlayStation/Streaming) o el pago sigue pendiente, enviar el correo general correspondiente:
         if (!keyGenerada) {
           const clienteSubject = esConfirmado ?
             `PandaStore: ¡Tu pago ha sido verificado! Pedido #${orderId}` :
@@ -1315,7 +1444,7 @@ exports.onOrderChange = functionsV1.firestore
             templates.htmlPedidoPendiente(pedido.nombre || "", orderId, totalLine, metodoPagoLabel, productosTxt);
 
           const plainToUse = esConfirmado ?
-            `Hola ${pedido.nombre || "Gamer"},\n\n¡Gracias por tu compra en PandaStore! Tu pago ha sido verificado correctamente.\n\nNº de Pedido: #${orderId}\nMétodo de pago: ${metodoPagoLabel}\n${totalLine}\n\nProductos:\n${productosTxt}\n\nEn breve recibirás un correo con las instrucciones y datos de acceso.\n\nSoporte WhatsApp: https://wa.me/56974751810\n© ${new Date().getFullYear()} PandaStore` :
+            `Hola ${pedido.nombre || "Gamer"},\n\n¡Gracias por tu compra en PandaStore! Tu pago ha sido verificado correctamente.\n\nNº de Pedido: #${orderId}\nMétodo de pago: ${metodoPagoLabel}\n${totalLine}\n\nProductos:\n${productosTxt}\n\nSi compraste juegos para Nintendo Switch, PlayStation o Streaming, contáctanos a nuestro WhatsApp para coordinar la entrega o instalación inmediata.\n\nSoporte WhatsApp: https://wa.me/56974751810\n© ${new Date().getFullYear()} PandaStore` :
             `Hola ${pedido.nombre || "Gamer"},\n\nHemos recibido tu solicitud de compra (Pedido #${orderId}).\n\nMétodo de pago: ${metodoPagoLabel}\n${totalLine}\n\nProductos:\n${productosTxt}\n\nRecuerda enviar el comprobante de pago por WhatsApp o a nuestro correo para poder activar tu compra lo antes posible.\n\nSoporte WhatsApp: https://wa.me/56974751810\n© ${new Date().getFullYear()} PandaStore`;
 
           try {
@@ -1337,16 +1466,18 @@ exports.onOrderChange = functionsV1.firestore
         }
       }
 
-      // Notificar al bot de Telegram del administrador
-      try {
-        await sendTelegramAdminNotification({
-          orderId,
-          pedido,
-          key: keyGenerada || pedido.licenseKey || null,
-          tipo: esConfirmado ? "PAGO_CONFIRMADO" : "NUEVO_PEDIDO",
-        });
-      } catch (tgErr) {
-        console.error("[onOrderChange] Error notificando Telegram:", tgErr);
+      // Notificar al bot de Telegram del administrador (solo si no fue notificado ya por generatePandaLicenseAndSendEmail)
+      if (!keyGenerada) {
+        try {
+          await sendTelegramAdminNotification({
+            orderId,
+            pedido,
+            key: null,
+            tipo: esConfirmado ? "PAGO_CONFIRMADO" : "NUEVO_PEDIDO",
+          });
+        } catch (tgErr) {
+          console.error("[onOrderChange] Error notificando Telegram:", tgErr);
+        }
       }
 
       return null;
@@ -1378,6 +1509,14 @@ exports.entregarKeyPedido = functions.https.onRequest((req, res) => {
       }
 
       const pedido = orderDoc.data();
+      const platInfo = detectOrderPlatform(pedido);
+      if (!platInfo.isSteam) {
+        return res.status(400).json({
+          success: false,
+          message: `Este pedido es de ${platInfo.platformLabel}. No utiliza claves de PandaStore Launcher / Steam.`,
+        });
+      }
+
       const key = await generatePandaLicenseAndSendEmail(pedido, orderId);
 
       return res.status(200).json({

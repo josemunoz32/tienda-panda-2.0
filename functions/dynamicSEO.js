@@ -10,6 +10,23 @@ function escapeHtml(value) {
   }[char]));
 }
 
+function normalizePrice(value) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value !== "string") return null;
+  const raw = value.trim().replace(/[^0-9,.-]/g, "");
+  const lastComma = raw.lastIndexOf(",");
+  const lastDot = raw.lastIndexOf(".");
+  let normalized = raw;
+  if (lastComma >= 0 && lastDot >= 0) {
+    const decimal = lastComma > lastDot ? "," : ".";
+    normalized = raw.replace(decimal === "," ? /\./g : /,/g, "").replace(decimal, ".");
+  } else if (lastComma >= 0) {
+    normalized = /,\d{1,2}$/.test(raw) ? raw.replace(",", ".") : raw.replace(/,/g, "");
+  } else if (/\.\d{3}(\.\d{3})+$/.test(raw) || /\.\d{3}$/.test(raw)) normalized = raw.replace(/\./g, "");
+  const result = Number(normalized);
+  return Number.isFinite(result) && result > 0 ? result : null;
+}
+
 exports.dynamicSEO = functions.https.onRequest(async (req, res) => {
   try {
     // 1. Extraer el ID del producto de la URL (ej: /producto/12345)
@@ -39,12 +56,13 @@ exports.dynamicSEO = functions.https.onRequest(async (req, res) => {
       const p = productDoc.data();
       const rawPlat = (p.plataforma || p.platform || p.category || p.categoria || "").toLowerCase();
       const platLabel = rawPlat.includes("switch") || rawPlat.includes("nintendo") ? "Nintendo Switch" : (rawPlat.includes("ps4") || rawPlat.includes("ps5") || rawPlat.includes("playstation")) ? "PS5 / PS4" : "Steam PC";
-      const title = `${p.name} (${platLabel}) Barato | Comprar Juego Digital - PandaStore`;
-      const desc = p.description ? p.description.slice(0, 155) : `Compra ${p.name} para ${platLabel} barato en PandaStore. Entrega inmediata 24/7, soporte en español y garantía oficial.`;
-      const price = p.priceUSD || p.pricePrimariaUSD || p.priceCLP || "";
+      const productName = String(p.name || p.title || "Juego digital").trim();
+      const title = `${productName} para ${platLabel} | Juego digital - PandaStore`;
+      const desc = p.description ? String(p.description).replace(/\s+/g, " ").trim().slice(0, 155) : `Compra ${productName} para ${platLabel} en PandaStore. Producto digital, soporte en español y entrega según disponibilidad.`;
+      const price = normalizePrice(p.priceUSD || p.pricePrimariaUSD || p.priceCLP);
       const currency = p.priceUSD || p.pricePrimariaUSD ? "USD" : "CLP";
       const image = p.imageUrl || "https://pandastoreupdate.web.app/favicon.png";
-      const slug = String(p.slug || p.name || productId)
+      const slug = String(p.slug || productName || productId)
           .toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
           .replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-");
       const url = `https://pandastoreupdate.web.app/producto/${slug}--${productId}`;
@@ -54,10 +72,13 @@ exports.dynamicSEO = functions.https.onRequest(async (req, res) => {
       const productSchema = JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Product",
-        "name": p.name,
+        "name": productName,
         "description": desc,
         "image": [image],
-        "offers": price ? {"@type": "Offer", "price": String(price), "priceCurrency": currency, "availability": "https://schema.org/InStock", url} : undefined,
+        "sku": productId,
+        "brand": {"@type": "Brand", "name": "PandaStore"},
+        "category": platLabel,
+        "offers": price ? {"@type": "Offer", "price": String(price), "priceCurrency": currency, "availability": Number(p.stock) === 0 ? "https://schema.org/OutOfStock" : "https://schema.org/InStock", "itemCondition": "https://schema.org/NewCondition", url} : undefined,
       }).replace(/</g, "\\u003c");
 
       // Inyectar metadatos OpenGraph y Twitter en el <head>
@@ -65,7 +86,8 @@ exports.dynamicSEO = functions.https.onRequest(async (req, res) => {
         <title>${safeTitle}</title>
         <link rel="canonical" href="${url}" />
         <meta name="description" content="${safeDesc}" />
-        <meta name="keywords" content="comprar ${safeTitle}, ${safeTitle} barato, ${platLabel.toLowerCase()} barato, juegos digitales, ofertas videojuegos, pandastore" />
+        <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
+        <meta name="keywords" content="${escapeHtml(productName)}, comprar ${escapeHtml(productName)}, ${platLabel.toLowerCase()}, juegos digitales" />
         <meta property="og:title" content="${safeTitle}" />
         <meta property="og:description" content="${safeDesc}" />
         <meta property="og:image" content="${safeImage}" />

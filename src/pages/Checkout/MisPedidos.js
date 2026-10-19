@@ -933,7 +933,7 @@ function PedidoCard({ pedido, userId, isAdmin, setPedidos, onCopyKey, copiedKey,
     };
 
     try {
-      if (nuevoEstado === "exitoso" && !isSilent) {
+      if (nuevoEstado === "exitoso" && !isSilent && tieneJuegosSteam) {
         const idToSend = pedido.globalOrderId || pedido.id;
         try {
           const token = await auth.currentUser?.getIdToken();
@@ -945,14 +945,14 @@ function PedidoCard({ pedido, userId, isAdmin, setPedidos, onCopyKey, copiedKey,
           const data = await res.json().catch(() => null);
           if (data && data.licenseKey) {
             updateData.licenseKey = data.licenseKey;
-          } else if (tieneJuegosSteam && !pedido.licenseKey) {
+          } else if (!pedido.licenseKey) {
             const fallbackKey = await generarKeyDirectaFallback(pedido);
             if (fallbackKey) {
               updateData.licenseKey = fallbackKey;
             }
           }
         } catch (_) {
-          if (tieneJuegosSteam && !pedido.licenseKey) {
+          if (!pedido.licenseKey) {
             const fallbackKey = await generarKeyDirectaFallback(pedido).catch(() => null);
             if (fallbackKey) {
               updateData.licenseKey = fallbackKey;

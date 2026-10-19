@@ -139,23 +139,21 @@ export function getOrderPlatformInfo(orderSummary) {
   const rawProd = orderSummary?.producto || "";
   const prods = Array.isArray(orderSummary?.productos) ? orderSummary.productos : (Array.isArray(orderSummary?.cart) ? orderSummary.cart : []);
 
-  const cleanRawPlat = rawPlat === "Nintendo Switch / PC" ? "" : rawPlat;
-
   const textToCheck = [
-    cleanRawPlat,
+    rawPlat,
     rawCat,
     rawProd,
     ...prods.map(p => {
-      const plat = p.plataforma === "Nintendo Switch / PC" ? "" : (p.plataforma || '');
-      return `${p.nombre || ''} ${p.title || ''} ${p.name || ''} ${plat} ${p.platform || ''} ${p.category || ''} ${p.categoria || ''} ${p.categoryId || ''} ${p.variante || ''}`;
+      const plat = p.plataforma || p.platform || '';
+      return `${p.nombre || ''} ${p.title || ''} ${p.name || ''} ${plat} ${p.category || ''} ${p.categoria || ''} ${p.categoryId || ''} ${p.categoryName || ''} ${p.variante || ''}`;
     })
   ].filter(Boolean).join(' ').toLowerCase();
 
-  // 1. Streaming
+  // 1. Streaming / Cuentas
   const isStreaming = textToCheck.includes("streaming") || textToCheck.includes("netflix") || textToCheck.includes("disney") ||
                       textToCheck.includes("max ") || textToCheck.includes("hbo") || textToCheck.includes("spotify") ||
                       textToCheck.includes("crunchyroll") || textToCheck.includes("iptv") || textToCheck.includes("paramount") ||
-                      textToCheck.includes("prime video") || textToCheck.includes("youtube premium");
+                      textToCheck.includes("prime video") || textToCheck.includes("youtube premium") || textToCheck.includes("cuentas");
 
   if (isStreaming) {
     return {
@@ -171,15 +169,18 @@ export function getOrderPlatformInfo(orderSummary) {
     };
   }
 
-  // 2. Nintendo Switch
-  if (textToCheck.includes("switch") || textToCheck.includes("nintendo")) {
+  // 2. Nintendo Switch (detectar si contiene switch o nintendo, o switchCompat)
+  const isNintendo = textToCheck.includes("switch") || textToCheck.includes("nintendo") ||
+                     prods.some(p => p.switchCompat || String(p.plataforma || '').toLowerCase().includes("switch") || String(p.categoria || '').toLowerCase().includes("switch"));
+
+  if (isNintendo) {
     return {
       platformKey: "nintendo",
       platformLabel: "Nintendo Switch",
       guideTitle: "Guía Nintendo Switch",
       guideRoute: "/instalacion-nintendo",
       guideSub: "Instalación paso a paso en consola",
-      wspButtonTitle: "HOLA, AYÚDAME A INSTALAR NINTENDO",
+      wspButtonTitle: "SOLICITAR INSTALACIÓN NINTENDO POR WHATSAPP",
       wspButtonSub: "Coordinar entrega de perfil e instalación en tu consola",
       showLauncherBtn: false,
       showGuideBtn: true
@@ -187,14 +188,18 @@ export function getOrderPlatformInfo(orderSummary) {
   }
 
   // 3. PlayStation (PS4 / PS5)
-  if (textToCheck.includes("playstation") || textToCheck.includes("ps5") || textToCheck.includes("ps4") || textToCheck.includes("ps3") || textToCheck.includes("sony")) {
+  const isPlayStation = textToCheck.includes("playstation") || textToCheck.includes("ps5") || textToCheck.includes("ps4") ||
+                        textToCheck.includes("ps3") || textToCheck.includes("sony") ||
+                        prods.some(p => p.pricePrimariaCLP || p.priceSecundariaCLP || p.variante === "primaria" || p.variante === "secundaria");
+
+  if (isPlayStation) {
     return {
       platformKey: "playstation",
       platformLabel: "PlayStation (PS4 / PS5)",
       guideTitle: "Guía PlayStation (PS4 / PS5)",
       guideRoute: "/instalacion-playstation",
       guideSub: "Instalación paso a paso en consola",
-      wspButtonTitle: "HOLA, AYÚDAME CON PS4 / PS5",
+      wspButtonTitle: "SOLICITAR CUENTA PLAYSTATION POR WHATSAPP",
       wspButtonSub: "Coordinar entrega de cuenta e instalación en tu consola",
       showLauncherBtn: false,
       showGuideBtn: true
@@ -208,7 +213,7 @@ export function getOrderPlatformInfo(orderSummary) {
     guideTitle: "Guía de Activación Steam / PC",
     guideRoute: "/instalacion-activador",
     guideSub: "Instalación oficial con PandaStore Launcher",
-    wspButtonTitle: "HOLA, AYÚDAME CON STEAM",
+    wspButtonTitle: "SOLICITAR AYUDA STEAM POR WHATSAPP",
     wspButtonSub: "Envíanos tus datos para coordinar la activación",
     showLauncherBtn: true,
     showGuideBtn: true
