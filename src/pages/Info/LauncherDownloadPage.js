@@ -33,7 +33,7 @@ export default function LauncherDownloadPage() {
     setTimeout(() => setCopiedCmd(false), 2500);
   };
 
-  const WIN_GOFILE_URL = "https://github.com/josemunoz32/tienda-panda-2.0/releases/download/v2.4.32/PandaStoreSetup.exe"; // Instalador Todo en 1 v2.4.32 oficial (GitHub Releases CDN alta velocidad)
+  const WIN_GOFILE_URL = "https://github.com/josemunoz32/tienda-panda-2.0/releases/download/v2.4.33/PandaStoreSetup.exe"; // Instalador Todo en 1 v2.4.33 oficial (GitHub Releases CDN alta velocidad)
   const DECK_CARD_ELEMENT = (
     <div className="platform-card deck disabled">
       <div className="card-badge coming-soon">PRÓXIMAMENTE</div>
