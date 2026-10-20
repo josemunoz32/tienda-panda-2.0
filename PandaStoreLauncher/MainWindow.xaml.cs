@@ -1039,7 +1039,7 @@ namespace PandaStoreLauncher
 
                 btn.IsEnabled = false;
                 juego.IsProcessing = true;
-                juego.StatusMessage = "Inyectando activador en Steam...";
+                juego.StatusMessage = "📥 Descargando licencias y activando en Steam (esto puede tardar 1-2 min)...";
                 RefreshUi();
 
                 try

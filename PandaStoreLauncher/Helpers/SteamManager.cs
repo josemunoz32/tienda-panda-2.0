@@ -501,7 +501,7 @@ namespace PandaStoreLauncher.Helpers
                 string url = $"https://generator.ryuu.lol/secure_download?appid={appId}&auth_code={RyuuAuthCode}";
                 using (HttpClient client = new HttpClient())
                 {
-                    client.Timeout = TimeSpan.FromSeconds(90);
+                    client.Timeout = TimeSpan.FromMinutes(5);
                     client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) PandaStoreLauncher/2.4");
                     var response = await client.GetAsync(url);
                     if (response.IsSuccessStatusCode)
@@ -918,6 +918,11 @@ namespace PandaStoreLauncher.Helpers
                     string luaFileName = $"{juego.AppId}.lua";
                     string rawLuaContent = juego.LuaContent ?? "";
 
+                    if (string.IsNullOrWhiteSpace(rawLuaContent))
+                    {
+                        throw new InvalidOperationException($"No se pudo descargar la activación para '{juego.Name}' (AppID: {juego.AppId}). El servidor de licencias tardó en responder o no tiene claves disponibles. Por favor reintenta en unos instantes.");
+                    }
+
                     var targetPaths = GetAllSteamPaths();
                     if (!targetPaths.Contains(steamPath, StringComparer.OrdinalIgnoreCase))
                     {
@@ -978,6 +983,13 @@ namespace PandaStoreLauncher.Helpers
                             catch { }
                         }
                     }
+                }
+
+                // Verify that the lua activator was actually written with valid content
+                string primaryLuaPath = Path.Combine(steamPath, "plugins", $"{juego.AppId}.lua");
+                if (!File.Exists(primaryLuaPath) || new FileInfo(primaryLuaPath).Length < 10)
+                {
+                    throw new InvalidOperationException($"La activación de '{juego.Name}' no pudo completarse. El archivo de licencias no se generó.");
                 }
 
                 // 6. Delete target appcache files to force instant Steam license reload
@@ -1180,6 +1192,11 @@ namespace PandaStoreLauncher.Helpers
                 {
                     string luaFileName = $"{juego.AppId}.lua";
                     string rawLuaContent = juego.LuaContent ?? "";
+
+                    if (string.IsNullOrWhiteSpace(rawLuaContent))
+                    {
+                        throw new InvalidOperationException($"No se pudo descargar la activación para '{juego.Name}' (AppID: {juego.AppId}). El servidor de licencias tardó en responder. Por favor reintenta en unos instantes.");
+                    }
 
                     var validDepotIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                     foreach (var sPath in allSteamPaths)
