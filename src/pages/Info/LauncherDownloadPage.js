@@ -103,14 +103,14 @@ export default function LauncherDownloadPage() {
     <div className="launcher-download-container">
       <Helmet>
         <title>Descargar Panda Launcher Steam + Activador Oficial | PandaStore PC</title>
-        <meta name="description" content="Descarga el instalador oficial todo en 1 de Panda Launcher Steam + Activador v2.4.32 para Windows 10/11. Todo en 1: gestiona biblioteca, añade DLCs y activa cualquier juego de Steam en 1 click." />
+        <meta name="description" content="Descarga el instalador oficial todo en 1 de Panda Launcher Steam + Activador v2.4.33 para Windows 10/11. Todo en 1: gestiona biblioteca, añade DLCs y activa cualquier juego de Steam en 1 click." />
         <meta name="keywords" content="descargar pandastore launcher, activador steam pc, panda launcher steam activador, pandastore setup exe, launcher juegos pc, activador steam pandastore, instalador steam deck" />
         <meta property="og:title" content="Descargar Panda Launcher Steam + Activador Oficial | PandaStore PC" />
         <meta property="og:description" content="Instala y activa tus juegos de Steam en segundos con Panda Launcher + Activador integrado. Compatible con Windows 10/11 y Steam Deck." />
         <meta property="og:url" content="https://pandastoreupdate.web.app/descargar-launcher" />
         <meta property="og:image" content="https://pandastoreupdate.web.app/favicon.png" />
         <meta name="twitter:title" content="Panda Launcher Steam + Activador Oficial | PandaStore PC" />
-        <meta name="twitter:description" content="Descarga oficial y segura del instalador todo en 1 Panda Launcher Steam + Activador v2.4.32 para Windows y SteamOS." />
+        <meta name="twitter:description" content="Descarga oficial y segura del instalador todo en 1 Panda Launcher Steam + Activador v2.4.33 para Windows y SteamOS." />
         <meta name="twitter:image" content="https://pandastoreupdate.web.app/favicon96.png" />
         <link rel="canonical" href="https://pandastoreupdate.web.app/descargar-launcher" />
         <script type="application/ld+json">
@@ -120,7 +120,7 @@ export default function LauncherDownloadPage() {
             "name": "Panda Launcher Steam + Activador",
             "operatingSystem": "Windows 10, Windows 11, SteamOS (Linux)",
             "applicationCategory": "GameApplication",
-            "softwareVersion": "2.4.32",
+            "softwareVersion": "2.4.33",
             "offers": {
               "@type": "Offer",
               "price": "0",
@@ -150,7 +150,7 @@ export default function LauncherDownloadPage() {
             />
             <h1 className="launcher-title">
               Panda Launcher Steam <br />
-              <span className="title-purple">+ Activador</span> <span className="title-version">v2.4.32</span>
+              <span className="title-purple">+ Activador</span> <span className="title-version">v2.4.33</span>
             </h1>
           </div>
 
@@ -168,7 +168,7 @@ export default function LauncherDownloadPage() {
                   </div>
                   <div className="btn-download-text-wrap">
                     <span className="btn-download-title">Descargar Panda Launcher + Activador (111 MB)</span>
-                    <span className="btn-download-sub">Versión v2.4.32 oficial • Todo en 1 (Launcher + Activador) • Windows 10/11</span>
+                    <span className="btn-download-sub">Versión v2.4.33 oficial • Todo en 1 (Launcher + Activador) • Windows 10/11</span>
                   </div>
                 </button>
 
