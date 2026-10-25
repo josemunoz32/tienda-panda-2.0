@@ -83,8 +83,8 @@ const PACKS_PROVEDORES = [
     id: "provedores-todos",
     title: "Todos los Proveedores (Consolas & Streaming)",
     subtitle: "El pack definitivo: Incluye TODO el directorio mayorista de PlayStation (PS4/PS5), Nintendo Switch y Cuentas de Streaming.",
-    priceCLP: 15000,
-    priceUSD: 15,
+    priceCLP: 25000,
+    priceUSD: 25,
     tag: "PACK COMPLETO · TODO EN UNO",
     color: "#a259ff",
     grad: "linear-gradient(145deg, rgba(162, 89, 255, 0.18) 0%, rgba(20, 14, 45, 0.95) 100%)",
@@ -98,7 +98,7 @@ const PACKS_PROVEDORES = [
         "Streaming: Cuentas completas y cuentas a dominio directo al correo."
       ],
       ventajas: [
-        "Ahorro de más del 50% comprando los 3 directorios juntos.",
+        "Ahorro de $15.000 comprando los 3 directorios juntos (en lugar de $40.000 por separado).",
         "Proveedores con stock permanente y respuesta rápida.",
         "Garantías variadas según cada proveedor (semanales, anuales y de por vida)."
       ]
@@ -108,8 +108,8 @@ const PACKS_PROVEDORES = [
     id: "provedores-playstation",
     title: "PlayStation (PS4 & PS5)",
     subtitle: "Contactos directos de proveedores mayoristas de juegos y membresías digitales para consolas PS4 y PS5.",
-    priceCLP: 10000,
-    priceUSD: 10,
+    priceCLP: 15000,
+    priceUSD: 15,
     tag: "SOLO PLAYSTATION",
     color: "#3b82f6",
     grad: "linear-gradient(145deg, rgba(59, 130, 246, 0.18) 0%, rgba(14, 20, 45, 0.95) 100%)",
@@ -132,8 +132,8 @@ const PACKS_PROVEDORES = [
     id: "provedores-nintendo",
     title: "Nintendo Switch (Cuentas Primarias)",
     subtitle: "Proveedores mayoristas de juegos digitales para Nintendo Switch con cuentas 100% primarias.",
-    priceCLP: 10000,
-    priceUSD: 10,
+    priceCLP: 15000,
+    priceUSD: 15,
     tag: "SOLO NINTENDO",
     color: "#ef4444",
     grad: "linear-gradient(145deg, rgba(239, 68, 68, 0.18) 0%, rgba(45, 14, 20, 0.95) 100%)",
@@ -156,8 +156,8 @@ const PACKS_PROVEDORES = [
     id: "provedores-streaming",
     title: "Plataformas de Streaming",
     subtitle: "Proveedores oficiales de cuentas y perfiles para Netflix, Disney+, Max, Spotify, Prime Video, YouTube Premium y más.",
-    priceCLP: 5000,
-    priceUSD: 5,
+    priceCLP: 10000,
+    priceUSD: 10,
     tag: "SOLO STREAMING",
     color: "#00f5d4",
     grad: "linear-gradient(145deg, rgba(0, 245, 212, 0.18) 0%, rgba(10, 35, 40, 0.95) 100%)",
@@ -185,27 +185,6 @@ const PROVIDER_DIRECTORY_PACKS = [
   "provedores-todos",
   "provedores-streaming"
 ].map((id) => PACKS_PROVEDORES.find((pack) => pack.id === id)).filter(Boolean);
-
-const SERVICIOS_COTIZACION = [
-  {
-    title: "Checker Bots Automáticos",
-    desc: "Bots a medida para verificar cuentas, validar licencias y monitorear stock 24/7.",
-    icon: "smart_toy",
-    color: "#22c55e",
-  },
-  {
-    title: "Tiendas Web Llave en Mano",
-    desc: "Sitio web completo como PandaStore: catálogo, carrito de compras, pagos y panel admin.",
-    icon: "storefront",
-    color: "#38bdf8",
-  },
-  {
-    title: "Scripts y Código a Medida",
-    desc: "Automatizaciones personalizadas, bots de Telegram/Discord y sistemas web a pedido.",
-    icon: "code",
-    color: "#f59e0b",
-  },
-];
 
 export default function ProvedoresPage() {
   const navigate = useNavigate();
@@ -261,12 +240,6 @@ export default function ProvedoresPage() {
       desc: pack.subtitle,
     };
     navigate("/comprar-ahora", { state: { producto: productoBuy } });
-  };
-
-  // Cotización de Webs y Bots por WhatsApp
-  const handleCotizarServiceByWsp = (serviceTitle) => {
-    const msg = `Hola! Quisiera solicitar presupuesto y cotización personalizada para el servicio de: "${serviceTitle}" 👋`;
-    window.open(`https://wa.me/56974751810?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
   return (
@@ -358,32 +331,38 @@ export default function ProvedoresPage() {
         </div>
       </section>
 
-      {/* ── SERVICIOS A MEDIDA (WHATSAPP & COTIZACIÓN) ── */}
+      {/* ── SECCIÓN DESARROLLO DE WEBS & E-COMMERCE ── */}
       <section className="prov-custom-section">
         <div className="custom-section-header">
-          <span className="prov-clean-badge">DESARROLLO & HERRAMIENTAS</span>
-          <h2>Webs, Checker Bots & Código a Medida</h2>
-          <p>¿Buscas bots automáticos o tu propia tienda web? Estos servicios se cotizan de forma personalizada según lo que requieras.</p>
+          <span className="prov-clean-badge">DESARROLLO DE WEBS & E-COMMERCE</span>
+          <h2>Desarrollo de Webs y Tiendas Online</h2>
+          <p>
+            ¿Buscas una Landing Page de alto impacto o tu propia tienda virtual con pagos WebPay Plus?
+            Conoce nuestros proyectos profesionales de desarrollo web y comercio electrónico en Chile.
+          </p>
         </div>
 
-        <div className="custom-services-grid">
-          {SERVICIOS_COTIZACION.map((s) => (
-            <div key={s.title} className="custom-service-card">
-              <div className="service-card-header">
-                <span className="material-icons" style={{ color: s.color, fontSize: 28 }}>{s.icon}</span>
-                <span className="service-badge" style={{ color: s.color, borderColor: `${s.color}33` }}>COTIZACIÓN</span>
-              </div>
-              <h3 className="service-title">{s.title}</h3>
-              <p className="service-desc">{s.desc}</p>
-              <button
-                className="btn-service-quote"
-                onClick={() => handleCotizarServiceByWsp(s.title)}
-              >
-                <img src={wspLogo} alt="WhatsApp" className="btn-wsp-img" />
-                <span>Cotizar por WhatsApp</span>
-              </button>
+        <div className="prov-dev-banner-card">
+          <div className="prov-dev-banner-left">
+            <div className="prov-dev-icon-badge">
+              <span className="material-icons">laptop_mac</span>
             </div>
-          ))}
+            <div>
+              <h3>Landing Pages One Page & Tiendas Online E-Commerce</h3>
+              <p>
+                Diseño moderno optimizado para celulares, venta directa por WhatsApp, catálogo autoadministrable
+                y pasarelas de pago automáticas sin comisiones sorpresa.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="btn-prov-dev-redirect"
+            onClick={() => navigate("/desarrollo-web")}
+          >
+            <span>Ingresa aquí para ver proyectos de landing y e-commerce</span>
+            <span className="material-icons">arrow_forward</span>
+          </button>
         </div>
       </section>
 

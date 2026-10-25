@@ -465,9 +465,19 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
+.video-player-box {
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.video-player-box:hover {
+  transform: translateY(-2px);
+  border-color: #a259ff !important;
+  box-shadow: 0 12px 32px rgba(162, 89, 255, 0.35) !important;
+}
+
 .tutorial-video-player {
   width: 100%;
-  max-height: 320px;
+  height: 100%;
   display: block;
   object-fit: contain;
   outline: none;
@@ -476,176 +486,7 @@
 /* SECTION 3: MAGIC BENTO SECTION */
 .magic-bento-section-wrapper {
   text-align: left;
-  margin-bottom: 36px;
-}
-
-/* Bottom CTA Button Pill */
-.bottom-cta-container {
   margin-top: 10px;
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: center;
+  margin-bottom: 24px;
 }
 
-.btn-bottom-games-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  background: linear-gradient(90deg, #5b1fd1 0%, #3e0fa8 100%);
-  color: #ffffff;
-  border: 1.5px solid rgba(162, 89, 255, 0.4);
-  padding: 14px 32px;
-  border-radius: 30px;
-  font-size: 15px;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 8px 25px rgba(91, 31, 209, 0.4);
-  transition: all 0.25s ease;
-}
-
-.btn-bottom-games-cta:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 12px 35px rgba(91, 31, 209, 0.6);
-  background: linear-gradient(90deg, #6c2cf5 0%, #4f1ad6 100%);
-}
-
-/* Download Progress Controls */
-.download-progress-container {
-  width: 100%;
-  max-width: 520px;
-  background: rgba(18, 12, 38, 0.95);
-  border: 1.5px solid rgba(162, 89, 255, 0.4);
-  border-radius: 16px;
-  padding: 18px 24px;
-  box-shadow: 0 10px 30px rgba(162, 89, 255, 0.25);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.download-progress-status {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: #b366ff;
-  font-size: 14.5px;
-  font-weight: 700;
-}
-
-.download-progress-bar-track {
-  width: 100%;
-  height: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  overflow: hidden;
-  position: relative;
-}
-
-.download-progress-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #6c2cf5 0%, #b366ff 100%);
-  border-radius: 10px;
-  transition: width 0.2s ease-out;
-}
-
-/* Catalog Games Section */
-.catalog-games-section {
-  margin-top: 20px;
-  background: rgba(14, 9, 28, 0.9);
-  border: 1.5px solid rgba(162, 89, 255, 0.3);
-  border-radius: 24px;
-  padding: 24px;
-  text-align: left;
-}
-
-.catalog-header {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-bottom: 20px;
-}
-
-.catalog-title {
-  font-size: 20px;
-  font-weight: 800;
-  color: #ffffff;
-  margin: 0 0 4px 0;
-}
-
-.catalog-sub {
-  font-size: 13px;
-  color: rgba(201, 197, 232, 0.7);
-  margin: 0;
-}
-
-.catalog-search-input {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 12px 16px;
-  background: #090714;
-  border: 1.5px solid #a259ff;
-  border-radius: 12px;
-  color: #ffffff;
-  font-size: 14px;
-  outline: none;
-}
-
-.catalog-count-badge {
-  display: inline-block;
-  background: rgba(162, 89, 255, 0.15);
-  color: #b366ff;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 12px;
-  border-radius: 20px;
-  margin-bottom: 16px;
-  border: 1px solid rgba(162, 89, 255, 0.3);
-}
-
-.catalog-games-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 12px;
-  max-height: 480px;
-  overflow-y: auto;
-}
-
-.catalog-game-card {
-  background: rgba(24, 18, 48, 0.8);
-  border: 1px solid rgba(162, 89, 255, 0.15);
-  border-radius: 12px;
-  padding: 12px 14px;
-  transition: all 0.2s ease;
-}
-
-.catalog-game-card:hover {
-  border-color: #a259ff;
-  transform: translateY(-2px);
-}
-
-.game-title {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0;
-}
-/* Guía única de biblioteca y DLC: acompaña la descarga sin crear otra página. */
-.launcher-entitlements-guide {
-  margin: 24px auto 8px;
-  max-width: 980px;
-  padding: 22px;
-  border: 1px solid rgba(56, 189, 248, 0.32);
-  border-radius: 18px;
-  background: linear-gradient(135deg, rgba(14, 38, 72, 0.72), rgba(31, 16, 67, 0.76));
-}
-.launcher-entitlements-guide h2 { margin: 6px 0 8px; color: #fff; font-size: clamp(1.12rem, 3.8vw, 1.55rem); }
-.launcher-entitlements-guide p { margin: 0; color: #d8e6f5; line-height: 1.55; }
-.launcher-guide-eyebrow { color: #38bdf8; font-size: .72rem; font-weight: 800; letter-spacing: .12em; }
-.launcher-guide-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
-.launcher-guide-steps > div { min-width: 0; padding: 13px; border-radius: 12px; background: rgba(6, 12, 30, .42); border: 1px solid rgba(255,255,255,.1); }
-.launcher-guide-steps strong, .launcher-guide-steps span { display: block; }
-.launcher-guide-steps strong { color: #67e8f9; font-size: .86rem; margin-bottom: 5px; }
-.launcher-guide-steps span { color: #cbd5e1; font-size: .78rem; line-height: 1.4; }
-@media (max-width: 720px) { .launcher-entitlements-guide { padding: 16px; } .launcher-guide-steps { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 420px) { .launcher-guide-steps { grid-template-columns: 1fr; } }
