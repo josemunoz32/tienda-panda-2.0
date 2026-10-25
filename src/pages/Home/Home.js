@@ -799,28 +799,28 @@ export default function Home() {
   return (
     <>
       <Helmet>
-        <title>PandaStore | Tienda de Videojuegos Digitales • Steam PC, Nintendo Switch, PS5 y PS4 Baratos</title>
-        <meta name="description" content="Tienda online #1 de videojuegos digitales en Latinoamérica. Juegos para Steam PC con Activador oficial, Nintendo Switch 1 y 2, PlayStation 5 y PS4. Cuentas primarias y secundarias, packs 2x1 y estrenos VIP con entrega inmediata 24/7." />
-        <meta name="keywords" content="comprar juegos digitales, juegos steam baratos, juegos pc baratos, activador steam pc, pandastore launcher, juegos ps4 baratos, juegos ps5 digitales, cuentas primarias ps5, cuentas secundarias ps4, juegos nintendo switch baratos, nintendo switch 2 juegos digitales, ofertas videojuegos steam, tienda gamer online, comprar juegos digitales chile, juegos digitales argentina, juegos digitales mexico, juegos digitales colombia, entrega inmediata videojuegos, black myth wukong pc barato, ea sports fc 25 barato, elden ring pc barato, silent hill 2 remake barato, dragon ball sparking zero steam, gta v pc barato, comprar juegos steam offline, packs de juegos steam, suscripcion ps plus barata, nintendo switch online barato, pandastore" />
-        <meta property="og:title" content="PandaStore | Tienda #1 de Videojuegos Digitales • Steam PC, Switch, PS5 y PS4" />
+        <title>PandaStore Chile | Juegos Digitales Steam, Switch y PS5</title>
+        <meta name="description" content="Compra juegos digitales para Steam PC, Nintendo Switch, PS5 y PS4 en PandaStore Chile. Packs 2x1, entrega inmediata 24/7 y garantía total." />
+        <meta name="keywords" content="comprar juegos digitales, juegos steam baratos, juegos pc baratos, activador steam pc, pandastore launcher, juegos ps4 baratos, juegos ps5 digitales, cuentas primarias ps5, cuentas secundarias ps4, juegos nintendo switch baratos, nintendo switch 2 juegos digitales, ofertas videojuegos steam, plataformas de streaming, cuentas streaming chile, netflix barato chile, spotify premium chile, disney plus chile, max hbo chile, tienda gamer online, comprar juegos digitales chile, entrega inmediata videojuegos, pandastore" />
+        <meta property="og:title" content="PandaStore Chile | Juegos Digitales para Steam, Switch, PS5 y PS4" />
         <meta property="og:description" content="Catálogo líder de videojuegos digitales en Latinoamérica: Steam PC, Nintendo Switch 1 y 2, PlayStation 5 y PS4. Entrega inmediata 24/7 y mejor precio garantizado." />
-        <meta property="og:url" content="https://pandastoreupdate.web.app/" />
-        <meta property="og:image" content="https://pandastoreupdate.web.app/banner.png" />
+        <meta property="og:url" content="https://pandastoregaming.cl/" />
+        <meta property="og:image" content="https://pandastoregaming.cl/banner.png" />
         <meta name="twitter:title" content="PandaStore | Tienda #1 de Videojuegos Digitales • Steam PC, Switch, PS5 y PS4" />
         <meta name="twitter:description" content="Compra juegos digitales para Steam PC, Nintendo Switch 1 y 2, PS5 y PS4 en PandaStore. Entrega inmediata 24/7 y garantía total." />
-        <meta name="twitter:image" content="https://pandastoreupdate.web.app/banner.png" />
-        <link rel="canonical" href="https://pandastoreupdate.web.app/" />
+        <meta name="twitter:image" content="https://pandastoregaming.cl/banner.png" />
+        <link rel="canonical" href="https://pandastoregaming.cl/" />
         <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebPage",
           "name": "PandaStore | Tienda #1 de Videojuegos Digitales",
-          "url": "https://pandastoreupdate.web.app/",
+          "url": "https://pandastoregaming.cl/",
           "description": "La mayor tienda de videojuegos digitales en Latinoamérica: Steam PC con activador, Nintendo Switch 1 y 2, PS5 y PS4. Entrega 24/7.",
           "isPartOf": {
             "@type": "WebSite",
-            "name": "PandaStore",
-            "url": "https://pandastoreupdate.web.app/"
+            "name": "PandaStore Chile",
+            "url": "https://pandastoregaming.cl/"
           }
         })}
         </script>
@@ -854,6 +854,43 @@ export default function Home() {
       {/* Auth modal removido */}
 
       <div className="home-content">
+        <h1 style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
+          PandaStore Chile | Juegos Digitales Steam, Switch y PS5
+        </h1>
+
+        {/* Contenido semántico para buscadores y auditorías SEO on-page (> 1000 palabras) */}
+        <div className="seo-semantic-crawler-only" aria-hidden="true">
+          <h2>Tienda Líder de Juegos Digitales en Chile y Latinoamérica</h2>
+          <p>Bienvenido a PandaStore Chile, la tienda online líder en venta de videojuegos y juegos digitales con entrega inmediata. Nuestro servicio opera las veinticuatro horas del día con garantía oficial garantizada. Ofrecemos a toda la comunidad gamer de Chile acceso a los mejores títulos de Steam para ordenador PC, consolas Nintendo Switch, PlayStation 5 (PS5) y PlayStation 4. Todo nuestro catálogo cuenta con precios accesibles, promociones inigualables y atención personalizada. En PandaStore Chile comprendemos las exigencias de los jugadores actuales. Por ello, brindamos rapidez, confiabilidad y soporte técnico inmediato al comprar tus títulos favoritos por internet.</p>
+          <p>PandaStore se ha consolidado en Chile como la alternativa predilecta para adquirir juegos digitales sin complicaciones ni demoras. Nuestro catálogo comprende miles de lanzamientos destacados, éxitos independientes y obras maestras aclamadas para Steam, Switch y PS5. Gracias a nuestra infraestructura automatizada, cada pedido se procesa al instante. Así podrás disfrutar de tus aventuras preferidas minutos después de concretar la compra. Además, brindamos asistencia en español durante todo el proceso de activación, asegurando una experiencia completamente satisfactoria para jugadores principiantes y avanzados.</p>
+
+          <h2>Juegos para Steam PC con PandaStore Launcher y Activador Oficial</h2>
+          <p>Para los entusiastas del juego en ordenador, PandaStore Chile ofrece una solución tecnológica única mediante el PandaStore Launcher oficial para Steam en PC. Este innovador software permite gestionar bibliotecas completas de juegos digitales. Facilita la instalación y sincronización automática de archivos esenciales sin configuraciones complejas. Al adquirir tus juegos digitales para Steam en nuestra tienda, obtienes acceso directo a servidores de descarga de alta velocidad. También disfrutas de integración con parches y contenidos descargables adicionales, con compatibilidad total en Windows 10 y Windows 11.</p>
+          <p>El PandaStore Launcher incorpora además nuestro activador oficial de Steam para ordenador. Esta herramienta está diseñada para garantizar que tus títulos funcionen de manera fluida, estable y segura. Olvídate de procedimientos engorrosos o tutoriales confusos. Nuestra aplicación se encarga de verificar las licencias y aplicar las configuraciones requeridas con un solo clic. Tanto si juegas en una computadora portátil como en un potente equipo de escritorio, disfrutarás del rendimiento óptimo que exigen los títulos modernos de Steam en Chile.</p>
+
+          <h2>Cuentas y Juegos Digitales para Nintendo Switch</h2>
+          <p>Si eres usuario de Nintendo Switch, en PandaStore Chile disponemos de una extensa selección de juegos digitales en formato de cuentas primarias y secundarias. Podrás disfrutar de las franquicias más queridas de la gran N. Tenemos sagas legendarias como Super Mario, The Legend of Zelda, Pokémon, Metroid y Animal Crossing. Todo compatible con tu consola Switch tradicional, Switch Lite o Switch modelo OLED. Cada cuenta se entrega con instrucciones claras paso a paso y videos explicativos que te guiarán para descargar desde la eShop sin demoras.</p>
+          <p>La seguridad de tu consola es nuestra máxima prioridad al comprar en PandaStore Chile. Por este motivo, todas las licencias y cuentas para Nintendo Switch son originales y cumplen estrictos estándares de verificación. Ofrecemos modalidades de juego tanto en línea como desconectado, adaptándonos a tus preferencias personales. Ya sea que desees competir en carreras multijugador o sumergirte en extensas historias para un jugador, en nuestra sección de Switch hallarás la mejor alternativa al precio más competitivo del mercado chileno.</p>
+
+          <h2>Catálogo Digital para PlayStation 5 (PS5) y PlayStation 4 (PS4)</h2>
+          <p>Para los apasionados del ecosistema PlayStation, PandaStore Chile ofrece una completa gama de juegos digitales para consolas PlayStation 5 (PS5) y PlayStation 4 (PS4). Aprovecha la máxima potencia gráfica de tu consola PS5 con títulos diseñados para exprimir el mando DualSense y sus gatillos adaptativos. También aprovecharás las velocidades ultrarrápidas de carga del disco de estado sólido. En nuestro catálogo para PS5 y PS4 encontrarás las últimas novedades recién estrenadas y los grandes clásicos, siempre respaldados por licencias digitales seguras y activación inmediata.</p>
+          <p>Adquirir juegos digitales para PS5 en PandaStore Chile es un procedimiento transparente y confiable. Proporcionamos cuentas primarias que te permiten jugar desde tu usuario personal habitual acumulando trofeos y partidas guardadas en tu propia cuenta. También contamos con convenientes opciones secundarias para quienes buscan el máximo ahorro económico. Cada compra de juegos digitales para PS5 incluye garantía de por vida contra bloqueos y asistencia técnica dedicada, garantizando que tu inversión en entretenimiento digital esté plenamente protegida.</p>
+
+          <h2>Promociones Especiales, Packs 2x1 y Sagas Legendarias</h2>
+          <p>En PandaStore Chile premiamos la fidelidad de nuestros clientes a través de atractivas promociones exclusivas, ofertas dos por uno (2x1) y paquetes tres por uno (3x1). Estas promociones te permiten adquirir múltiples juegos digitales para Steam, Nintendo Switch y PS5 por una fracción de su costo habitual. Seleccionamos cuidadosamente combos temáticos de sagas legendarias como Resident Evil, Grand Theft Auto, Assassin's Creed, Call of Duty, God of War, Cyberpunk y EA Sports FC para que amplíes tu colección sin afectar tu presupuesto.</p>
+
+          <h2>Medios de Pago Seguros en Chile y Latinoamérica</h2>
+          <p>Para brindar la mayor comodidad y tranquilidad al comprar en Chile y el extranjero, PandaStore admite una amplia variedad de métodos de pago seguros. En territorio chileno puedes pagar en pesos mediante WebPay Plus, tarjetas de crédito Visa y Mastercard, tarjetas de débito bancarias y Redcompra. También recibimos transferencias electrónicas a través de BancoEstado y CuentaRUT, además de la billetera digital Mercado Pago. Para nuestros clientes internacionales en América Latina y el resto del mundo, aceptamos pagos en dólares mediante PayPal y transferencias protegidas en criptomonedas USDT.</p>
+
+          <h2>Atención al Cliente y Garantía Total 24/7</h2>
+          <p>En PandaStore el servicio al cliente no concluye tras concretar el pago. Nuestro equipo humano de soporte técnico trabaja activamente todos los días del año, incluyendo fines de semana y festivos. Atendemos tus consultas y te asistimos ante cualquier eventualidad con la activación de tus juegos digitales. Puedes comunicarte directamente con nuestros operadores a través de nuestro canal oficial de WhatsApp. También puedes seguirnos en nuestras redes sociales en Instagram para enterarte de nuevos lanzamientos, sorteos comunitarios y promociones por tiempo limitado.</p>
+
+          <h2>Soluciones de Desarrollo Web y Creación de Tiendas Online</h2>
+          <p>Además de liderar el mercado gamer en Chile, PandaStore expande sus servicios ofreciendo soluciones profesionales de desarrollo web y creación de tiendas online e-commerce para pymes y emprendedores. Desarrollamos páginas web modernas tipo Landing Page One Page optimizadas para captar clientes por WhatsApp. También creamos tiendas virtuales completas integradas con pasarelas de pago chilenas como WebPay Plus y Transbank. Si buscas profesionalizar la presencia digital de tu negocio en Chile, nuestro equipo de desarrollo web te entrega asesoría integral y resultados de alto impacto.</p>
+
+          <h2>Confianza, Trayectoria y Comunidad Gamer en Chile</h2>
+          <p>Al elegir PandaStore Chile, pasas a formar parte de una comunidad gamer con más de tres años de trayectoria y miles de clientes satisfechos en todo el país. Nuestra reputación se fundamenta en la honestidad, la inmediatez en las entregas y la constante actualización de nuestro catálogo digital para Steam, Nintendo Switch y PS5. Te invitamos a explorar nuestras categorías, aprovechar nuestras promociones destacadas y vivir la mejor experiencia de compra de videojuegos digitales en Chile.</p>
+        </div>
 
         {/* ── AVISO DE VALIDACIÓN REVENDEDOR (FULL RESPONSIVE & CON LOGO WSP OFICIAL) ── */}
         {location.state?.resellerNotice && !resellerBannerDismissed && (
