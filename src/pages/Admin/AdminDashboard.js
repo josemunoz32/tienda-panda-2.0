@@ -2,9 +2,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { collection, getDocs, onSnapshot, orderBy, query } from "firebase/firestore";
 import { onValue, ref } from "firebase/database";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { db, database } from "../../firebase";
+import { auth, db, database } from "../../firebase";
 import "./AdminDashboard.css";
 import { useMoneda } from "../../context/MonedaContext";
+import { slugify } from "../../utils/slugify";
+import steamImportData from "../../assets/steam_import_data.json";
 
 const PERIODS = [["hoy", "Hoy"], ["semana", "7 días"], ["mes", "30 días"], ["3meses", "3 meses"], ["todo", "Todo"]];
 const PAID = new Set(["exitoso", "completado", "aprobado", "pagado", "paid", "completed", "approved"]);
@@ -39,6 +41,125 @@ const numberValue = (value) => {
 const money = (amount, currency = "CLP") => new Intl.NumberFormat(currency === "USD" ? "en-US" : "es-CL", { style: "currency", currency, maximumFractionDigits: currency === "CLP" ? 0 : 2 }).format(numberValue(amount));
 const displayName = (item) => item?.name || item?.nombre || item?.title || item?.productName || "Producto sin nombre";
 const eventDate = (event) => dateOf(event.timestamp || event.createdAt);
+
+const formatSlug = (slug) => {
+  if (!slug) return "";
+  return slug
+    .replace(/^ryuu_/, "")
+    .replace(/--[a-zA-Z0-9_-]+$/, "")
+    .replace(/[-_]+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
+const resolveCategoryName = (catSlug) => {
+  if (!catSlug) return "General";
+  const clean = String(catSlug).toLowerCase().trim();
+  const known = {
+    "juegos-steam": "Juegos Steam",
+    "steam": "Juegos Steam",
+    "nintendo-switch": "Nintendo Switch",
+    "switch": "Nintendo Switch",
+    "playstation": "PlayStation",
+    "playstation-4": "PlayStation 4",
+    "playstation-5": "PlayStation 5",
+    "ps4": "PlayStation 4",
+    "ps5": "PlayStation 5",
+    "streaming": "Streaming",
+    "cuentas-streaming": "Cuentas Streaming",
+    "suscripciones": "Suscripciones",
+    "packs-nintendo": "Packs Nintendo",
+    "promos": "Promociones",
+    "ofertas": "Ofertas",
+    "emprendedores": "Emprendedores",
+    "consolas": "Consolas",
+  };
+  if (known[clean]) return known[clean];
+  return formatSlug(clean);
+};
+
+const getProductTitleFromPage = (page, products = []) => {
+  if (!page || !page.startsWith("/producto/")) return null;
+  const rawParam = decodeURIComponent(page.replace("/producto/", "").replace(/\?.*/, "")).trim();
+  if (!rawParam) return null;
+
+  const idFromParam = rawParam.includes("--") ? rawParam.split("--").pop() : rawParam;
+  const slugPart = rawParam.includes("--") ? rawParam.split("--")[0] : rawParam;
+
+  // 1. Buscar en productos de la tienda (Firestore)
+  if (Array.isArray(products) && products.length > 0) {
+    const found = products.find((p) => {
+      if (!p) return false;
+      if (p.id === idFromParam || p.id === rawParam) return true;
+      if (p.slug && (p.slug === rawParam || p.slug === slugPart)) return true;
+      const pName = (p.name || p.nombre || p.title || "").trim();
+      if (pName && (slugify(pName) === slugPart || slugify(pName) === rawParam)) return true;
+      return false;
+    });
+    if (found) return found.name || found.nombre || found.title;
+  }
+
+  // 2. Buscar en steamImportData
+  const numId = idFromParam.replace(/^ryuu_/, "");
+  if (numId && /^\d+$/.test(numId)) {
+    const sMatch = steamImportData.find((s) => String(s.app_id || s.id) === numId);
+    if (sMatch && sMatch.name) return sMatch.name;
+  }
+  const sByName = steamImportData.find((s) => s.name && slugify(s.name) === slugPart);
+  if (sByName && sByName.name) return sByName.name;
+
+  // 3. Fallback: formatear el slug amigablemente
+  return formatSlug(slugPart);
+};
+
+const pageLabel = (page, products = []) => {
+  const clean = String(page || "/").replace(/\?.*/, "");
+  const known = {
+    "/home": "Inicio",
+    "/productos": "Catálogo de Productos",
+    "/promos": "Promociones",
+    "/checkoutcarrito": "Carrito de Compras",
+    "/comprar-ahora": "Checkout / Pago",
+    "/iniciar-sesion": "Inicio de Sesión",
+    "/packs-nintendo": "Packs Nintendo Switch",
+    "/categorias": "Categorías",
+    "/descargar-launcher": "Descargar Launcher",
+    "/mis-pedidos": "Mis Pedidos",
+  };
+  if (known[clean]) return known[clean];
+
+  if (clean.startsWith("/producto/")) {
+    const title = getProductTitleFromPage(clean, products);
+    return title ? `Ficha: ${title}` : "Ficha de producto";
+  }
+
+  if (clean.startsWith("/categoria/")) {
+    const catSlug = decodeURIComponent(clean.replace("/categoria/", "")).trim();
+    const catName = resolveCategoryName(catSlug);
+    return `Categoría: ${catName}`;
+  }
+
+  return clean === "/" ? "Inicio" : clean;
+};
+
+const eventSummary = (event, products = []) => {
+  if (event.event === "page_view") return `Vio ${pageLabel(event.page, products)}`;
+  if (event.event === "view_item") return `Vio el juego: ${event.productName || "sin nombre"}`;
+  if (event.event === "add_to_cart") return `Agregó al carrito: ${event.productName || "producto"}`;
+  if (event.event === "remove_from_cart") return `Quitó del carrito: ${event.productName || "producto"}`;
+  if (event.event === "begin_checkout") return "Inició el checkout";
+  if (event.event === "purchase") return "Registró una compra";
+  if (event.event === "search") return `Buscó: ${event.searchTerm || event.query || "sin término"}`;
+  if (event.event === "click_whatsapp") return "Abrió WhatsApp";
+  if (event.event === "click_instagram") return "Abrió Instagram";
+  if (event.event === "login") return "Inició sesión";
+  if (event.event === "sign_up") return "Creó una cuenta";
+  return event.event || "Actividad registrada";
+};
+const eventTime = (event) => {
+  const date = eventDate(event);
+  return date ? date.toLocaleString("es-CL", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "Pendiente";
+};
 const orderCurrency = (order) => {
   const raw = String(order.moneda || order.currency || order.monedaLocal || "").trim().toUpperCase();
   if (raw.includes("USD") || raw.includes("US$") || raw.includes("DOLAR")) return "USD";
@@ -69,8 +190,9 @@ export default function AdminDashboard() {
   const { valorDolar } = useMoneda();
   const [store, setStore] = useState(null);
   const [events, setEvents] = useState([]);
-  const [online, setOnline] = useState({ total: 0, guests: 0, users: 0, checkedAt: null });
+  const [online, setOnline] = useState({ total: 0, guests: 0, users: 0, visitors: [], checkedAt: null });
   const [period, setPeriod] = useState("todo");
+  const [selectedVisitorKey, setSelectedVisitorKey] = useState("");
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
@@ -87,15 +209,36 @@ export default function AdminDashboard() {
   useEffect(() => onSnapshot(query(collection(db, "analyticsEvents"), orderBy("timestamp", "desc")), (snapshot) => setEvents(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))), () => setLoadError("No fue posible leer los eventos analíticos.")), []);
   useEffect(() => onValue(ref(database, "presence"), (snapshot) => {
     const cutoff = Date.now() - 90000;
-    const people = new Set();
-    const guests = new Set();
-    Object.entries(snapshot.val() || {}).forEach(([key, entry]) => {
-      const lastSeen = typeof entry?.lastSeen === "number" ? entry.lastSeen : 0;
-      if (!entry?.online || lastSeen < cutoff) return;
-      if (entry.uid && entry.uid !== "anon") people.add(entry.uid);
-      else guests.add(key);
+    const visitors = [];
+    Object.entries(snapshot.val() || {}).forEach(([identity, entry]) => {
+      // The current format stores one child per browser tab. Support the old
+      // flat format while stale clients finish upgrading.
+      const tabs = entry?.online ? [["legacy", entry]] : Object.entries(entry || {});
+      const activeTabs = tabs
+        .map(([tabId, value]) => ({ tabId, ...value }))
+        .filter((tab) => tab.online && typeof tab.lastSeen === "number" && tab.lastSeen >= cutoff)
+        .sort((a, b) => b.lastSeen - a.lastSeen);
+      if (!activeTabs.length) return;
+      const latest = activeTabs[0];
+      const signedIn = latest.uid && latest.uid !== "anon";
+      visitors.push({
+        id: identity,
+        kind: signedIn ? "Cuenta" : "Invitado",
+        isSelf: signedIn && latest.uid === auth.currentUser?.uid,
+        page: pageLabel(latest.page, store?.products),
+        path: latest.page || "/",
+        tabs: activeTabs.length,
+        lastSeen: latest.lastSeen,
+      });
     });
-    setOnline({ total: people.size + guests.size, guests: guests.size, users: people.size, checkedAt: new Date() });
+    visitors.sort((a, b) => b.lastSeen - a.lastSeen);
+    setOnline({
+      total: visitors.length,
+      guests: visitors.filter((visitor) => visitor.kind === "Invitado").length,
+      users: visitors.filter((visitor) => visitor.kind === "Cuenta").length,
+      visitors,
+      checkedAt: new Date(),
+    });
   }), []);
 
   const model = useMemo(() => {
@@ -153,42 +296,85 @@ export default function AdminDashboard() {
     const productViews = group((event) => event.event === "view_item", (event) => event.productId || event.productName, (event, fallback) => event.productName || fallback);
     const cartAdds = group((event) => event.event === "add_to_cart", (event) => event.productId || event.productName, (event, fallback) => event.productName || fallback);
     const searches = group((event) => event.event === "search", (event) => event.searchTerm || event.query, (_, fallback) => fallback);
-    const pages = group((event) => event.event === "page_view", (event) => String(event.page || "").replace(/\?.*/, ""), (_, fallback) => fallback);
+    const pages = group((event) => event.event === "page_view", (event) => pageLabel(event.page, store.products), (_, fallback) => fallback);
     const roles = store.users.reduce((result, user) => { const role = String(user.role || "cliente").trim().toLowerCase() || "cliente"; result.set(role, (result.get(role) || 0) + 1); return result; }, new Map());
     const stockSet = store.products.filter((product) => product.stock !== undefined && product.stock !== null);
     const stateCounts = orders.reduce((result, order) => { const state = isPaid(order) ? "confirmado" : String(order.estado || order.status || "sin estado").toLowerCase(); result.set(state, (result.get(state) || 0) + 1); return result; }, new Map());
-    const sessions = new Set();
-    const sessionIdentity = new Map();
+    const visitorOwners = new Map();
     const signedUsers = new Set();
-    pageViews.forEach((event) => {
-      if (!event.sessionId) return;
-      sessions.add(event.sessionId);
-      if (event.userId) { sessionIdentity.set(event.sessionId, event.userId); signedUsers.add(event.userId); }
-      else if (!sessionIdentity.has(event.sessionId)) sessionIdentity.set(event.sessionId, null);
+    periodEvents.forEach((event) => {
+      if (event.visitorId && event.userId) visitorOwners.set(event.visitorId, event.userId);
+      if (event.userId) signedUsers.add(event.userId);
     });
-    // If a session starts anonymously and then signs in, it is counted once as
-    // authenticated rather than being duplicated in both audience segments.
-    const guests = new Set([...sessionIdentity].filter(([, userId]) => !userId).map(([sessionId]) => sessionId));
+    const identityOf = (event) => {
+      if (event.visitorId) return visitorOwners.has(event.visitorId) ? `user:${visitorOwners.get(event.visitorId)}` : `guest:${event.visitorId}`;
+      if (event.userId) return `user:${event.userId}`;
+      return event.sessionId ? `legacy:${event.sessionId}` : null;
+    };
+    const visitors = new Set(pageViews.map(identityOf).filter(Boolean));
+    const guests = new Set([...visitors].filter((identity) => identity.startsWith("guest:") || identity.startsWith("legacy:")));
     const daily = new Map();
     pageViews.forEach((event) => {
       const date = eventDate(event); if (!date) return;
       const key = date.toLocaleDateString("en-CA");
-      const row = daily.get(key) || { key, label: date.toLocaleDateString("es-CL", { day: "2-digit", month: "short" }), views: 0, sessions: new Set(), identities: new Map() };
+      const row = daily.get(key) || { key, label: date.toLocaleDateString("es-CL", { day: "2-digit", month: "short" }), views: 0, visitors: new Set() };
       row.views += 1;
-      if (event.sessionId) row.sessions.add(event.sessionId);
-      if (event.sessionId && event.userId) row.identities.set(event.sessionId, event.userId);
-      else if (event.sessionId && !row.identities.has(event.sessionId)) row.identities.set(event.sessionId, null);
+      const identity = identityOf(event);
+      if (identity) row.visitors.add(identity);
       daily.set(key, row);
     });
-    const dailyRows = [...daily.values()].map((row) => ({ ...row, visitors: row.sessions.size, guests: [...row.identities.values()].filter((userId) => !userId).length, users: new Set([...row.identities.values()].filter(Boolean)).size })).sort((a, b) => b.key.localeCompare(a.key));
+    const dailyRows = [...daily.values()].map((row) => ({ ...row, visitors: row.visitors.size, guests: [...row.visitors].filter((identity) => identity.startsWith("guest:") || identity.startsWith("legacy:")).length, users: new Set([...row.visitors].filter((identity) => identity.startsWith("user:"))).size })).sort((a, b) => b.key.localeCompare(a.key));
     const busiestDay = [...dailyRows].sort((a, b) => b.visitors - a.visitors || b.views - a.views)[0] || null;
     const quietestDay = [...dailyRows].sort((a, b) => a.visitors - b.visitors || a.views - b.views)[0] || null;
-    return { orders, paidOrders, revenueCLP, revenueUSD, profit, profitOrders, monthly: [...monthly.values()].sort((a, b) => a.key.localeCompare(b.key)).slice(-12), sold: [...sold.values()].sort((a, b) => b.quantity - a.quantity).slice(0, 8), productViews, cartAdds, searches, pages, roles: [...roles.entries()].sort((a, b) => b[1] - a[1]), stockSet, noStock: stockSet.filter((product) => numberValue(product.stock) <= 0).length, stateCounts: [...stateCounts.entries()].sort((a, b) => b[1] - a[1]), visitors: sessions.size, guests: guests.size, signedUsers: signedUsers.size, pageViews: pageViews.length, purchases: periodEvents.filter((event) => event.event === "purchase").length, dailyRows, busiestDay, quietestDay };
+    const usersById = new Map(store.users.map((user) => [String(user.id || user.uid), user]));
+    const activityByVisitor = new Map();
+    periodEvents.forEach((event) => {
+      const key = identityOf(event);
+      if (!key) return;
+      const row = activityByVisitor.get(key) || { key, events: [], pages: new Map(), products: new Map(), lastDate: null };
+      row.events.push(event);
+      const date = eventDate(event);
+      if (date && (!row.lastDate || date > row.lastDate)) row.lastDate = date;
+      if (event.event === "page_view") {
+        const page = pageLabel(event.page, store.products);
+        row.pages.set(page, (row.pages.get(page) || 0) + 1);
+        if (event.page && event.page.startsWith("/producto/")) {
+          const prodTitle = getProductTitleFromPage(event.page, store.products);
+          if (prodTitle) {
+            row.products.set(prodTitle, (row.products.get(prodTitle) || 0) + 1);
+          }
+        }
+      }
+      if (event.event === "view_item" && event.productName) row.products.set(event.productName, (row.products.get(event.productName) || 0) + 1);
+      activityByVisitor.set(key, row);
+    });
+    const visitorActivity = [...activityByVisitor.values()].map((row) => {
+      const isUser = row.key.startsWith("user:");
+      const rawId = row.key.slice(row.key.indexOf(":") + 1);
+      const user = isUser ? usersById.get(rawId) : null;
+      const label = isUser
+        ? (user?.displayName || user?.nombre || user?.name || user?.email || "Cliente con cuenta")
+        : `Invitado #${rawId.slice(-6).toUpperCase()}`;
+      const pagesSeen = [...row.pages.entries()].sort((a, b) => b[1] - a[1]);
+      const productsSeen = [...row.products.entries()].sort((a, b) => b[1] - a[1]);
+      return {
+        ...row,
+        kind: isUser ? "Cliente" : "Invitado",
+        label,
+        pageViews: row.events.filter((event) => event.event === "page_view").length,
+        pagesSeen,
+        productsSeen,
+        latestPage: pagesSeen[0]?.[0] || "Sin páginas registradas",
+        timeline: [...row.events].sort((a, b) => (eventDate(b)?.getTime() || 0) - (eventDate(a)?.getTime() || 0)).slice(0, 80),
+      };
+    }).sort((a, b) => (b.lastDate?.getTime() || 0) - (a.lastDate?.getTime() || 0));
+    return { orders, paidOrders, revenueCLP, revenueUSD, profit, profitOrders, monthly: [...monthly.values()].sort((a, b) => a.key.localeCompare(b.key)).slice(-12), sold: [...sold.values()].sort((a, b) => b.quantity - a.quantity).slice(0, 8), productViews, cartAdds, searches, pages, roles: [...roles.entries()].sort((a, b) => b[1] - a[1]), stockSet, noStock: stockSet.filter((product) => numberValue(product.stock) <= 0).length, stateCounts: [...stateCounts.entries()].sort((a, b) => b[1] - a[1]), visitors: visitors.size, guests: guests.size, signedUsers: signedUsers.size, pageViews: pageViews.length, purchases: periodEvents.filter((event) => event.event === "purchase").length, dailyRows, busiestDay, quietestDay, visitorActivity };
   }, [store, events, period]);
 
   if (!model) return <div className="adm-dash"><div className="adm-loading"><div className="adm-loading-spinner" /><div className="adm-loading-text">Cargando datos reales de la tienda…</div></div></div>;
   const label = PERIODS.find(([key]) => key === period)?.[1];
   const cardStyle = { background: "rgba(15,23,42,.72)", border: "1px solid rgba(148,163,184,.18)", borderRadius: 16, padding: 18 };
+  const selectedVisitor = model.visitorActivity.find((visitor) => visitor.key === selectedVisitorKey) || model.visitorActivity[0] || null;
   return <div className="adm-dash">
     <header className="adm-dash-header"><div><h1 className="adm-dash-title">Tablero <span>Analítico</span></h1><p className="adm-dash-subtitle">Datos registrados por PandaStore · período: {label}. Sin proyecciones ni cifras inventadas.</p></div><div className="adm-time-filter">{PERIODS.map(([key, name]) => <button key={key} className={`adm-time-btn${period === key ? " active" : ""}`} onClick={() => setPeriod(key)}>{name}</button>)}</div></header>
     {loadError && <div className="adm-event-empty" style={{ marginBottom: 16 }}>{loadError}</div>}
@@ -200,6 +386,12 @@ export default function AdminDashboard() {
       <Metric icon="$" label="Ingresos cobrados USD" value={money(model.revenueUSD, "USD")} detail="Sólo pedidos confirmados" color="#4ade80" />
       <Metric icon="↗" label="Margen verificable CLP" value={model.profitOrders ? money(model.profit) : "Sin costo registrado"} detail={`${model.profitOrders} pedido(s) con costo completo`} color="#fbbf24" />
       <Metric icon="💵" label="Dólar Web Fijado" value={`$${(valorDolar || 900).toLocaleString("es-CL")} CLP`} color="#10b981" />
+    </section>
+    <section className="adm-live-visitors-section">
+      <Panel title="Visitantes en línea ahora" source="Un visitante único por navegador o cuenta · actividad ≤ 90 s"><LiveVisitors visitors={online.visitors} /></Panel>
+    </section>
+    <section className="adm-visitor-analysis-section">
+      <Panel title="Recorrido de cada visitante" source={`Actividad individual del período: ${label} · selecciona una persona para ver todo su recorrido`}><VisitorJourney visitors={model.visitorActivity} selected={selectedVisitor} onSelect={setSelectedVisitorKey} products={store?.products} /></Panel>
     </section>
     <section style={{ ...cardStyle, marginBottom: 18 }}><div className="adm-card-head"><div><h2 className="adm-section-title" style={{ margin: 0 }}>Ingresos y margen mensual</h2><p className="adm-dash-subtitle">Sólo cobros confirmados. El margen se muestra únicamente cuando el costo real del producto está registrado.</p></div></div>{model.monthly.length ? <ResponsiveContainer width="100%" height={270}><AreaChart data={model.monthly} margin={{ top: 15, right: 15, left: 0, bottom: 0 }}><defs><linearGradient id="revenue" x1="0" x2="0" y1="0" y2="1"><stop offset="5%" stopColor="#38bdf8" stopOpacity=".42"/><stop offset="95%" stopColor="#38bdf8" stopOpacity="0"/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.08)" vertical={false}/><XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 11 }}/><YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} width={72}/><Tooltip contentStyle={{ background: "#141126", border: "1px solid #4c3d70", borderRadius: 10 }} formatter={(value, name) => [money(value), name]}/><Area type="monotone" dataKey="ingresosCLP" name="Cobrado CLP" stroke="#38bdf8" fill="url(#revenue)" strokeWidth={2.5}/><Area type="monotone" dataKey="ganancia" name="Margen verificable CLP" stroke="#4ade80" fill="none" strokeWidth={2.2}/></AreaChart></ResponsiveContainer> : <Empty>No hay pedidos confirmados con fecha disponible para graficar.</Empty>}<div className="adm-event-empty" style={{ marginTop: 8 }}>Cobros en USD del período: {money(model.revenueUSD, "USD")}. No se convierten ni mezclan monedas para evitar una ganancia ficticia.</div></section>
     <section className="adm-tables-grid" style={{ marginBottom: 18 }}>
@@ -225,3 +417,5 @@ export default function AdminDashboard() {
 function Metric({ icon, label, value, detail, color }) { return <div className="adm-kpi-card" style={{ "--kpi-color": color }}><div className="adm-kpi-top"><div className="adm-kpi-icon" style={{ color, background: `${color}1f` }}>{icon}</div></div><div className="adm-kpi-value">{value}</div><div className="adm-kpi-label">{label}</div>{detail && <small className="adm-kpi-detail">{detail}</small>}</div>; }
 function Panel({ title, source, children }) { return <div className="adm-table-card"><div className="adm-table-header"><div><h3 className="adm-table-title">{title}</h3><small style={{ color: "#94a3b8" }}>{source}</small></div></div>{children}</div>; }
 function DailyTraffic({ rows }) { return rows.length ? <div className="adm-daily-traffic"><div className="adm-daily-head"><span>Día</span><span>Visitas</span><span>Inv.</span><span>Usuario</span></div>{rows.slice(0, 14).map((row) => <div className="adm-daily-row" key={row.key}><span>{row.label}</span><b>{row.visitors}</b><span>{row.guests}</span><span>{row.users}</span></div>)}</div> : <Empty>No hay visitas registradas para este período.</Empty>; }
+function LiveVisitors({ visitors }) { return visitors.length ? <div className="adm-live-visitors">{visitors.map((visitor) => <div className="adm-live-visitor" key={visitor.id}><span className={`adm-live-kind ${visitor.kind === "Cuenta" ? "is-user" : "is-guest"}`}>{visitor.isSelf ? "Tu cuenta" : visitor.kind}</span><span className="adm-live-page" title={visitor.path}>Viendo: <b>{visitor.page}</b></span><span className="adm-live-tabs">{visitor.tabs > 1 ? `${visitor.tabs} pestañas` : "1 pestaña"}</span></div>)}</div> : <Empty>No hay visitantes activos en los últimos 90 segundos.</Empty>; }
+function VisitorJourney({ visitors, selected, onSelect, products = [] }) { return visitors.length ? <div className="adm-journey"><div className="adm-journey-list">{visitors.map((visitor) => <button type="button" className={`adm-journey-person${selected?.key === visitor.key ? " active" : ""}`} key={visitor.key} onClick={() => onSelect(visitor.key)}><span className={`adm-live-kind ${visitor.kind === "Cliente" ? "is-user" : "is-guest"}`}>{visitor.kind}</span><span className="adm-journey-name">{visitor.label}</span><small>{visitor.pageViews} páginas · {visitor.productsSeen.length} juegos</small></button>)}</div>{selected && <div className="adm-journey-detail"><div className="adm-journey-summary"><div><span className={`adm-live-kind ${selected.kind === "Cliente" ? "is-user" : "is-guest"}`}>{selected.kind}</span><h4>{selected.label}</h4><p>Última actividad: {selected.lastDate ? selected.lastDate.toLocaleString("es-CL") : "sin fecha"}</p></div><div className="adm-journey-stats"><b>{selected.pageViews}</b><span>páginas vistas</span><b>{selected.events.length}</b><span>acciones</span></div></div><div className="adm-journey-interest"><b>Vio:</b> {selected.pagesSeen.slice(0, 5).map(([page, count]) => <span key={page}>{page} · {count}</span>) || "Sin páginas"}</div>{selected.productsSeen.length > 0 && <div className="adm-journey-interest"><b>Juegos revisados:</b> {selected.productsSeen.slice(0, 5).map(([product, count]) => <span key={product}>{product} · {count}</span>)}</div>}<div className="adm-journey-timeline">{selected.timeline.map((event) => <div className="adm-journey-event" key={event.id}><time>{eventTime(event)}</time><span>{eventSummary(event, products)}</span></div>)}</div></div>}</div> : <Empty>Aún no hay actividad individual para este período.</Empty>; }

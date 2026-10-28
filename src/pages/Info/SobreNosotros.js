@@ -27,20 +27,20 @@ function SobreNosotros() {
     };
     setMeta('name', 'description', 'Conoce PandaStore, la tienda #1 de videojuegos digitales en Latinoamérica fundada en 2022. Entrega inmediata 24/7, Steam PC con Activador oficial, Nintendo Switch 1 y 2, PlayStation 5, PS4 y packs con garantía total.');
     setMeta('property', 'og:title', 'Sobre Nosotros | PandaStore - Tienda de Videojuegos Digitales');
-    setMeta('property', 'og:url', 'https://pandastoreupdate.web.app/sobre-nosotros');
+    setMeta('property', 'og:url', 'https://pandastoregaming.cl/sobre-nosotros');
     let canonical = document.querySelector('link[rel="canonical"]');
-    if (canonical) canonical.setAttribute('href', 'https://pandastoreupdate.web.app/sobre-nosotros');
+    if (canonical) canonical.setAttribute('href', 'https://pandastoregaming.cl/sobre-nosotros');
     const schema = {
       "@context": "https://schema.org",
       "@type": "AboutPage",
       "name": "Sobre PandaStore",
       "description": "PandaStore: Tienda #1 de videojuegos digitales en Latinoamérica. Fundada en 2022. Steam PC con Activador, PS5, PS4, Nintendo Switch 1 y 2 y suscripciones.",
-      "url": "https://pandastoreupdate.web.app/sobre-nosotros",
+      "url": "https://pandastoregaming.cl/sobre-nosotros",
       "breadcrumb": {
         "@type": "BreadcrumbList",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://pandastoreupdate.web.app/home" },
-          { "@type": "ListItem", "position": 2, "name": "Sobre Nosotros", "item": "https://pandastoreupdate.web.app/sobre-nosotros" }
+          { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://pandastoregaming.cl/home" },
+          { "@type": "ListItem", "position": 2, "name": "Sobre Nosotros", "item": "https://pandastoregaming.cl/sobre-nosotros" }
         ]
       }
     };
@@ -52,7 +52,7 @@ function SobreNosotros() {
       const s = document.querySelector('script#about-jsonld');
       if (s) s.remove();
       let canonical2 = document.querySelector('link[rel="canonical"]');
-      if (canonical2) canonical2.setAttribute('href', 'https://pandastoreupdate.web.app/');
+      if (canonical2) canonical2.setAttribute('href', 'https://pandastoregaming.cl/');
     };
   }, []);
 

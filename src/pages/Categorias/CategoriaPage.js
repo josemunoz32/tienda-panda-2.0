@@ -55,7 +55,7 @@ import packLauncherImg from '../../assets/promos/pack_steam_launcher_220.jpg';
 
 import switchPromo2xBasica from '../../assets/promos/2 x 25.000 basica.png';
 import switchPromo3xBasica from '../../assets/promos/3x1 $35.000 basica.png';
-import switchPromo2xDeluxe from '../../assets/promos/deluxe 2 x 30.000.png';
+import switchPromo2xDeluxe from '../../assets/promos/deluxe 2 x 30.000.webp';
 import switchPromo3xDeluxe from '../../assets/promos/deluxe 3 x40.000.png';
 import switchPromo4xMega from '../../assets/promos/4x55.png';
 import switchPromoKart from '../../assets/promos/kart + pase.png';
@@ -73,8 +73,8 @@ import TiltedCard from '../../components/TiltedCard/TiltedCard';
 import AnimatedList from '../../components/AnimatedList/AnimatedList';
 import Loader from '../../components/Loader';
 import GooeySearch from '../../components/GooeySearch';
-import wspLogo from '../../assets/logos/logowsp.png';
-import igLogo from '../../assets/logos/logoig.png';
+import wspLogo from '../../assets/logos/logowsp.webp';
+import igLogo from '../../assets/logos/logoig.webp';
 import steamFastLookup from '../../assets/steam_fast_lookup.json';
 import steamImportData from '../../assets/steam_import_data.json';
 import { VIP_HIGHLIGHT_GAMES, isVipGame, isTopTierVip, isSteamProduct, getVipPrice, getSteamGameSurcharge, isRetiredSteamTitle } from '../../utils/vipGames';
@@ -545,14 +545,20 @@ export default function CategoriaPage() {
       plataforma: "steam",
       categoryId: "steam",
       categoryName: "Steam",
-      isSteam: true,
-      promoGames: chosen.map(p => ({
-        id: p.id,
-        name: p.name,
-        app_id: p.app_id,
-        appId: p.app_id,
-        selectedDlcs: steamPromoSelectedDlcs[p.id] || []
-      })),
+      promoGames: chosen.map(p => {
+        let aid = p.app_id || p.appId || null;
+        if (!aid && p.id) {
+          const m = String(p.id).match(/^(?:ryuu_|vip-|promo-steam-)?(\d+)$/);
+          if (m) aid = m[1];
+        }
+        return {
+          id: p.id,
+          name: p.name,
+          app_id: aid,
+          appId: aid,
+          selectedDlcs: steamPromoSelectedDlcs[p.id] || []
+        };
+      }),
       selectedDlcs: allSelectedDlcs,
       dlcsCount: allSelectedDlcs.length
     };
@@ -1173,7 +1179,7 @@ export default function CategoriaPage() {
         try {
           if (isMounted) setRyuuLoading(true);
           let ryuuData = await getCachedSteamCatalog();
-          if (!ryuuData) {
+          if (!ryuuData || !Array.isArray(ryuuData) || ryuuData.length < 10000) {
             const ryuuRes = await fetch("https://generator.ryuu.lol/files/games.json").catch(() => null);
             if (ryuuRes && ryuuRes.ok) {
               ryuuData = await ryuuRes.json();
@@ -1181,7 +1187,7 @@ export default function CategoriaPage() {
             }
           }
           if (ryuuData && Array.isArray(ryuuData) && isMounted) {
-            const NON_BASE_KEYWORDS = ['soundtrack','ost','artbook','dlc','expansion pack','bonus content','wallpaper','demo','playtest','dedicated server','sdk','mod kit','add-on','season pass','content pack','upgrade pack','cosmetic','skin pack','supporter pack','sound track','digital artbook','original score','pre-order bonus'];
+            const NON_BASE_REGEX = /\b(soundtrack|original sound track|artbook|digital artbook|wallpaper pack|dedicated server|mod kit|sdk)\b/i;
             const vipAppIds = new Set(rawProds.filter(p => p.isVipExclusive).map(p => String(p.app_id)));
             const existingIdsSet = new Set(rawProds.map(p => String(p.app_id || p.id)));
             const ryuuExtras = [];
@@ -1191,10 +1197,10 @@ export default function CategoriaPage() {
               if (vipAppIds.has(appIdStr)) continue;
               if (isOnlineOnlyAppId(appIdStr)) continue;
               if (isOnlineOnlySteamProduct(r)) continue;
-              const rType = (r.type || '').toLowerCase();
+              const rType = (r.type || 'game').toLowerCase();
               const rName = (r.name || '').toLowerCase();
               if (rType !== 'game') continue;
-              if (NON_BASE_KEYWORDS.some(kw => rName.includes(kw))) continue;
+              if (NON_BASE_REGEX.test(rName)) continue;
               const img = r.header_image || `https://cdn.akamai.steamstatic.com/steam/apps/${appIdStr}/header.jpg`;
               const vipPriceForGame = getVipPrice({ app_id: appIdStr, name: r.name });
               ryuuExtras.push({
@@ -1323,7 +1329,7 @@ export default function CategoriaPage() {
       "@type": "ListItem",
       "position": idx + 1,
       "name": p.name,
-      "url": `https://pandastoreupdate.web.app/producto/${p.id}`,
+      "url": `https://pandastoregaming.cl/producto/${p.id}`,
       "image": p.imageUrl || undefined
     }));
 
@@ -1336,13 +1342,13 @@ export default function CategoriaPage() {
       "isPartOf": {
         "@type": "VideoGameStore",
         "name": "PandaStore",
-        "url": "https://pandastoreupdate.web.app"
+        "url": "https://pandastoregaming.cl"
       },
       "breadcrumb": {
         "@type": "BreadcrumbList",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://pandastoreupdate.web.app/home" },
-          { "@type": "ListItem", "position": 2, "name": "Categorías", "item": "https://pandastoreupdate.web.app/categorias" },
+          { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://pandastoregaming.cl/home" },
+          { "@type": "ListItem", "position": 2, "name": "Categorías", "item": "https://pandastoregaming.cl/categorias" },
           { "@type": "ListItem", "position": 3, "name": catName, "item": window.location.href }
         ]
       },
@@ -1533,10 +1539,10 @@ export default function CategoriaPage() {
           <meta property="og:title" content={pageTitle} />
           <meta property="og:description" content={pageDesc} />
           <meta property="og:url" content={window.location.href} />
-          <meta property="og:image" content="https://pandastoreupdate.web.app/favicon.png" />
+          <meta property="og:image" content="https://pandastoregaming.cl/favicon.png" />
           <meta name="twitter:title" content={pageTitle} />
           <meta name="twitter:description" content={pageDesc} />
-          <meta name="twitter:image" content="https://pandastoreupdate.web.app/favicon96.png" />
+          <meta name="twitter:image" content="https://pandastoregaming.cl/favicon96.png" />
           <link rel="canonical" href={window.location.href} />
           <script type="application/ld+json">{JSON.stringify(getJsonLd())}</script>
         </Helmet>

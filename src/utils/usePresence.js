@@ -2,69 +2,70 @@ import { useEffect } from "react";
 import { database, auth } from "../firebase";
 import { ref, set, onDisconnect, serverTimestamp, onValue } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
+import { getPresenceTabId, getVisitorId } from "./visitorIdentity";
 
-// Generate or retrieve unique session key for anonymous users
-const getSessionKey = () => {
-  let key = sessionStorage.getItem('ps_presence_key');
-  if (!key) {
-    key = 'sess_' + Math.random().toString(36).slice(2, 10);
-    sessionStorage.setItem('ps_presence_key', key);
-  }
-  return key;
-};
-
-export default function usePresence() {
+export default function usePresence(page = "/") {
   useEffect(() => {
-    const connectedRef = ref(database, ".info/connected");
-    let currentRef = null;
-    let disconnectRef = null;
+    let unsub = null;
     let removeConnectionListener = null;
     let heartbeat = null;
+    let currentRef = null;
+    let onVisibilityChange = null;
 
-    const touch = () => {
-      if (!currentRef) return;
-      // A presence entry is only considered live while it is refreshed. This
-      // avoids counting abandoned tabs left behind by an interrupted network.
-      set(currentRef, {
-        online: true,
-        uid: auth.currentUser?.uid || "anon",
-        lastSeen: serverTimestamp(),
-      }).catch(() => {});
-    };
+    const timer = setTimeout(() => {
+      const connectedRef = ref(database, ".info/connected");
+      let disconnectRef = null;
 
-    const writePresence = (uid) => {
-      // Remove previous entry if uid changed
-      if (currentRef) {
-        set(currentRef, null);
-      }
+      const visitorId = getVisitorId();
+      const tabId = getPresenceTabId();
+      let currentUser = auth.currentUser;
 
-      const key = uid || getSessionKey();
-      currentRef = ref(database, `presence/${key}`);
+      const touch = () => {
+        if (!currentRef) return;
+        set(currentRef, {
+          online: true,
+          uid: currentUser?.uid || "anon",
+          visitorId,
+          page,
+          lastSeen: serverTimestamp(),
+        }).catch(() => {});
+      };
 
-      if (removeConnectionListener) removeConnectionListener();
-      removeConnectionListener = onValue(connectedRef, (snap) => {
-        if (snap.val() === true) {
-          if (disconnectRef) disconnectRef.cancel();
-          disconnectRef = onDisconnect(currentRef);
-          disconnectRef.remove();
-          touch();
+      const writePresence = (uid) => {
+        currentUser = uid ? auth.currentUser : null;
+        if (currentRef) {
+          set(currentRef, null);
         }
-      });
-    };
 
-    const unsub = onAuthStateChanged(auth, (user) => {
-      writePresence(user ? user.uid : null);
-    });
-    heartbeat = window.setInterval(touch, 30000);
-    const onVisibilityChange = () => { if (!document.hidden) touch(); };
-    document.addEventListener("visibilitychange", onVisibilityChange);
+        const identity = uid || visitorId;
+        currentRef = ref(database, `presence/${identity}/${tabId}`);
+
+        if (removeConnectionListener) removeConnectionListener();
+        removeConnectionListener = onValue(connectedRef, (snap) => {
+          if (snap.val() === true) {
+            if (disconnectRef) disconnectRef.cancel();
+            disconnectRef = onDisconnect(currentRef);
+            disconnectRef.remove();
+            touch();
+          }
+        });
+      };
+
+      unsub = onAuthStateChanged(auth, (user) => {
+        writePresence(user ? user.uid : null);
+      });
+      heartbeat = window.setInterval(touch, 30000);
+      onVisibilityChange = () => { if (!document.hidden) touch(); };
+      document.addEventListener("visibilitychange", onVisibilityChange);
+    }, 4000);
 
     return () => {
-      unsub();
+      clearTimeout(timer);
+      if (unsub) unsub();
       if (removeConnectionListener) removeConnectionListener();
       if (heartbeat) window.clearInterval(heartbeat);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
+      if (onVisibilityChange) document.removeEventListener("visibilitychange", onVisibilityChange);
       if (currentRef) set(currentRef, null);
     };
-  }, []);
+  }, [page]);
 }

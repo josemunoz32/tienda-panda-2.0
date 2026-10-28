@@ -138,9 +138,9 @@ export default function FAQ() {
         <meta name="keywords" content="preguntas frecuentes videojuegos, garantia pandastore, como activar juegos steam, cuenta primaria ps5 garantia, soporte pandastore" />
         <meta property="og:title" content="Preguntas Frecuentes | Soporte y Garantía PandaStore" />
         <meta property="og:description" content="Resolvemos todas tus preguntas sobre juegos de Steam PC, Nintendo Switch y PlayStation en PandaStore." />
-        <meta property="og:url" content="https://pandastoreupdate.web.app/preguntas-frecuentes" />
-        <meta property="og:image" content="https://pandastoreupdate.web.app/favicon.png" />
-        <link rel="canonical" href="https://pandastoreupdate.web.app/preguntas-frecuentes" />
+        <meta property="og:url" content="https://pandastoregaming.cl/preguntas-frecuentes" />
+        <meta property="og:image" content="https://pandastoregaming.cl/favicon.png" />
+        <link rel="canonical" href="https://pandastoregaming.cl/preguntas-frecuentes" />
         <script type="application/ld+json">{JSON.stringify(FAQ_SCHEMA_STATIC)}</script>
       </Helmet>
       <h1 className="faq-title">Preguntas Frecuentes</h1>

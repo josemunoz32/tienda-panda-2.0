@@ -4,7 +4,7 @@ const https = require('https');
 const PROJECT_ID = 'pandastoreupdate';
 const URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/products`;
 const SITEMAP_PATH = './public/sitemap.xml';
-const SITE_URL = 'https://pandastoreupdate.web.app';
+const SITE_URL = 'https://pandastoregaming.cl';
 
 async function fetchProducts() {
   return new Promise((resolve, reject) => {
@@ -33,97 +33,90 @@ async function generateSitemap() {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Rutas Estáticas y Categorías Principales -->
   <url>
-    <loc>https://pandastoreupdate.web.app/</loc>
+    <loc>https://pandastoregaming.cl/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://pandastoreupdate.web.app/home</loc>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://pandastoreupdate.web.app/categoria/steam</loc>
+    <loc>https://pandastoregaming.cl/categoria/steam</loc>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
   </url>
   <url>
-    <loc>https://pandastoreupdate.web.app/categoria/nintendo-switch</loc>
+    <loc>https://pandastoregaming.cl/categoria/nintendo-switch</loc>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
   </url>
   <url>
-    <loc>https://pandastoreupdate.web.app/categoria/playstation</loc>
+    <loc>https://pandastoregaming.cl/categoria/playstation</loc>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
   </url>
   <url>
-    <loc>https://pandastoreupdate.web.app/categoria/suscripciones</loc>
+    <loc>https://pandastoregaming.cl/categoria/suscripciones</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://pandastoreupdate.web.app/promos</loc>
+    <loc>https://pandastoregaming.cl/promos</loc>
   </url>
   <url>
-    <loc>https://pandastoreupdate.web.app/sagas</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://pandastoreupdate.web.app/packs-nintendo</loc>
+    <loc>https://pandastoregaming.cl/sagas</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://pandastoreupdate.web.app/descargar-launcher</loc>
+    <loc>https://pandastoregaming.cl/packs-nintendo</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://pandastoregaming.cl/descargar-launcher</loc>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://pandastoreupdate.web.app/instalacion-activador</loc>
+    <loc>https://pandastoregaming.cl/instalacion-activador</loc>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://pandastoreupdate.web.app/instalacion-nintendo</loc>
+    <loc>https://pandastoregaming.cl/instalacion-nintendo</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pandastoreupdate.web.app/instalacion-playstation</loc>
+    <loc>https://pandastoregaming.cl/instalacion-playstation</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pandastoreupdate.web.app/preguntas-frecuentes</loc>
+    <loc>https://pandastoregaming.cl/preguntas-frecuentes</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pandastoreupdate.web.app/testimonios</loc>
+    <loc>https://pandastoregaming.cl/testimonios</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pandastoreupdate.web.app/categorias</loc>
+    <loc>https://pandastoregaming.cl/categorias</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pandastoreupdate.web.app/productos</loc>
+    <loc>https://pandastoregaming.cl/productos</loc>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://pandastoreupdate.web.app/sobre-nosotros</loc>
+    <loc>https://pandastoregaming.cl/sobre-nosotros</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://pandastoreupdate.web.app/terminos</loc>
+    <loc>https://pandastoregaming.cl/terminos</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>

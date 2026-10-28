@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { trackClickWhatsapp } from "../utils/analytics";
-import wspLogo from "../assets/logos/logowsp.png";
+import wspLogo from "../assets/logos/logowsp.webp";
 
 export default function WhatsappButton() {
   const phone = "56974751810";
@@ -60,6 +60,9 @@ export default function WhatsappButton() {
               src={wspLogo}
               alt="WhatsApp"
               className="panda-wsp-fab-icon"
+              width="32"
+              height="32"
+              decoding="async"
             />
           </span>
         </span>

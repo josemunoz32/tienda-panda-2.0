@@ -22,9 +22,9 @@ export default function Terminos() {
         <meta name="keywords" content="garantia pandastore, terminos y condiciones videojuegos digitales, politicas steam pc, garantia cuentas playstation, garantia switch pandastore" />
         <meta property="og:title" content="Términos del Servicio y Garantía Oficial | PandaStore" />
         <meta property="og:description" content="Políticas oficiales de compra y garantía 100% segura para todos tus videojuegos digitales en PandaStore." />
-        <meta property="og:url" content="https://pandastoreupdate.web.app/terminos" />
-        <meta property="og:image" content="https://pandastoreupdate.web.app/banner.png" />
-        <link rel="canonical" href="https://pandastoreupdate.web.app/terminos" />
+        <meta property="og:url" content="https://pandastoregaming.cl/terminos" />
+        <meta property="og:image" content="https://pandastoregaming.cl/banner.png" />
+        <link rel="canonical" href="https://pandastoregaming.cl/terminos" />
       </Helmet>
       {/* ── HERO HEADER COMPACTO ── */}
       <header className="terminos-hero">

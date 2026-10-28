@@ -134,9 +134,9 @@ export default function CategoriasList() {
         <meta name="keywords" content="categorias videojuegos, catalogo steam pc, juegos nintendo switch, juegos playstation digitales, suscripciones streaming, pandastore" />
         <meta property="og:title" content="Todas las Categorías de Videojuegos | PandaStore" />
         <meta property="og:description" content="Explora el catálogo completo de videojuegos digitales en PandaStore." />
-        <meta property="og:url" content="https://pandastoreupdate.web.app/categorias" />
-        <meta property="og:image" content="https://pandastoreupdate.web.app/banner.png" />
-        <link rel="canonical" href="https://pandastoreupdate.web.app/categorias" />
+        <meta property="og:url" content="https://pandastoregaming.cl/categorias" />
+        <meta property="og:image" content="https://pandastoregaming.cl/banner.png" />
+        <link rel="canonical" href="https://pandastoregaming.cl/categorias" />
       </Helmet>
       <div style={{
       maxWidth:'1000px',

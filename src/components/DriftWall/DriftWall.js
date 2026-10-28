@@ -123,7 +123,10 @@ const DriftWall = ({
   );
 
   useEffect(() => {
+    let isVisible = false;
+
     const animate = ts => {
+      if (!isVisible) return;
       if (lastTsRef.current === null) lastTsRef.current = ts;
       const dt = Math.min(0.05, Math.max(0, ts - lastTsRef.current) / 1000);
       lastTsRef.current = ts;
@@ -164,8 +167,27 @@ const DriftWall = ({
       rafRef.current = requestAnimationFrame(animate);
     };
 
-    rafRef.current = requestAnimationFrame(animate);
+    let observer = null;
+    const container = containerRef.current;
+    if (typeof IntersectionObserver !== 'undefined' && container) {
+      observer = new IntersectionObserver(([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible) {
+          lastTsRef.current = null;
+          if (!rafRef.current) rafRef.current = requestAnimationFrame(animate);
+        } else {
+          if (rafRef.current) cancelAnimationFrame(rafRef.current);
+          rafRef.current = null;
+        }
+      }, { threshold: 0.05 });
+      observer.observe(container);
+    } else {
+      isVisible = true;
+      rafRef.current = requestAnimationFrame(animate);
+    }
+
     return () => {
+      if (observer) observer.disconnect();
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
       lastTsRef.current = null;

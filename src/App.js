@@ -1,15 +1,15 @@
 import React, { useEffect, useState, lazy, Suspense } from "react";
 import { useLocation } from 'react-router-dom';
 import { HelmetProvider, Helmet } from 'react-helmet-async';
-import nuevoFondo from "./assets/halloween/fondo-halloween.png";
+import nuevoFondo from "./assets/halloween/fondo-halloween.webp";
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import Header from './components/Header';
 import Footer from './pages/Footer/Footer';
-import Home from './pages/Home/Home';
 import WhatsappButton from './components/WhatsappButton';
 import InstagramFloatingBadge from './components/InstagramFloatingBadge/InstagramFloatingBadge';
+import CookieBanner from './components/CookieBanner/CookieBanner';
 import { auth } from './firebase';
 import usePresence from './utils/usePresence';
 import { trackPageView } from './utils/analytics';
@@ -19,6 +19,8 @@ import PandaModalAlert from './components/PandaModalAlert/PandaModalAlert';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy-loaded pages (Code Splitting para carga ultra-rápida)
+const Home = lazy(() => import('./pages/Home/Home'));
+const DesarrolloWeb = lazy(() => import('./pages/DesarrolloWeb/DesarrolloWeb'));
 const Registro = lazy(() => import('./pages/Registro/Registro'));
 const IniciarSesion = lazy(() => import('./pages/IniciarSesion/IniciarSesion'));
 const Perfil = lazy(() => import('./pages/Perfil/Perfil'));
@@ -87,6 +89,12 @@ function ScrollToTop({ userId, authLoading }) {
   return null;
 }
 
+function LivePresence() {
+  const { pathname } = useLocation();
+  usePresence(pathname);
+  return null;
+}
+
 // Rutas protegidas
 function PrivateRoute({ user, authLoading, children }) {
   if (authLoading) return <PageFallback />;
@@ -102,8 +110,6 @@ function AdminRoute({ user, role, authLoading, children }) {
 }
 
 function App() {
-  usePresence();
-
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -187,21 +193,6 @@ function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (document.getElementById("paypal-sdk")) return;
-    if (process.env.REACT_APP_PAYPAL_CLIENT_ID) {
-      const script = document.createElement("script");
-      script.id = "paypal-sdk";
-      script.src = `https://www.paypal.com/sdk/js?client-id=${process.env.REACT_APP_PAYPAL_CLIENT_ID}&currency=USD`;
-      script.async = true;
-      document.body.appendChild(script);
-      return () => {
-        if (document.getElementById("paypal-sdk")) {
-          document.body.removeChild(script);
-        }
-      };
-    }
-  }, []);
 
   useEffect(() => {
     const root = document.getElementById('root');
@@ -272,19 +263,19 @@ function App() {
     <HelmetProvider>
       <Router>
         <Helmet>
-          <title>PandaStore | Tienda de Videojuegos Digitales • Steam PC, Nintendo Switch, PS5 y PS4 Baratos</title>
-          <meta name="description" content="Compra videojuegos digitales baratos para Steam PC con Activador oficial, Nintendo Switch 1 y 2, PlayStation 5 y PS4. Packs 2x1 y 3x1, cuentas primarias y entrega inmediata 24/7 con garantía total." />
-          <meta name="keywords" content="comprar juegos digitales, juegos steam baratos, juegos pc baratos, activador steam pc, pandastore launcher, juegos ps4 baratos, juegos ps5 digitales, cuentas primarias ps5, cuentas secundarias ps4, juegos nintendo switch baratos, nintendo switch 2 juegos digitales, ofertas videojuegos steam, tienda gamer online, comprar juegos digitales chile argentina mexico colombia, black myth wukong pc barato, ea sports fc 25 barato, elden ring pc barato, silent hill 2 remake barato, dragon ball sparking zero steam, gta v pc barato, pandastore" />
-          <link rel="canonical" href="https://pandastoreupdate.web.app/" />
+          <title>PandaStore Chile | Juegos Digitales Steam, Switch y PS5</title>
+          <meta name="description" content="Compra juegos digitales para Steam PC, Nintendo Switch, PS5 y PS4 en PandaStore Chile. Packs 2x1, entrega inmediata 24/7 y garantía total." />
+          <meta name="keywords" content="comprar juegos digitales, juegos steam baratos, juegos pc baratos, activador steam pc, pandastore launcher, juegos ps4 baratos, juegos ps5 digitales, cuentas primarias ps5, cuentas secundarias ps4, juegos nintendo switch baratos, nintendo switch 2 juegos digitales, ofertas videojuegos steam, plataformas de streaming chile, netflix barato, spotify premium chile, disney plus chile, max hbo chile, cuentas streaming baratas, tienda gamer online chile, comprar juegos digitales chile, pandastore gaming" />
+          <link rel="canonical" href="https://pandastoregaming.cl/" />
 
           {/* Open Graph */}
           <meta property="og:type" content="website" />
-          <meta property="og:site_name" content="PandaStore" />
+          <meta property="og:site_name" content="PandaStore Chile" />
           <meta property="og:locale" content="es_CL" />
-          <meta property="og:url" content="https://pandastoreupdate.web.app/" />
+          <meta property="og:url" content="https://pandastoregaming.cl/" />
           <meta property="og:title" content="PandaStore | Tienda #1 de Videojuegos Digitales • Steam PC, Nintendo Switch, PS5 y PS4" />
           <meta property="og:description" content="La tienda líder en videojuegos digitales: Steam PC con activador oficial, Nintendo Switch 1 y 2, PlayStation 5 y PS4. Precios imbatibles, packs 2x1 y entrega inmediata 24/7." />
-          <meta property="og:image" content="https://pandastoreupdate.web.app/banner.png" />
+          <meta property="og:image" content="https://pandastoregaming.cl/banner.png" />
           <meta property="og:image:width" content="1200" />
           <meta property="og:image:height" content="630" />
           <meta property="og:image:alt" content="PandaStore — Tu tienda de videojuegos digitales" />
@@ -294,9 +285,10 @@ function App() {
           <meta name="twitter:site" content="@pandastoreapp" />
           <meta name="twitter:title" content="PandaStore | Tienda #1 de Videojuegos Digitales" />
           <meta name="twitter:description" content="Steam PC, Nintendo Switch, PS5 y PS4 al mejor precio. Activación inmediata 24/7." />
-          <meta name="twitter:image" content="https://pandastoreupdate.web.app/banner.png" />
+          <meta name="twitter:image" content="https://pandastoregaming.cl/banner.png" />
         </Helmet>
 
+        <LivePresence />
         <ScrollToTop userId={user?.uid} authLoading={authLoading} />
         <ErrorBoundary>
           <Suspense fallback={<PageFallback />}>
@@ -330,6 +322,15 @@ function App() {
             <Route path="/mi-rutina-fit" element={<MiRutinaPage />} />
             <Route path="/rutina-gym" element={<MiRutinaPage />} />
             <Route path="/pandafit" element={<MiRutinaPage />} />
+
+            {/* Rutas Exclusivas de Desarrollo Web & E-Commerce (Layout independiente sin logos de juegos) */}
+            <Route path="/pandastoredesarrollo" element={<DesarrolloWeb mode="onepage" />} />
+            <Route path="/desarrollo-web" element={<DesarrolloWeb mode="onepage" />} />
+            <Route path="/desarrollo-web/onepage" element={<DesarrolloWeb mode="onepage" />} />
+            <Route path="/onepage" element={<DesarrolloWeb mode="onepage" />} />
+            <Route path="/ecommerce" element={<DesarrolloWeb mode="ecommerce" />} />
+            <Route path="/desarrollo-web/ecommerce" element={<DesarrolloWeb mode="ecommerce" />} />
+            <Route path="/pandastoreecommerce" element={<DesarrolloWeb mode="ecommerce" />} />
 
             {/* Todas las demás rutas con Header/Footer */}
             <Route path="*" element={
@@ -420,6 +421,7 @@ function App() {
                     <Footer />
                     <InstagramFloatingBadge />
                     <WhatsappButton />
+                    <CookieBanner />
                   </div>
                 </div>
               </>

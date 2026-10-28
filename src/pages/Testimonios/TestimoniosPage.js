@@ -11,9 +11,9 @@ export default function TestimoniosPage() {
         <meta name="keywords" content="opiniones pandastore, testimonios pandastore, pandastore es confiable, valoraciones clientes pandastore, comprar juegos digitales seguro" />
         <meta property="og:title" content="Opiniones y Testimonios de Clientes | PandaStore" />
         <meta property="og:description" content="Descubre lo que opinan nuestros clientes satisfechos sobre PandaStore. Garantía y soporte 24/7." />
-        <meta property="og:url" content="https://pandastoreupdate.web.app/testimonios" />
-        <meta property="og:image" content="https://pandastoreupdate.web.app/banner.png" />
-        <link rel="canonical" href="https://pandastoreupdate.web.app/testimonios" />
+        <meta property="og:url" content="https://pandastoregaming.cl/testimonios" />
+        <meta property="og:image" content="https://pandastoregaming.cl/banner.png" />
+        <link rel="canonical" href="https://pandastoregaming.cl/testimonios" />
       </Helmet>
       <TestimoniosCrud />
     </div>

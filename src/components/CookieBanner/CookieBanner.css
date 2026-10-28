@@ -1,0 +1,197 @@
+.panda-cookie-banner-wrapper {
+  position: fixed;
+  bottom: 24px;
+  left: 20px;
+  max-width: 480px;
+  width: calc(100% - 40px);
+  z-index: 99998;
+  font-family: 'Poppins', 'Segoe UI', -apple-system, sans-serif;
+  animation: cookieSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes cookieSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.panda-cookie-card {
+  position: relative;
+  background: linear-gradient(145deg, rgba(27, 14, 54, 0.94) 0%, rgba(17, 7, 36, 0.96) 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(162, 89, 255, 0.35);
+  border-radius: 20px;
+  padding: 20px 22px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 25px rgba(123, 47, 242, 0.25);
+  color: #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Luminous accent line */
+.panda-cookie-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 15%;
+  right: 15%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #a259ff, #f357a8, #22c55e, transparent);
+  border-radius: 2px;
+}
+
+.panda-cookie-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.panda-cookie-icon {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  background: linear-gradient(135deg, rgba(162, 89, 255, 0.2) 0%, rgba(123, 47, 242, 0.35) 100%);
+  border: 1px solid rgba(162, 89, 255, 0.4);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 4px 12px rgba(123, 47, 242, 0.3);
+}
+
+.panda-cookie-text-block {
+  flex: 1;
+}
+
+.panda-cookie-title {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panda-cookie-desc {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.panda-cookie-link {
+  color: #a259ff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+  font-weight: 500;
+}
+
+.panda-cookie-link:hover {
+  color: #f357a8;
+}
+
+.panda-cookie-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.panda-cookie-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panda-cookie-btn-accept {
+  flex: 1.2;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
+}
+
+.panda-cookie-btn-accept:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(34, 197, 94, 0.5);
+  background: linear-gradient(135deg, #2ae06c 0%, #16a34a 100%);
+}
+
+.panda-cookie-btn-accept:active {
+  transform: translateY(0);
+}
+
+.panda-cookie-btn-essential {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.panda-cookie-btn-essential:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(162, 89, 255, 0.4);
+}
+
+.panda-cookie-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.panda-cookie-close-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsividad para móviles */
+@media (max-width: 600px) {
+  .panda-cookie-banner-wrapper {
+    left: 12px;
+    right: 12px;
+    width: calc(100% - 24px);
+    bottom: 80px; /* Evita tapar barras de navegación fija inferior si existen */
+  }
+
+  .panda-cookie-card {
+    padding: 16px;
+  }
+
+  .panda-cookie-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .panda-cookie-btn {
+    width: 100%;
+    padding: 11px;
+  }
+}

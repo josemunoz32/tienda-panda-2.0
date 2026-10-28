@@ -15,7 +15,7 @@ export async function fetchRyuuCatalog() {
   }
   try {
     const cached = await getCachedSteamCatalog();
-    if (cached && Array.isArray(cached) && cached.length > 0) {
+    if (cached && Array.isArray(cached) && cached.length > 10000) {
       _memCatalog = cached;
       return cached;
     }

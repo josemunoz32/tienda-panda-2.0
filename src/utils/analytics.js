@@ -5,13 +5,15 @@
 import { db, analytics, logEvent } from "../firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { recordViewedProduct } from "./abandonedCart";
+import { getVisitorId } from "./visitorIdentity";
 
-// ── Session ID único por pestaña ──
+// ── Session ID único por pestaña + visitante persistente por navegador ──
 const SESSION_ID = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
 function getBaseProps() {
   return {
     sessionId: SESSION_ID,
+    visitorId: getVisitorId(),
     page: window.location.pathname,
     referrer: document.referrer || "direct",
     userAgent: navigator.userAgent,

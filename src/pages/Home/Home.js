@@ -18,24 +18,24 @@ import {
   deleteDoc
 } from "firebase/firestore";
 import { handleCartAddOrRemove } from "../../utils/cartHelpers";
-import defaultBanner from "../../assets/default-banner.jpg";
-import mobileBanner from "../../assets/mobile-banner.jpg";
+import defaultBanner from "../../assets/default-banner.webp";
+// mobileBanner removed for performance
 import ps4Logo from '../../assets/logos/ps4.png';
 import ps5Logo from '../../assets/logos/ps5.png';
 import switchLogo from '../../assets/logos/switch.png';
 import streamingLogo from '../../assets/logos/streaming.png';
 import suscripcionesLogo from '../../assets/logos/suscripciones.png';
-import ventasHeader from '../../assets/home/ventas.png';
-import letreroPromos from '../../assets/letreros/promociones.png';
-import letreroNintendo from '../../assets/letreros/nintendo switch.png';
-import letreroPS4 from '../../assets/letreros/play 4.png';
-import letreroPS5 from '../../assets/letreros/play 5.png';
-import letreroStreaming from '../../assets/letreros/streaming.png';
-import letreroSuscripciones from '../../assets/letreros/suscripciones.png';
-import steamLogo from '../../assets/logos/logosteam.png';
-import wspLogo from '../../assets/logos/logowsp.png';
+import ventasHeader from '../../assets/home/ventas.webp';
+import letreroPromos from '../../assets/letreros/promociones.webp';
+import letreroNintendo from '../../assets/letreros/nintendo switch.webp';
+import letreroPS4 from '../../assets/letreros/play 4.webp';
+import letreroPS5 from '../../assets/letreros/play 5.webp';
+import letreroStreaming from '../../assets/letreros/streaming.webp';
+import letreroSuscripciones from '../../assets/letreros/suscripciones.webp';
+import steamLogo from '../../assets/logos/logosteam.webp';
+import wspLogo from '../../assets/logos/logowsp.webp';
 import steamFastLookup from '../../assets/steam_fast_lookup.json';
-import pandaLoader from '../../assets/logos/miicono.png';
+import pandaLoader from '../../assets/logos/miicono.webp';
 import DepthCarousel from "../../components/DepthCarousel/DepthCarousel";
 import StrokeText from "../../components/StrokeText/StrokeText";
 import SpecularButton from "../../components/SpecularButton/SpecularButton";
@@ -269,10 +269,10 @@ export default function Home() {
 
   // Preview de Promociones (4 imágenes)
   const promosPreview = useMemo(() => ([
-    { key: 'promo-basica-2x', title: 'Arma tu pack 2X Básica', img: require('../../assets/promos/2 x 25.000 basica.png') },
-    { key: 'promo-basica-3x', title: 'Arma tu pack 3X Básica', img: require('../../assets/promos/3x1 $35.000 basica.png') },
-    { key: 'promo-deluxe-2x', title: 'Arma tu pack Deluxe 2X', img: require('../../assets/promos/deluxe 2 x 30.000.png') },
-    { key: 'promo-deluxe-3x', title: 'Arma tu pack Deluxe 3X', img: require('../../assets/promos/deluxe 3 x40.000.png') },
+    { key: 'promo-basica-2x', title: 'Arma tu pack 2X Básica', img: require('../../assets/promos/2 x 25.000 basica.webp') },
+    { key: 'promo-basica-3x', title: 'Arma tu pack 3X Básica', img: require('../../assets/promos/3x1 $35.000 basica.webp') },
+    { key: 'promo-deluxe-2x', title: 'Arma tu pack Deluxe 2X', img: require('../../assets/promos/deluxe 2 x 30.000.webp') },
+    { key: 'promo-deluxe-3x', title: 'Arma tu pack Deluxe 3X', img: require('../../assets/promos/deluxe 3 x40.000.webp') },
   ]), []);
 
   const promoCarouselItems = useMemo(() => (
@@ -1050,7 +1050,7 @@ export default function Home() {
             <div className="home-desktop-side-grid">
               {promosPreview.slice(0, 4).map((promo) => (
                 <Link key={promo.key} to="/promos" className="home-desktop-mini-card">
-                  <img src={promo.img} alt={promo.title} className="home-desktop-mini-img" loading="lazy" />
+                  <img src={promo.img} alt={promo.title} className="home-desktop-mini-img" loading="lazy" decoding="async" width="50" height="50" />
                   <span className="home-desktop-mini-title">{promo.title}</span>
                   <span className="home-desktop-mini-price">🔥 Oferta Pack</span>
                 </Link>
@@ -1173,7 +1173,7 @@ export default function Home() {
                   <div className="home-desktop-side-grid">
                     {sec.items.slice(0, 4).map((prod) => (
                       <Link key={prod.id} to={prodUrl(prod.name, prod.id)} className="home-desktop-mini-card">
-                        <img src={prod.imageUrl || sec.fallbackImg || pandaLoader} alt={prod.name} className="home-desktop-mini-img" loading="lazy" />
+                        <img src={prod.imageUrl || sec.fallbackImg || pandaLoader} alt={prod.name} className="home-desktop-mini-img" loading="lazy" decoding="async" width="50" height="50" />
                         <span className="home-desktop-mini-title">{prod.name}</span>
                         <span className="home-desktop-mini-price">
                           {getMinPriceForHome(prod) ? formatearPrecio(getMinPriceForHome(prod)) : 'Ver precio'}
@@ -1210,7 +1210,7 @@ export default function Home() {
         {testimonios.length > 0 && (
           <section className="home-section home-section-testi">
             <div style={{ textAlign: 'center', marginBottom: 20 }}>
-              <img src={ventasHeader} alt="Ventas anteriores" style={{ maxWidth: 520, width: '92%', height: 'auto' }} />
+              <img src={ventasHeader} alt="Ventas anteriores" width="520" height="130" loading="lazy" decoding="async" style={{ maxWidth: 520, width: '92%', height: 'auto' }} />
             </div>
             <div className="home-driftwall-wrapper" style={{ height: 480, position: 'relative', width: '100%', overflow: 'hidden', borderRadius: 20, margin: '20px 0' }}>
               <DriftWall

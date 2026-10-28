@@ -46,7 +46,7 @@ exports.dynamicSEO = functions.https.onRequest(async (req, res) => {
     // 3. Obtener el index.html base de la aplicación (cacheado en memoria)
     if (!cachedHtml) {
       // Usamos fetch nativo de Node.js (Node 18+) para obtener el index original
-      const response = await fetch("https://pandastoreupdate.web.app/index.html");
+      const response = await fetch("https://pandastoregaming.cl/index.html");
       cachedHtml = await response.text();
     }
 
@@ -57,15 +57,15 @@ exports.dynamicSEO = functions.https.onRequest(async (req, res) => {
       const rawPlat = (p.plataforma || p.platform || p.category || p.categoria || "").toLowerCase();
       const platLabel = rawPlat.includes("switch") || rawPlat.includes("nintendo") ? "Nintendo Switch" : (rawPlat.includes("ps4") || rawPlat.includes("ps5") || rawPlat.includes("playstation")) ? "PS5 / PS4" : "Steam PC";
       const productName = String(p.name || p.title || "Juego digital").trim();
-      const title = `${productName} para ${platLabel} | Juego digital - PandaStore`;
-      const desc = p.description ? String(p.description).replace(/\s+/g, " ").trim().slice(0, 155) : `Compra ${productName} para ${platLabel} en PandaStore. Producto digital, soporte en español y entrega según disponibilidad.`;
+      const title = `${productName} para ${platLabel} | Juego Digital | PandaStore Chile`;
+      const desc = p.description ? String(p.description).replace(/\s+/g, " ").trim().slice(0, 155) : `Compra ${productName} para ${platLabel} en PandaStore Chile. Producto digital y soporte en español.`;
       const price = normalizePrice(p.priceUSD || p.pricePrimariaUSD || p.priceCLP);
       const currency = p.priceUSD || p.pricePrimariaUSD ? "USD" : "CLP";
-      const image = p.imageUrl || "https://pandastoreupdate.web.app/favicon.png";
+      const image = p.imageUrl || "https://pandastoregaming.cl/favicon.png";
       const slug = String(p.slug || productName || productId)
           .toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
           .replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-");
-      const url = `https://pandastoreupdate.web.app/producto/${slug}--${productId}`;
+      const url = `https://pandastoregaming.cl/producto/${slug}--${productId}`;
       const safeTitle = escapeHtml(title);
       const safeDesc = escapeHtml(desc);
       const safeImage = escapeHtml(image);
@@ -76,7 +76,7 @@ exports.dynamicSEO = functions.https.onRequest(async (req, res) => {
         "description": desc,
         "image": [image],
         "sku": productId,
-        "brand": {"@type": "Brand", "name": "PandaStore"},
+        "brand": {"@type": "Brand", "name": "PandaStore Chile"},
         "category": platLabel,
         "offers": price ? {"@type": "Offer", "price": String(price), "priceCurrency": currency, "availability": Number(p.stock) === 0 ? "https://schema.org/OutOfStock" : "https://schema.org/InStock", "itemCondition": "https://schema.org/NewCondition", url} : undefined,
       }).replace(/</g, "\\u003c");

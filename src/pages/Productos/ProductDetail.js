@@ -453,6 +453,8 @@ export default function ProductDetail() {
       state: {
         producto: {
           ...producto,
+          app_id: producto.app_id || producto.appId || null,
+          appId: producto.appId || producto.app_id || null,
           ...detalles,
           categoryName: productCategoryName || producto.categoria || platformLabel,
           consoleName: platformLabel,
@@ -790,14 +792,16 @@ export default function ProductDetail() {
           if (!resolvedImg || !p.app_id) {
             if (appId) {
               p.app_id = appId;
+              p.appId = appId;
               if (!resolvedImg) {
                 resolvedImg = `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`;
               }
             } else if (p.name) {
-              const normName = cleanTitle(p.name).toLowerCase().replace(/[^a-z0-9]/g, '');
-              const sMatch = steamImportData.find(s => cleanTitle(s.name).toLowerCase().replace(/[^a-z0-9]/g, '') === normName);
+              const normName = cleanTitle(p.name).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, '');
+              const sMatch = steamImportData.find(s => cleanTitle(s.name).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, '') === normName);
               if (sMatch) {
                 p.app_id = sMatch.app_id;
+                p.appId = sMatch.app_id;
                 if (!resolvedImg) {
                   resolvedImg = sMatch.imageUrl || sMatch.image || `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${sMatch.app_id}/header.jpg`;
                 }
@@ -1054,6 +1058,8 @@ export default function ProductDetail() {
         const cartItem = {
           cartLineId,
           productId: baseId,
+          app_id: producto.app_id || producto.appId || null,
+          appId: producto.app_id || producto.appId || null,
           name: detalles.name || producto.name,
           imageUrl: producto.imageUrl || null,
           categoryName: productCategoryName || producto.categoria || null,
@@ -1082,6 +1088,8 @@ export default function ProductDetail() {
       await setDoc(cartRef, {
         cartLineId,
         productId: baseId,
+        app_id: producto.app_id || producto.appId || null,
+        appId: producto.app_id || producto.appId || null,
         name: detalles.name || producto.name,
         imageUrl: producto.imageUrl || null,
         categoryName: productCategoryName || producto.categoria || null,
@@ -1210,7 +1218,7 @@ export default function ProductDetail() {
           "availability": "https://schema.org/InStock",
           "itemCondition": "https://schema.org/NewCondition",
           "priceValidUntil": "2027-12-31",
-          "seller": { "@type": "Organization", "name": "PandaStore" }
+      "seller": { "@type": "Organization", "name": "PandaStore Chile" }
         }
       } : {}),
       ...(avgRating && reviews.length > 0 ? {
@@ -1225,8 +1233,8 @@ export default function ProductDetail() {
       "breadcrumb": {
         "@type": "BreadcrumbList",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://pandastoreupdate.web.app/home" },
-          { "@type": "ListItem", "position": 2, "name": producto.category || "Videojuegos", "item": "https://pandastoreupdate.web.app/categorias" },
+          { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://pandastoregaming.cl/home" },
+          { "@type": "ListItem", "position": 2, "name": producto.category || "Videojuegos", "item": "https://pandastoregaming.cl/categorias" },
           { "@type": "ListItem", "position": 3, "name": producto.name, "item": window.location.href }
         ]
       }
@@ -1256,8 +1264,8 @@ export default function ProductDetail() {
   const isPcOrSteam = !isPlayStation && !isSwitchProd;
 
   const platformLabel = isSwitchProd ? "Nintendo Switch" : isPlayStation ? "PS5 / PS4" : "Steam PC";
-  const pageTitle = `${cleanProductName} (${platformLabel}) Barato | Comprar Juego Digital - PandaStore`;
-  const pageDesc = producto.description ? producto.description.slice(0, 155) : `Compra ${cleanProductName} para ${platformLabel} barato en PandaStore. Entrega digital inmediata 24/7, soporte en español y garantía total.`;
+  const pageTitle = `${cleanProductName} para ${platformLabel} | Juego Digital | PandaStore Chile`;
+  const pageDesc = producto.description ? producto.description.slice(0, 155) : `Compra ${cleanProductName} para ${platformLabel} en PandaStore Chile. Entrega digital y soporte en español.`;
 
   return (
     <div className="producto-container">

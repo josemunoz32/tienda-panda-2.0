@@ -31,8 +31,8 @@ export default function InstalacionPlaystation() {
         <meta name="keywords" content="como instalar juegos ps5, cuenta primaria ps4 como funciona, cuenta secundaria ps5, guia playstation digital, soporte ps4 pandastore" />
         <meta property="og:title" content="Guía de Instalación PS4 y PS5 | PandaStore" />
         <meta property="og:description" content="Tutorial paso a paso para configurar tus juegos digitales en PS4 y PS5 en modalidad cuenta principal o secundaria." />
-        <meta property="og:url" content="https://pandastoreupdate.web.app/instalacion-playstation" />
-        <link rel="canonical" href="https://pandastoreupdate.web.app/instalacion-playstation" />
+        <meta property="og:url" content="https://pandastoregaming.cl/instalacion-playstation" />
+        <link rel="canonical" href="https://pandastoregaming.cl/instalacion-playstation" />
         <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",

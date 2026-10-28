@@ -97,20 +97,20 @@ export default function SagasPage() {
         <meta name="keywords" content="sagas steam pc, coleccion resident evil pc, saga call of duty steam, saga assassins creed pc barato, franquicias videojuegos pc, sagas completas steam, pandastore" />
         <meta property="og:title" content="Sagas y Franquicias Legendarias Steam PC | PandaStore" />
         <meta property="og:description" content="Juega tus sagas favoritas completas en Steam PC con entrega inmediata 24/7 y modo historia completo." />
-        <meta property="og:url" content="https://pandastoreupdate.web.app/sagas" />
-        <meta property="og:image" content="https://pandastoreupdate.web.app/banner.png" />
+        <meta property="og:url" content="https://pandastoregaming.cl/sagas" />
+        <meta property="og:image" content="https://pandastoregaming.cl/banner.png" />
         <meta name="twitter:title" content="Sagas y Franquicias Legendarias Steam PC | PandaStore" />
         <meta name="twitter:description" content="Colecciones completas de videojuegos para PC al mejor precio en PandaStore." />
-        <meta name="twitter:image" content="https://pandastoreupdate.web.app/banner.png" />
-        <link rel="canonical" href="https://pandastoreupdate.web.app/sagas" />
+        <meta name="twitter:image" content="https://pandastoregaming.cl/banner.png" />
+        <link rel="canonical" href="https://pandastoregaming.cl/sagas" />
         <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "CollectionPage",
           "name": "Sagas y Franquicias Legendarias Steam PC",
           "description": "Colecciones y sagas completas de videojuegos para Steam PC.",
-          "url": "https://pandastoreupdate.web.app/sagas",
-          "isPartOf": { "@type": "VideoGameStore", "name": "PandaStore", "url": "https://pandastoreupdate.web.app" }
+          "url": "https://pandastoregaming.cl/sagas",
+          "isPartOf": { "@type": "VideoGameStore", "name": "PandaStore", "url": "https://pandastoregaming.cl" }
         })}
         </script>
       </Helmet>

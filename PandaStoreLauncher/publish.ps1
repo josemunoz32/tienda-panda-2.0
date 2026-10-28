@@ -51,13 +51,15 @@ if ($activatorSrc) {
 
 # Copiar catalogo de juegos a Publish para carga instantanea offline (0.05s) en clientes
 $catalogCandidates = @(
+    "$env:APPDATA\PandaStore\cache_games_ryuu_v4.json",
+    "$scriptDir\cache_games_ryuu_v4.json",
     "$env:APPDATA\PandaStore\cache_games_ryuu_v3.json",
     "$scriptDir\cache_games_ryuu_v3.json"
 )
 $catalogSrc = $catalogCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
 if ($catalogSrc) {
-    Copy-Item $catalogSrc -Destination "$scriptDir\Publish\cache_games_ryuu_v3.json" -Force
-    Write-Host " Catalogo de juegos (cache_games_ryuu_v3.json) copiado a Publish para arranque ultra rapido." -ForegroundColor Green
+    Copy-Item $catalogSrc -Destination "$scriptDir\Publish\cache_games_ryuu_v4.json" -Force
+    Write-Host " Catalogo de juegos (cache_games_ryuu_v4.json) copiado a Publish para arranque ultra rapido." -ForegroundColor Green
 }
 Write-Host "[1/4] Aplicando Firma Digital de Seguridad (Authenticode Code Signing)..." -ForegroundColor Cyan
 

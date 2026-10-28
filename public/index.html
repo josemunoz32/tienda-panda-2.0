@@ -62,8 +62,9 @@
     <link rel="preconnect" href="https://firebasestorage.googleapis.com" />
     <link rel="dns-prefetch" href="https://www.google-analytics.com" />
 
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Fonts (Non-blocking async load) -->
+    <link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" /></noscript>
 
     <!-- VideoGameStore Schema JSON-LD -->
     <script type="application/ld+json">
@@ -231,28 +232,47 @@
     }
     </script>
 
-    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <script defer src="https://sdk.mercadopago.com/js/v2"></script>
 
-    <!-- Meta Pixel -->
+    <!-- Meta Pixel & Microsoft Clarity (Carga Asíncrona Defer/Idle para 100% Core Web Vitals) -->
     <script>
-      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-      n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
-      document,'script','https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '1015159907609792');
-      fbq('track', 'PageView');
+      (function() {
+        var thirdPartyLoaded = false;
+        function loadThirdParty() {
+          if (thirdPartyLoaded) return;
+          thirdPartyLoaded = true;
+
+          // Meta Pixel
+          !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+          n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+          t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+          document,'script','https://connect.facebook.net/en_US/fbevents.js');
+          fbq('init', '1015159907609792');
+          fbq('track', 'PageView');
+
+          // Microsoft Clarity
+          (function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+          })(window,document,"clarity","script","wtaj77qa6c");
+        }
+
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(function() {
+            setTimeout(loadThirdParty, 2000);
+          }, { timeout: 4000 });
+        } else {
+          setTimeout(loadThirdParty, 2500);
+        }
+
+        ['scroll', 'touchstart', 'click'].forEach(function(evt) {
+          window.addEventListener(evt, loadThirdParty, { once: true, passive: true });
+        });
+      })();
     </script>
     <noscript><img height="1" width="1" style="display:none"
       src="https://www.facebook.com/tr?id=1015159907609792&ev=PageView&noscript=1"/></noscript>
-
-    <!-- Microsoft Clarity -->
-    <script type="text/javascript">
-      (function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-      })(window,document,"clarity","script","wtaj77qa6c");
-    </script>
 
     <!-- Estilos Críticos Inmediatos (Evita FOUC / Parpadeo Blanco) -->
     <style>
@@ -289,7 +309,7 @@
       <!-- Splash / Preloader visual mientras descarga y ejecuta el bundle JS de React -->
       <div id="app-initial-preloader" style="position: fixed; inset: 0; background: #0b0518; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 99999; pointer-events: none;">
         <div style="width: 72px; height: 72px; border-radius: 18px; background: rgba(162, 89, 255, 0.12); border: 1px solid rgba(162, 89, 255, 0.3); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; animation: pandaPreloaderPulse 1.8s infinite ease-in-out;">
-          <img src="%PUBLIC_URL%/favicon-96.png" alt="PandaStore" style="width: 50px; height: 50px; object-fit: contain;" />
+          <img src="%PUBLIC_URL%/favicon-96.png" alt="PandaStore" width="50" height="50" decoding="async" style="width: 50px; height: 50px; object-fit: contain;" />
         </div>
         <div style="width: 32px; height: 32px; border: 3px solid rgba(162, 89, 255, 0.2); border-top-color: #22c55e; border-radius: 50%; animation: pandaPreloaderSpin 0.75s linear infinite;"></div>
       </div>

@@ -294,38 +294,49 @@ const DepthCarousel = ({
     const root = rootRef.current;
     let hovered = false;
     let focused = false;
+    let inView = false;
     const stop = () => {
       if (autoTimerRef.current) clearInterval(autoTimerRef.current);
       autoTimerRef.current = null;
     };
     const start = () => {
       stop();
+      if (!inView) return;
       autoTimerRef.current = window.setInterval(
         () => {
-          if (!hovered && !focused) navigateBy(1);
+          if (!hovered && !focused && inView) navigateBy(1);
         },
         Math.max(cfgRef.current.autoplayDelay, 600)
       );
     };
-    const onEnter = () => {
-      hovered = true;
-    };
-    const onLeave = () => {
-      hovered = false;
-    };
-    const onFocusIn = () => {
-      focused = true;
-    };
-    const onFocusOut = () => {
-      focused = false;
-    };
+    const onEnter = () => { hovered = true; };
+    const onLeave = () => { hovered = false; };
+    const onFocusIn = () => { focused = true; };
+    const onFocusOut = () => { focused = false; };
     root?.addEventListener('mouseenter', onEnter);
     root?.addEventListener('mouseleave', onLeave);
     root?.addEventListener('focusin', onFocusIn);
     root?.addEventListener('focusout', onFocusOut);
-    start();
+
+    let observer = null;
+    if (typeof IntersectionObserver !== 'undefined' && root) {
+      observer = new IntersectionObserver(([entry]) => {
+        inView = entry.isIntersecting;
+        if (inView) {
+          start();
+        } else {
+          stop();
+        }
+      }, { threshold: 0.1 });
+      observer.observe(root);
+    } else {
+      inView = true;
+      start();
+    }
+
     return () => {
       stop();
+      if (observer) observer.disconnect();
       root?.removeEventListener('mouseenter', onEnter);
       root?.removeEventListener('mouseleave', onLeave);
       root?.removeEventListener('focusin', onFocusIn);
@@ -373,7 +384,16 @@ const DepthCarousel = ({
             aria-hidden={active !== i}
             onClick={() => onCardClick(i, item)}
           >
-            <img className="depth-carousel__img" src={item.image} alt={item.alt || ''} draggable={false} />
+            <img
+              className="depth-carousel__img"
+              src={item.image}
+              alt={item.alt || item.title || 'Juego digital PandaStore'}
+              draggable={false}
+              loading="lazy"
+              decoding="async"
+              width={cardWidth}
+              height={cardHeight}
+            />
             <span
               className="depth-carousel__tint"
               ref={el => (overlayRefs.current[i] = el)}

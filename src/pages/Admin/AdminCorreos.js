@@ -77,7 +77,7 @@ function buildReviewTemplate(codigoCupon = "", descuento = "") {
       <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #ec4899; border-radius: 12px;">
         <tr>
           <td align="center" bgcolor="#ec4899" style="border-radius: 12px; background-color: #ec4899;">
-            <a href="https://pandastoreupdate.web.app/testimonios" target="_blank" rel="noopener noreferrer" style="font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: bold; color: #ffffff; text-decoration: none; padding: 15px 32px; border-radius: 12px; display: inline-block; background-color: #ec4899; letter-spacing: 0.5px;">
+            <a href="https://pandastoregaming.cl/testimonios" target="_blank" rel="noopener noreferrer" style="font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: bold; color: #ffffff; text-decoration: none; padding: 15px 32px; border-radius: 12px; display: inline-block; background-color: #ec4899; letter-spacing: 0.5px;">
               ⭐ Dejar mi reseña de compra →
             </a>
           </td>
@@ -141,7 +141,7 @@ ${cuponHtml}
       <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #00f5d4; border-radius: 12px;">
         <tr>
           <td align="center" bgcolor="#00f5d4" style="border-radius: 12px; background-color: #00f5d4;">
-            <a href="https://pandastoreupdate.web.app/checkout" target="_blank" rel="noopener noreferrer" style="font-family: Arial, Helvetica, sans-serif; font-size: 16px; font-weight: 900; color: #041c18; text-decoration: none; padding: 16px 36px; border-radius: 12px; display: inline-block; background-color: #00f5d4; letter-spacing: 0.5px;">
+            <a href="https://pandastoregaming.cl/checkout" target="_blank" rel="noopener noreferrer" style="font-family: Arial, Helvetica, sans-serif; font-size: 16px; font-weight: 900; color: #041c18; text-decoration: none; padding: 16px 36px; border-radius: 12px; display: inline-block; background-color: #00f5d4; letter-spacing: 0.5px;">
               🛒 Ir a mi carrito y finalizar compra →
             </a>
           </td>
@@ -200,7 +200,7 @@ ${cuponHtml}
       <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto; background-color: #ec4899; border-radius: 12px;">
         <tr>
           <td align="center" bgcolor="#ec4899" style="border-radius: 12px; background-color: #ec4899;">
-            <a href="https://pandastoreupdate.web.app/home" target="_blank" rel="noopener noreferrer" style="font-family: Arial, Helvetica, sans-serif; font-size: 16px; font-weight: 900; color: #ffffff; text-decoration: none; padding: 16px 36px; border-radius: 12px; display: inline-block; background-color: #ec4899; letter-spacing: 0.5px;">
+            <a href="https://pandastoregaming.cl/home" target="_blank" rel="noopener noreferrer" style="font-family: Arial, Helvetica, sans-serif; font-size: 16px; font-weight: 900; color: #ffffff; text-decoration: none; padding: 16px 36px; border-radius: 12px; display: inline-block; background-color: #ec4899; letter-spacing: 0.5px;">
               🎮 Explorar Catálogo y Comprar con Descuento →
             </a>
           </td>
@@ -250,22 +250,22 @@ function EmailPreview({ body, asunto, previewName = "Cliente PandaStore" }) {
           Explora las categorías más buscadas
         </p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <a href="https://pandastoreupdate.web.app/categoria/nintendo-switch" target="_blank" rel="noreferrer" style={{ textDecoration: "none", background: "#1a0f33", border: "1px solid #3b226e", borderRadius: 12, padding: "16px 10px", display: "block" }}>
+          <a href="https://pandastoregaming.cl/categoria/nintendo-switch" target="_blank" rel="noreferrer" style={{ textDecoration: "none", background: "#1a0f33", border: "1px solid #3b226e", borderRadius: 12, padding: "16px 10px", display: "block" }}>
             <img src="https://img.icons8.com/color/48/nintendo-switch.png" width="36" height="36" alt="Nintendo Switch" style={{ display: "block", margin: "0 auto 8px auto" }} />
             <div style={{ fontSize: 14, fontWeight: "bold", color: "#fff" }}>Nintendo Switch</div>
             <div style={{ fontSize: 12, color: "#ec4899", fontWeight: "bold", marginTop: 4 }}>Ver Juegos →</div>
           </a>
-          <a href="https://pandastoreupdate.web.app/categoria/playstation" target="_blank" rel="noreferrer" style={{ textDecoration: "none", background: "#1a0f33", border: "1px solid #3b226e", borderRadius: 12, padding: "16px 10px", display: "block" }}>
+          <a href="https://pandastoregaming.cl/categoria/playstation" target="_blank" rel="noreferrer" style={{ textDecoration: "none", background: "#1a0f33", border: "1px solid #3b226e", borderRadius: 12, padding: "16px 10px", display: "block" }}>
             <img src="https://img.icons8.com/color/48/play-station.png" width="36" height="36" alt="PlayStation" style={{ display: "block", margin: "0 auto 8px auto" }} />
             <div style={{ fontSize: 14, fontWeight: "bold", color: "#fff" }}>PlayStation 5 & 4</div>
             <div style={{ fontSize: 12, color: "#60a5fa", fontWeight: "bold", marginTop: 4 }}>Ver Catálogo →</div>
           </a>
-          <a href="https://pandastoreupdate.web.app/categoria/steam" target="_blank" rel="noreferrer" style={{ textDecoration: "none", background: "#1a0f33", border: "1px solid #3b226e", borderRadius: 12, padding: "16px 10px", display: "block" }}>
+          <a href="https://pandastoregaming.cl/categoria/steam" target="_blank" rel="noreferrer" style={{ textDecoration: "none", background: "#1a0f33", border: "1px solid #3b226e", borderRadius: 12, padding: "16px 10px", display: "block" }}>
             <img src="https://img.icons8.com/color/48/steam.png" width="36" height="36" alt="Steam PC" style={{ display: "block", margin: "0 auto 8px auto" }} />
             <div style={{ fontSize: 14, fontWeight: "bold", color: "#fff" }}>Steam PC</div>
             <div style={{ fontSize: 12, color: "#34d399", fontWeight: "bold", marginTop: 4 }}>Ver Ofertas →</div>
           </a>
-          <a href="https://pandastoreupdate.web.app/packs-nintendo" target="_blank" rel="noreferrer" style={{ textDecoration: "none", background: "#1a0f33", border: "1px solid #3b226e", borderRadius: 12, padding: "16px 10px", display: "block" }}>
+          <a href="https://pandastoregaming.cl/packs-nintendo" target="_blank" rel="noreferrer" style={{ textDecoration: "none", background: "#1a0f33", border: "1px solid #3b226e", borderRadius: 12, padding: "16px 10px", display: "block" }}>
             <img src="https://img.icons8.com/color/48/fire-element.png" width="36" height="36" alt="Packs & Sagas" style={{ display: "block", margin: "0 auto 8px auto" }} />
             <div style={{ fontSize: 14, fontWeight: "bold", color: "#fff" }}>Packs & Sagas</div>
             <div style={{ fontSize: 12, color: "#fbbf24", fontWeight: "bold", marginTop: 4 }}>Ver Promos →</div>
@@ -274,7 +274,7 @@ function EmailPreview({ body, asunto, previewName = "Cliente PandaStore" }) {
       </div>
       {/* CTA Button Ver Catálogo */}
       <div style={{ background: "#120b22", padding: "20px 24px", textAlign: "center" }}>
-        <a href="https://pandastoreupdate.web.app/home" target="_blank" rel="noreferrer" style={{ display: "inline-block", background: "#7b2ff2", color: "#fff", fontSize: 15, fontWeight: "bold", padding: "15px 36px", borderRadius: 12, textDecoration: "none", letterSpacing: 0.5 }}>
+        <a href="https://pandastoregaming.cl/home" target="_blank" rel="noreferrer" style={{ display: "inline-block", background: "#7b2ff2", color: "#fff", fontSize: 15, fontWeight: "bold", padding: "15px 36px", borderRadius: 12, textDecoration: "none", letterSpacing: 0.5 }}>
           🛒 Ver Catálogo Completo de la Tienda →
         </a>
       </div>

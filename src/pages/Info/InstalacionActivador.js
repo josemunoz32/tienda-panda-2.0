@@ -17,9 +17,9 @@ export default function InstalacionActivador() {
         <meta name="keywords" content="pandastore activador, activador steam pc, generar codigo steam pandastore, instalador steam pc, activacion steam 1 click" />
         <meta property="og:title" content="PandaStore Activador Steam Oficial | Descarga para PC" />
         <meta property="og:description" content="Descarga el software oficial para activar tus juegos de Steam en simples pasos. 100% seguro." />
-        <meta property="og:url" content="https://pandastoreupdate.web.app/instalacion-activador" />
-        <meta property="og:image" content="https://pandastoreupdate.web.app/favicon.png" />
-        <link rel="canonical" href="https://pandastoreupdate.web.app/instalacion-activador" />
+        <meta property="og:url" content="https://pandastoregaming.cl/instalacion-activador" />
+        <meta property="og:image" content="https://pandastoregaming.cl/favicon.png" />
+        <link rel="canonical" href="https://pandastoregaming.cl/instalacion-activador" />
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -28,7 +28,7 @@ export default function InstalacionActivador() {
             "operatingSystem": "Windows 10, Windows 11 (64-bit)",
             "applicationCategory": "UtilitiesApplication",
             "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-            "publisher": { "@type": "Organization", "name": "PandaStore", "url": "https://pandastoreupdate.web.app" }
+            "publisher": { "@type": "Organization", "name": "PandaStore", "url": "https://pandastoregaming.cl" }
           })}
         </script>
       </Helmet>

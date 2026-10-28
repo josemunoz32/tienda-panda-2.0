@@ -19,6 +19,47 @@ try {
   sagasCatalog = [];
 }
 
+let steamImportData = [];
+try {
+  steamImportData = require("./steam_import_data.json");
+} catch (e) {
+  steamImportData = [];
+}
+
+let vipGamesData = [];
+try {
+  vipGamesData = require("./vipGamesData.json");
+} catch (e) {
+  vipGamesData = [];
+}
+
+function normalizeGameName(name) {
+  if (!name) return "";
+  return String(name)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function resolveSteamAppId(name, candidateId = null) {
+  if (candidateId) {
+    const m = String(candidateId).match(/^(?:ryuu_|vip-|promo-steam-)?(\d+)$/);
+    if (m && Number(m[1]) > 10) return m[1];
+  }
+  if (!name) return null;
+  const norm = normalizeGameName(name);
+  if (!norm) return null;
+
+  const foundImport = steamImportData.find((s) => normalizeGameName(s.name) === norm);
+  if (foundImport && foundImport.app_id) return String(foundImport.app_id);
+
+  const foundVip = vipGamesData.find((v) => normalizeGameName(v.name) === norm);
+  if (foundVip && foundVip.app_id) return String(foundVip.app_id);
+
+  return null;
+}
+
 // 1. Inicialización de Firebase Admin SDK
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -758,7 +799,49 @@ async function sendTelegramAdminNotification({orderId, pedido, key = null, juego
  * @param {string} orderId - ID del documento del pedido en 'orders'
  * @return {Promise<string|null>} Clave generada o null si no aplica
  */
-async function generatePandaLicenseAndSendEmail(pedido, orderId) {
+/**
+ * Helper dedicado para enviar el correo con la Clave, Juegos y Tutorial de Steam
+ */
+async function sendLicenseDeliveryEmail({ clientEmail, nombre, key, steamGamesList, orderId }) {
+  if (!clientEmail) return;
+  try {
+    const keySubject = `PandaStore: Tu Clave de Acceso para Steam está lista (Pedido #${orderId})`;
+    const keyPlainText = `¡Hola ${nombre || "Gamer"}!\n\nTu pago ha sido verificado con éxito (Pedido #${orderId}).\n\n🔑 TU CLAVE DE ACTIVACIÓN STEAM:\n${key}\n\nJuegos autorizados:\n${steamGamesList.map((j) => "  • " + (j.name || j)).join("\n")}\n\nDescarga el PandaStore Launcher oficial y mira el video tutorial:\nhttps://pandastoreupdate.web.app/descargar-launcher\n\nPasos rápidos:\n1. Descarga e instala el Launcher.\n2. Inicia sesión o ábrelo y pega tu Clave: ${key}\n3. Selecciona tu juego y haz clic en Jugar.\n\n¿Dudas o consultas? Contáctanos por WhatsApp: https://wa.me/56974751810\n\n© ${new Date().getFullYear()} PandaStore Oficial`;
+
+    await transporter.sendMail({
+      from: EMAIL_FROM_PANDA,
+      to: clientEmail,
+      replyTo: EMAIL_REPLY_TO,
+      subject: keySubject,
+      text: keyPlainText,
+      html: templates.htmlEntregaKeySteam({
+        nombre: nombre || "Gamer",
+        key: key,
+        juegosList: steamGamesList,
+        orderId: orderId,
+      }),
+      headers: {
+        "X-Entity-Ref-ID": `ps-key-${orderId}-${Date.now()}`,
+        "Auto-Submitted": "auto-generated",
+      },
+    });
+    console.log(`[sendLicenseDeliveryEmail] Correo con clave enviado exitosamente a ${clientEmail}`);
+  } catch (mailErr) {
+    console.error(`[sendLicenseDeliveryEmail] Error al enviar correo a ${clientEmail}:`, mailErr);
+  }
+}
+
+/**
+ * Función robusta para generar y entregar la Clave PandaStore Launcher / Steam.
+ * Si el pedido contiene juegos de Steam (individuales, packs, sagas, randoms o pase VIP):
+ * genera la clave PANDA-XXXX-YYYY en Firestore 'licenses'
+ * y envía el correo con la clave, juegos incluidos y el link al Launcher con tutorial.
+ * @param {object} pedido - Datos del pedido
+ * @param {string} orderId - ID del documento del pedido en 'orders'
+ * @param {object} options - Opciones adicionales (forceApproved, forceSendEmail)
+ * @return {Promise<string|null>} Clave generada o null si no aplica
+ */
+async function generatePandaLicenseAndSendEmail(pedido, orderId, options = {}) {
   try {
     const orderRef = db.collection("orders").doc(orderId);
     const orderSnap = await orderRef.get();
@@ -774,17 +857,11 @@ async function generatePandaLicenseAndSendEmail(pedido, orderId) {
     // 2. VERIFICAR QUE EL PAGO ESTÉ APROBADO / EXITOSO
     const esManual = ["transferencia", "prex", "crypto"].includes(orderData.metodoPago);
     const estado = orderData.transferenciaEstado || orderData.estado || orderData.status;
-    const esAprobado = (estado === "exitoso" || estado === "approved" || estado === "completado") || (!esManual && Boolean(orderData.metodoPago));
+    const esAprobado = Boolean(options.forceApproved) || (estado === "exitoso" || estado === "approved" || estado === "completado") || (!esManual && Boolean(orderData.metodoPago));
 
     if (!esAprobado) {
       console.log(`[generatePandaLicense] Pedido #${orderId} no está confirmado (Método: ${orderData.metodoPago}, Estado: ${estado}). Omitiendo clave hasta confirmación.`);
       return null;
-    }
-
-    // Evitar generar clave duplicada si ya existe una asignada a este pedido
-    if (orderData.licenseKey) {
-      console.log(`[generatePandaLicense] Pedido #${orderId} ya tiene clave asignada: ${orderData.licenseKey}`);
-      return orderData.licenseKey;
     }
 
     const productos = orderData.productos || orderData.cart || [];
@@ -812,22 +889,36 @@ async function generatePandaLicenseAndSendEmail(pedido, orderId) {
 
       let appId = item.app_id || item.appId || item.steamAppId || null;
       if (!appId && item.id) {
-        const m = String(item.id).match(/^(?:ryuu_|vip-)?(\d+)$/);
+        const m = String(item.id).match(/^(?:ryuu_|vip-|promo-steam-)?(\d+)$/);
         if (m) appId = m[1];
       }
+      if (!appId) {
+        appId = resolveSteamAppId(name, item.id);
+      }
 
-      // Pack completo Steam
-      if (
-        cleanName.includes("pack steam") ||
+      // Pack completo Steam / Panda Pass / Random masivos
+      const isAllAccessPack = (
         cleanName.includes("todos los juegos") ||
         cleanName.includes("catálogo completo") ||
+        cleanName.includes("catalogo completo") ||
         cleanName.includes("suscripción steam") ||
         cleanName.includes("suscripcion steam") ||
-        cleanName.includes("steam vip") ||
-        item.isFullAccess
-      ) {
+        cleanName.includes("panda pass") ||
+        cleanName.includes("steam vip (+1.500") ||
+        cleanName.includes("pack todo steam") ||
+        cleanName.includes("pack 100") ||
+        cleanName.includes("pack 200") ||
+        cleanName.includes("pack 300") ||
+        cleanName.includes("pack 400") ||
+        (cleanName.includes("pack steam") && !cleanName.match(/pack\s*(?:3|5|10|23)x?\b/i) && !cleanName.includes("(")) ||
+        Boolean(item.isFullAccess) ||
+        Boolean(item.isSteamPass) ||
+        Boolean(item.isRandomPack)
+      );
+
+      if (isAllAccessPack) {
         isFullCatalog = true;
-        steamGamesList.push({name: name || "Pack Todo Steam (+69.000 Juegos)"});
+        steamGamesList.push({name: name || "Pack Todo Steam (+69.000 Juegos)", appId: null});
         continue;
       }
 
@@ -839,19 +930,32 @@ async function generatePandaLicenseAndSendEmail(pedido, orderId) {
           (item.key && String(item.key).startsWith("promo-saga-")),
       );
 
+      // Identificar si es un Pack / Promo armable a elección
+      const isPack = Boolean(
+          item.isPromo ||
+          item.isCustomPack ||
+          (Array.isArray(item.promoGames) && item.promoGames.length > 0) ||
+          (Array.isArray(item.juegos) && item.juegos.length > 0) ||
+          (item.id && (String(item.id).startsWith("promo-") || String(item.id).startsWith("custom-pack-"))) ||
+          cleanName.includes("pack ") ||
+          cleanName.startsWith("pack") ||
+          cleanName.match(/\b\d+x\b/i) ||
+          cleanName.includes("elección") ||
+          cleanName.includes("eleccion"),
+      );
+
       // Es un juego o pack de Steam legítimo
       const isSteam = (
         Boolean(appId) ||
         isSaga ||
-        Boolean(item.isPromo) ||
+        isPack ||
         Boolean(item.isSteam) ||
         plataforma.includes("steam") ||
         catName.includes("steam") ||
         catId.includes("steam") ||
         tags.includes("steam") ||
         (item.id && (String(item.id).startsWith("vip-") || String(item.id).startsWith("ryuu_") || String(item.id).startsWith("promo-"))) ||
-        cleanName.includes("steam") ||
-        (Array.isArray(item.promoGames) && item.promoGames.length > 0)
+        cleanName.includes("steam")
       );
 
       if (!isSteam) {
@@ -863,13 +967,17 @@ async function generatePandaLicenseAndSendEmail(pedido, orderId) {
         item.selectedDlcs :
         (Array.isArray(item.dlcs) ? item.dlcs : []);
       for (const d of dlcsArr) {
-        const did = d.dlc_app_id || d.id || d.appId;
-        if (did && !isNaN(did)) allowedDlcs.push(String(did));
-        if (d.name) allowedGames.push(d.name);
+        const did = d.dlc_app_id || d.app_id || d.id || d.appId;
+        const numId = did ? String(did).match(/\d+/)?.[0] : null;
+        if (numId) allowedDlcs.push(String(numId));
+      }
+      // Si el cliente compró DLCs y tenemos el appId del juego, agregar appId a allowedDlcs
+      if (dlcsArr.length > 0 && appId) {
+        allowedDlcs.push(String(appId));
       }
 
-      // Si NO es saga con sub-juegos, agregamos el nombre base y appId
-      if (!isSaga) {
+      // Si es un juego INDIVIDUAL normal (ni Saga ni Pack), agregamos el nombre base y appId
+      if (!isSaga && !isPack) {
         steamGamesList.push({name: name, appId: appId});
         if (appId) allowedGames.push(String(appId));
         if (name) allowedGames.push(name);
@@ -896,13 +1004,16 @@ async function generatePandaLicenseAndSendEmail(pedido, orderId) {
         if (sagaGames.length > 0) {
           for (const g of sagaGames) {
             const gName = (typeof g === "string" ? g : (g.name || "")).trim();
+            const gAppId = resolveSteamAppId(gName, typeof g === "object" ? (g.app_id || g.appId || g.id) : null);
             if (gName) {
-              steamGamesList.push({name: gName});
+              steamGamesList.push({name: gName, appId: gAppId});
+              if (gAppId) allowedGames.push(String(gAppId));
               allowedGames.push(gName);
             }
           }
         } else {
-          steamGamesList.push({name: name});
+          steamGamesList.push({name: name, appId: appId});
+          if (appId) allowedGames.push(String(appId));
           allowedGames.push(name);
         }
 
@@ -912,35 +1023,74 @@ async function generatePandaLicenseAndSendEmail(pedido, orderId) {
           (Array.isArray(item.vipExtras) ? item.vipExtras : []);
         for (const ex of extras) {
           const exName = (ex.name || ex.title || (typeof ex === "string" ? ex : "")).trim();
+          const exAppId = resolveSteamAppId(exName, typeof ex === "object" ? (ex.app_id || ex.appId || ex.id) : null);
           if (exName) {
-            steamGamesList.push({name: `${exName} (Extra VIP)`});
+            steamGamesList.push({name: `${exName} (Extra VIP)`, appId: exAppId});
+            if (exAppId) allowedGames.push(String(exAppId));
             allowedGames.push(exName);
           }
         }
-      } else if (Array.isArray(item.promoGames) && item.promoGames.length > 0) {
-        // Si es un Pack con promoGames seleccionados
-        for (const pg of item.promoGames) {
-          const pgName = (pg.name || pg.title || (typeof pg === "string" ? pg : "")).trim();
-          const pgAppId = pg.app_id || pg.appId || pg.id || null;
-          if (pgName) {
-            steamGamesList.push({name: pgName, appId: pgAppId});
-            allowedGames.push(pgName);
-            if (pgAppId && !isNaN(pgAppId)) allowedGames.push(String(pgAppId));
-          }
-          if (Array.isArray(pg.selectedDlcs)) {
-            for (const d of pg.selectedDlcs) {
-              const did = d.dlc_app_id || d.id || d.appId;
-              if (did && !isNaN(did)) allowedDlcs.push(String(did));
-              if (d.name) allowedGames.push(d.name);
+      } else if (isPack) {
+        // Si es un Pack con juegos seleccionados (Pack 3X, Pack 10X, Pack 23X, VIP, Custom Pack)
+        let subGames = [];
+
+        if (Array.isArray(item.promoGames) && item.promoGames.length > 0) {
+          subGames = item.promoGames;
+        } else if (Array.isArray(item.juegos) && item.juegos.length > 0) {
+          subGames = item.juegos;
+        } else if (Array.isArray(item.games) && item.games.length > 0) {
+          subGames = item.games;
+        } else if (Array.isArray(item.selectedGames) && item.selectedGames.length > 0) {
+          subGames = item.selectedGames;
+        } else if (item.id && String(item.id).startsWith("custom-pack-")) {
+          const packDocId = String(item.id).replace("custom-pack-", "");
+          try {
+            const pSnap = await db.collection("customPacks").doc(packDocId).get();
+            if (pSnap.exists && Array.isArray(pSnap.data().juegos)) {
+              subGames = pSnap.data().juegos;
             }
+          } catch (err) {
+            console.warn(`[generatePandaLicense] No se pudo leer customPacks/${packDocId}:`, err);
           }
         }
-      } else if (Array.isArray(item.games) && item.games.length > 0) {
-        for (const g of item.games) {
-          const gName = (typeof g === "string" ? g : (g.name || "")).trim();
-          if (gName) {
-            steamGamesList.push({name: gName});
-            allowedGames.push(gName);
+
+        // Fallback: extraer juegos listados entre paréntesis en el nombre o descripción
+        if (subGames.length === 0) {
+          const sourceStr = `${name} ${item.description || ""}`;
+          const parenMatch = sourceStr.match(/\(([^)]+)\)/);
+          if (parenMatch && parenMatch[1].includes("+")) {
+            const gameTitles = parenMatch[1].split("+").map((s) => s.trim()).filter(Boolean);
+            subGames = gameTitles.map((t) => ({name: t}));
+          }
+        }
+
+        for (const pg of subGames) {
+          const pgName = (typeof pg === "string" ? pg : (pg.name || pg.title || "")).trim();
+          let pgAppId = typeof pg === "object" ? (pg.app_id || pg.appId || null) : null;
+          if (!pgAppId && typeof pg === "object" && pg.id) {
+            const m = String(pg.id).match(/^(?:ryuu_|vip-|promo-steam-)?(\d+)$/);
+            if (m) pgAppId = m[1];
+          }
+          if (!pgAppId && pgName) {
+            pgAppId = resolveSteamAppId(pgName);
+          }
+
+          if (pgName) {
+            steamGamesList.push({name: pgName, appId: pgAppId});
+            if (pgAppId) allowedGames.push(String(pgAppId));
+            allowedGames.push(pgName);
+          }
+
+          const pgDlcs = typeof pg === "object" && Array.isArray(pg.selectedDlcs) ?
+            pg.selectedDlcs :
+            (typeof pg === "object" && Array.isArray(pg.dlcs) ? pg.dlcs : []);
+          for (const d of pgDlcs) {
+            const did = d.dlc_app_id || d.app_id || d.id || d.appId;
+            const numId = did ? String(did).match(/\d+/)?.[0] : null;
+            if (numId) allowedDlcs.push(String(numId));
+          }
+          if (pgDlcs.length > 0 && pgAppId) {
+            allowedDlcs.push(String(pgAppId));
           }
         }
       }
@@ -953,8 +1103,63 @@ async function generatePandaLicenseAndSendEmail(pedido, orderId) {
 
     const finalAllowedGames = isFullCatalog ? ["*"] : Array.from(new Set(allowedGames.filter(Boolean)));
     const finalAllowedDlcs = isFullCatalog ? ["*"] : Array.from(new Set(allowedDlcs.filter(Boolean)));
+    const clientEmail = (orderData.email || "").trim().toLowerCase();
+    const nowStr = new Date().toISOString();
 
-    // Generar clave única PANDA-XXXX-YYYY
+    // ── GESTIÓN DE CLAVE PREEXISTENTE (Auto-reparar AppIDs y Enviar Correo si falta) ──
+    if (orderData.licenseKey) {
+      const existingKey = orderData.licenseKey;
+      console.log(`[generatePandaLicense] Pedido #${orderId} ya tiene clave asignada: ${existingKey}`);
+
+      // Auto-reparar documento de licencia en Firestore para asegurar que contenga los AppIDs numéricos
+      try {
+        const licDocRef = db.collection("licenses").doc(existingKey);
+        const licSnap = await licDocRef.get();
+        if (licSnap.exists) {
+          const licData = licSnap.data();
+          const currentAllowed = Array.isArray(licData.allowed_games) ? licData.allowed_games : [];
+          const mergedGames = Array.from(new Set([...currentAllowed, ...finalAllowedGames]));
+          const currentDlcs = Array.isArray(licData.allowed_dlcs) ? licData.allowed_dlcs : [];
+          const mergedDlcs = Array.from(new Set([...currentDlcs, ...finalAllowedDlcs]));
+
+          await licDocRef.set({
+            allowed_games: mergedGames,
+            allowed_dlcs: mergedDlcs,
+            status: "active",
+            updatedAt: nowStr,
+          }, {merge: true});
+        }
+      } catch (patchErr) {
+        console.warn(`[generatePandaLicense] No se pudo auto-reparar licencia ${existingKey}:`, patchErr);
+      }
+
+      // Enviar correo si no se había enviado o si se solicita expresamente
+      if (!orderData.licenseDeliveredAt || options.forceSendEmail) {
+        if (clientEmail) {
+          await sendLicenseDeliveryEmail({
+            clientEmail,
+            nombre: orderData.nombre || "Gamer",
+            key: existingKey,
+            steamGamesList: steamGamesList.length > 0 ? steamGamesList : [{name: "Juegos Steam", appId: null}],
+            orderId,
+          });
+
+          await orderRef.set({
+            licenseDeliveredAt: nowStr,
+          }, {merge: true}).catch(() => {});
+
+          if (orderData.uid && orderData.uid !== "guest") {
+            await db.collection(`users/${orderData.uid}/orders`).doc(orderId).set({
+              licenseDeliveredAt: nowStr,
+            }, {merge: true}).catch(() => {});
+          }
+        }
+      }
+
+      return existingKey;
+    }
+
+    // ── GENERACIÓN DE NUEVA CLAVE ÚNICA PANDA-XXXX-YYYY ──
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     let key = "";
     let isUnique = false;
@@ -974,9 +1179,6 @@ async function generatePandaLicenseAndSendEmail(pedido, orderId) {
         isUnique = true;
       }
     }
-
-    const nowStr = new Date().toISOString();
-    const clientEmail = (orderData.email || "").trim().toLowerCase();
 
     const licenseData = {
       key: key,
@@ -1013,7 +1215,7 @@ async function generatePandaLicenseAndSendEmail(pedido, orderId) {
       }, {merge: true}).catch(() => {});
     }
 
-    // Notificar inmediatamente al bot de Telegram del administrador con la clave y detalles
+    // Notificar inmediatamente al bot de Telegram del administrador
     try {
       await sendTelegramAdminNotification({
         orderId,
@@ -1026,33 +1228,15 @@ async function generatePandaLicenseAndSendEmail(pedido, orderId) {
       console.error("[generatePandaLicense] Error notificando a Telegram:", tgErr);
     }
 
-    // Enviar correo con la Clave, Juegos y Tutorial
+    // Enviar correo con la Clave, Juegos y Tutorial al Cliente
     if (clientEmail) {
-      try {
-        const keySubject = `PandaStore: Tu Clave de Acceso para Steam está lista (Pedido #${orderId})`;
-        const keyPlainText = `¡Hola ${orderData.nombre || "Gamer"}!\n\nTu pago ha sido verificado con éxito (Pedido #${orderId}).\n\n🔑 TU CLAVE DE ACTIVACIÓN STEAM:\n${key}\n\nJuegos autorizados:\n${steamGamesList.map((j) => "  • " + (j.name || j)).join("\n")}\n\nDescarga el PandaStore Launcher oficial y mira el video tutorial:\nhttps://pandastoreupdate.web.app/descargar-launcher\n\nPasos rápidos:\n1. Descarga e instala el Launcher.\n2. Inicia sesión o ábrelo y pega tu Clave: ${key}\n3. Selecciona tu juego y haz clic en Jugar.\n\n¿Dudas o consultas? Contáctanos por WhatsApp: https://wa.me/56974751810\n\n© ${new Date().getFullYear()} PandaStore Oficial`;
-
-        await transporter.sendMail({
-          from: EMAIL_FROM_PANDA,
-          to: clientEmail,
-          replyTo: EMAIL_REPLY_TO,
-          subject: keySubject,
-          text: keyPlainText,
-          html: templates.htmlEntregaKeySteam({
-            nombre: orderData.nombre || "Gamer",
-            key: key,
-            juegosList: steamGamesList,
-            orderId: orderId,
-          }),
-          headers: {
-            "X-Entity-Ref-ID": `ps-key-${orderId}-${Date.now()}`,
-            "Auto-Submitted": "auto-generated",
-          },
-        });
-        console.log(`[generatePandaLicense] Correo con clave enviado exitosamente a ${clientEmail}`);
-      } catch (mailErr) {
-        console.error(`[generatePandaLicense] Error al enviar correo a ${clientEmail}:`, mailErr);
-      }
+      await sendLicenseDeliveryEmail({
+        clientEmail,
+        nombre: orderData.nombre || "Gamer",
+        key,
+        steamGamesList,
+        orderId,
+      });
     }
 
     return key;
@@ -1517,12 +1701,24 @@ exports.entregarKeyPedido = functions.https.onRequest((req, res) => {
         });
       }
 
-      const key = await generatePandaLicenseAndSendEmail(pedido, orderId);
+      const key = await generatePandaLicenseAndSendEmail(pedido, orderId, {
+        forceApproved: true,
+        forceSendEmail: true,
+      });
+
+      // Asegurar que si la transferencia estaba pendiente, quede actualizada
+      if (pedido.metodoPago === "transferencia" && pedido.transferenciaEstado !== "exitoso") {
+        await db.collection("orders").doc(orderId).set({
+          transferenciaEstado: "exitoso",
+          estado: "completado",
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        }, {merge: true});
+      }
 
       return res.status(200).json({
         success: true,
         licenseKey: key,
-        message: key ? `Clave ${key} generada y enviada al cliente.` : "El pedido no contiene juegos de Steam o ya tenía clave.",
+        message: key ? `Clave ${key} generada y enviada al cliente.` : "El pedido no contiene juegos de Steam o se procesó.",
       });
     } catch (error) {
       console.error("Error en entregarKeyPedido:", error);

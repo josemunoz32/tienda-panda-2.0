@@ -1,0 +1,28 @@
+# PandaStore Gaming Chile
+
+> PandaStore Gaming Chile es la tienda online líder en venta de videojuegos digitales para Steam PC, Nintendo Switch, PlayStation 5 (PS5) y PlayStation 4 (PS4), con entrega inmediata 24/7 y garantía oficial.
+
+## Información de la Plataforma
+- **Sitio Web Oficial**: https://pandastoregaming.cl/
+- **País Principal**: Chile (Soporte para Latinoamérica: Argentina, México, Colombia, Perú y Global)
+- **Monedas**: CLP (Peso Chileno), USD (Dólares), ARS, COP, MXN, PEN, EUR
+- **Medios de Pago**: WebPay Plus (Transbank), Mercado Pago, Transferencia Bancaria, PayPal, Criptomonedas (USDT)
+- **Soporte y Ventas 24/7 WhatsApp**: https://wa.me/56974751810
+- **Instagram Oficial**: https://www.instagram.com/pandastoregaming.cl/
+
+## Secciones Principales y Navegación
+- [Catálogo General y Categorías](https://pandastoregaming.cl/categorias): Catálogo completo de videojuegos.
+- [Juegos Steam PC](https://pandastoregaming.cl/categoria/steam): Activador y PandaStore Launcher oficial para PC.
+- [Juegos Nintendo Switch](https://pandastoregaming.cl/categoria/nintendo-switch): Cuentas primarias y secundarias para Switch y Switch 2.
+- [Juegos PlayStation 5 y PS4](https://pandastoregaming.cl/categoria/playstation): Títulos digitales con garantía de por vida.
+- [Promociones y Packs 2x1](https://pandastoregaming.cl/promos): Ofertas especiales, packs de franquicias y promociones de temporada.
+- [Sagas Legendarias](https://pandastoregaming.cl/sagas): Packs completos de Resident Evil, GTA, Call of Duty, God of War, etc.
+- [PandaStore Launcher Oficial PC](https://pandastoregaming.cl/descargar-launcher): Software oficial para gestión y activación en PC.
+- [Desarrollo Web & Tiendas Online](https://pandastoregaming.cl/desarrollo-web): Creación de páginas web, tiendas e-commerce y landing pages en Chile.
+- [Preguntas Frecuentes](https://pandastoregaming.cl/preguntas-frecuentes): Guías de activación, métodos de pago y garantías.
+- [Términos y Condiciones](https://pandastoregaming.cl/terminos): Políticas de garantía y servicio.
+- [Soporte al Cliente](https://pandastoregaming.cl/soporte): Canal de atención inmediata y resolución técnica.
+
+## Garantía y Entrega
+- Todas las compras cuentan con garantía oficial de activación.
+- Entrega 100% digital e inmediata los 365 días del año vía WhatsApp y correo.

@@ -27,6 +27,7 @@ import { getProductPricing, parseNumberCLP } from "../../utils/priceHelper";
 import { hasResellerBenefits, hasB2BAccess } from "../../utils/userRoles";
 import { DEFAULT_PAYMENT_SETTINGS, normalizePaymentSettings, PAYMENT_SETTINGS_DOC, validatePaymentProofFile, visibleBankAccounts, visibleForUser } from "../../utils/paymentMethods";
 import Loader from "../../components/Loader";
+import steamImportData from "../../assets/steam_import_data.json";
 import "./PandaCheckoutCards.css";
 
 // Para monedas distintas de USD, retorna el precio CLP como base para conversión posterior.
@@ -807,8 +808,8 @@ export default function CheckoutCarrito({ user: propUser }) {
             isSaga,
             isPromo,
             isSteam,
-            appId: item.appId || item.app_id || prodInfo.appId || prodInfo.app_id || null,
-            app_id: item.app_id || item.appId || prodInfo.app_id || prodInfo.appId || null,
+            appId: item.appId || item.app_id || prodInfo.appId || prodInfo.app_id || (isSteam ? (steamImportData.find(s => String(s.name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '') === String(item.name || prodInfo.name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''))?.app_id || null) : null),
+            app_id: item.app_id || item.appId || prodInfo.app_id || prodInfo.appId || (isSteam ? (steamImportData.find(s => String(s.name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '') === String(item.name || prodInfo.name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''))?.app_id || null) : null),
             games: item.games || prodInfo.games || null,
             promoGames: item.promoGames || prodInfo.promoGames || null,
             vipExtras: item.vipExtras || prodInfo.vipExtras || null,
@@ -1699,14 +1700,34 @@ export default function CheckoutCarrito({ user: propUser }) {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({
-                            cart: cart.map(item => ({
-                              id: item.id || item.productId,
-                              name: item.isPromo ? item.name : (cartProducts[item.id]?.name || item.name),
-                              description: item.description || item.name,
-                              category_id: item.category_id || "others",
-                              quantity: item.cantidad || item.quantity || 1,
-                              precio: Math.round(montoFinal / (cart.reduce((s, i) => s + (i.cantidad || 1), 0) || 1))
-                            })),
+                            cart: cart.map(item => {
+                              const prodInfo = cartProducts[item.id] || {};
+                              return {
+                                id: item.id || item.productId,
+                                name: item.isPromo ? item.name : (prodInfo.name || item.name),
+                                description: item.description || item.name,
+                                category_id: item.category_id || item.categoryId || prodInfo.categoryId || "others",
+                                categoryId: item.categoryId || item.category_id || prodInfo.categoryId || "others",
+                                categoryName: item.categoryName || prodInfo.categoryName || null,
+                                plataforma: item.plataforma || prodInfo.plataforma || null,
+                                quantity: item.cantidad || item.quantity || 1,
+                                cantidad: item.cantidad || item.quantity || 1,
+                                precio: Math.round(montoFinal / (cart.reduce((s, i) => s + (i.cantidad || 1), 0) || 1)),
+                                isPromo: Boolean(item.isPromo || prodInfo.isPromo),
+                                isSteam: Boolean(item.isSteam || prodInfo.isSteam),
+                                isCustomPack: Boolean(item.isCustomPack || prodInfo.isCustomPack),
+                                isSaga: Boolean(item.isSaga || prodInfo.isSaga),
+                                appId: item.appId || item.app_id || prodInfo.appId || prodInfo.app_id || null,
+                                app_id: item.app_id || item.appId || prodInfo.app_id || prodInfo.appId || null,
+                                promoGames: item.promoGames || prodInfo.promoGames || null,
+                                games: item.games || prodInfo.games || null,
+                                juegos: item.juegos || prodInfo.juegos || null,
+                                selectedGames: item.selectedGames || prodInfo.selectedGames || null,
+                                selectedDlcs: item.selectedDlcs || prodInfo.selectedDlcs || null,
+                                selectedVipExtras: item.selectedVipExtras || prodInfo.selectedVipExtras || null,
+                                vipExtras: item.vipExtras || prodInfo.vipExtras || null
+                              };
+                            }),
                             email: emailFinal,
                             uid: user ? user.uid : 'guest',
                             total: montoFinal,

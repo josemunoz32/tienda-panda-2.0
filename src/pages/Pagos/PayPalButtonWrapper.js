@@ -9,13 +9,34 @@ export function PayPalButtonWrapper({ aceptaTerminos, cart, cartProducts, user, 
       return;
     }
     const payload = {
-      cart: cart.map(prod => ({
-        id: prod.id,
-        name: prod.name,
-        description: cartProducts[prod.id]?.description || prod.name,
-        category_id: cartProducts[prod.id]?.category_id || "others",
-        precio: getMinPriceByMoneda(cartProducts[prod.id], selectedMoneda)
-      })),
+      cart: cart.map(prod => {
+        const prodInfo = cartProducts?.[prod.id] || {};
+        return {
+          id: prod.id,
+          name: prod.name,
+          description: prodInfo.description || prod.description || prod.name,
+          category_id: prod.category_id || prod.categoryId || prodInfo.categoryId || "others",
+          categoryId: prod.categoryId || prod.category_id || prodInfo.categoryId || "others",
+          categoryName: prod.categoryName || prodInfo.categoryName || null,
+          plataforma: prod.plataforma || prodInfo.plataforma || null,
+          precio: getMinPriceByMoneda(prodInfo, selectedMoneda) || prod.precio || 0,
+          quantity: prod.cantidad || prod.quantity || 1,
+          cantidad: prod.cantidad || prod.quantity || 1,
+          isPromo: Boolean(prod.isPromo || prodInfo.isPromo),
+          isSteam: Boolean(prod.isSteam || prodInfo.isSteam),
+          isCustomPack: Boolean(prod.isCustomPack || prodInfo.isCustomPack),
+          isSaga: Boolean(prod.isSaga || prodInfo.isSaga),
+          appId: prod.appId || prod.app_id || prodInfo.appId || prodInfo.app_id || null,
+          app_id: prod.app_id || prod.appId || prodInfo.app_id || prodInfo.appId || null,
+          promoGames: prod.promoGames || prodInfo.promoGames || null,
+          games: prod.games || prodInfo.games || null,
+          juegos: prod.juegos || prodInfo.juegos || null,
+          selectedGames: prod.selectedGames || prodInfo.selectedGames || null,
+          selectedDlcs: prod.selectedDlcs || prodInfo.selectedDlcs || null,
+          selectedVipExtras: prod.selectedVipExtras || prodInfo.selectedVipExtras || null,
+          vipExtras: prod.vipExtras || prodInfo.vipExtras || null
+        };
+      }),
       email: user?.email || '',
       firstName: userProfile.firstName || user?.displayName?.split(' ')[0] || '',
       lastName: userProfile.lastName || user?.displayName?.split(' ').slice(1).join(' ') || '',

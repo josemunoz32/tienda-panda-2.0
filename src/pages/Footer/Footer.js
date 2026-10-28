@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import miIcono from "../../assets/logos/miicono.png";
 import logoIg from "../../assets/logos/logoig.png";
 import logoWsp from "../../assets/logos/logowsp.png";
-import footerBackground from "../../assets/footer/pandastore-footer-gaming.png";
+import footerBackground from "../../assets/footer/pandastore-footer-gaming.webp";
 import "./Footer.css";
 
 const footerLinks = [

@@ -15,6 +15,7 @@ import { getProductPricing, parseNumberCLP } from "../../utils/priceHelper";
 import { hasB2BAccess, hasResellerBenefits } from "../../utils/userRoles";
 import { DEFAULT_PAYMENT_SETTINGS, normalizePaymentSettings, PAYMENT_SETTINGS_DOC, validatePaymentProofFile, visibleBankAccounts, visibleForUser } from "../../utils/paymentMethods";
 import Loader from "../../components/Loader";
+import steamImportData from "../../assets/steam_import_data.json";
 import "./PandaCheckoutCards.css";
 
 // app_id puede existir como referencia interna en productos de PlayStation.
@@ -600,12 +601,14 @@ export default function CheckoutCompraDirecta({ user: propUser }) {
             isSaga,
             isPromo,
             isSteam,
-            appId: producto.appId || producto.app_id || null,
-            app_id: producto.app_id || producto.appId || null,
+            appId: producto.appId || producto.app_id || (isSteam ? (steamImportData.find(s => String(s.name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '') === String(producto.name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''))?.app_id || null) : null),
+            app_id: producto.app_id || producto.appId || (isSteam ? (steamImportData.find(s => String(s.name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '') === String(producto.name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''))?.app_id || null) : null),
             games: producto.games || null,
             promoGames: producto.promoGames || null,
             vipExtras: producto.vipExtras || null,
             selectedVipExtras: producto.selectedVipExtras || null,
+            selectedDlcs: producto.selectedDlcs || null,
+            dlcsCount: producto.dlcsCount || (producto.selectedDlcs ? producto.selectedDlcs.length : 0),
             imageUrl: producto.imageUrl || producto.image || null,
             variante: producto.variante || null,
             meses: producto.meses || null
@@ -1491,9 +1494,26 @@ export default function CheckoutCompraDirecta({ user: propUser }) {
                             id: producto.id,
                             name: producto.name,
                             description: producto.description || producto.name,
-                            category_id: producto.category_id || "others",
+                            category_id: producto.category_id || producto.categoryId || "others",
+                            categoryId: producto.categoryId || producto.category_id || "others",
+                            categoryName: producto.categoryName || null,
+                            plataforma: producto.plataforma || null,
                             quantity: cantidad,
-                            precio: montoFinal
+                            cantidad: cantidad,
+                            precio: montoFinal,
+                            isPromo: Boolean(producto.isPromo),
+                            isSteam: Boolean(producto.isSteam),
+                            isCustomPack: Boolean(producto.isCustomPack),
+                            isSaga: Boolean(producto.isSaga),
+                            appId: producto.appId || producto.app_id || null,
+                            app_id: producto.app_id || producto.appId || null,
+                            promoGames: producto.promoGames || null,
+                            games: producto.games || null,
+                            juegos: producto.juegos || null,
+                            selectedGames: producto.selectedGames || null,
+                            selectedDlcs: producto.selectedDlcs || null,
+                            selectedVipExtras: producto.selectedVipExtras || null,
+                            vipExtras: producto.vipExtras || null
                           }],
                           email: emailFinal,
                           uid: user ? user.uid : 'guest',

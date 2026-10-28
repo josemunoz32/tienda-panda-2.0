@@ -3,6 +3,7 @@ import { db } from "../../firebase";
 import {
   collection,
   getDocs,
+  getDoc,
   doc,
   setDoc,
   updateDoc,
@@ -54,6 +55,15 @@ export function isEaVipGame(game) {
     (clean.includes("needforspeed") && clean.includes("payback")) ||
     (clean.includes("needforspeed") && clean.includes("unbound"))
   );
+}
+
+export function normalizeGameName(str) {
+  if (!str) return "";
+  return String(str)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
 }
 
 export const SAGA_PRESETS = [
@@ -369,18 +379,14 @@ export default function AdminLicencias() {
 
       let ryuuMap = new Map();
       try {
-        const NON_BASE_KEYWORDS = [
-          'soundtrack', 'ost', 'artbook', 'dlc', 'expansion pack', 'bonus content',
-          'wallpaper', 'demo', 'playtest', 'dedicated server', 'sdk', 'mod kit', 'add-on',
-          'season pass', 'content pack', 'upgrade pack', 'cosmetic', 'skin pack',
-          'supporter pack', 'sound track', 'digital artbook', 'original score', 'pre-order bonus',
-          'multiplayer', 'multi-player', 'mod tools', 'zombies'
-        ];
+        // Excluir únicamente paquetes que sean soundtracks o artbooks mal catalogados como 'game' sin excluir juegos legítimos (ej: Ghostbusters, Plants vs Zombies, Lost Planet, Demon Siege, Arma Reforger, etc.)
+        const NON_BASE_REGEX = /\b(soundtrack|original sound track|artbook|digital artbook|wallpaper pack|dedicated server|mod kit|sdk)\b/i;
 
         let ryuuData = await getCachedSteamCatalog();
         const fixesPromise = fetch("https://generator.ryuu.lol/files/fixes.json").catch(() => null);
         let ryuuPromise = null;
-        if (!ryuuData) {
+        // Si no hay datos en caché o si el caché está incompleto (< 10.000 juegos), descargar el catálogo completo
+        if (!ryuuData || !Array.isArray(ryuuData) || ryuuData.length < 10000) {
           ryuuPromise = fetch("https://generator.ryuu.lol/files/games.json").catch(() => null);
         }
 
@@ -396,7 +402,7 @@ export default function AdminLicencias() {
           });
         }
 
-        if (!ryuuData && ryuuRes && ryuuRes.ok) {
+        if (ryuuRes && ryuuRes.ok) {
           ryuuData = await ryuuRes.json();
           await setCachedSteamCatalog(ryuuData);
         }
@@ -412,11 +418,11 @@ export default function AdminLicencias() {
 
           ryuuData.forEach(r => {
             const appIdStr = String(r.appid);
-            const rType = (r.type || '').toLowerCase();
+            const rType = (r.type || 'game').toLowerCase();
             const rName = (r.name || '').toLowerCase();
 
-            // REGLA ESTRICTA: Solo juegos base (no DLCs, no soundtracks, no demos) y EXCLUIR juegos 100% online/servidor obligatorio
-            const isBase = rType === 'game' && !NON_BASE_KEYWORDS.some(kw => rName.includes(kw)) && !isOnlineOnlyAppId(appIdStr);
+            // Incluir todos los juegos de la API de Ryuu (60k+ títulos) para generación de licencias, sin excluir por modo online
+            const isBase = (rType === 'game' || !rType) && !NON_BASE_REGEX.test(rName);
             if (!isBase) return;
 
             if (!existingIds.has(appIdStr)) {
@@ -906,7 +912,7 @@ export default function AdminLicencias() {
     setShowLicenseModal(true);
   };
 
-  const openEditLicense = (lic) => {
+  const openEditLicense = async (lic) => {
     setEditingLicense(lic);
     setFormError("");
     setNewKey(lic.key || lic.id);
@@ -928,7 +934,40 @@ export default function AdminLicencias() {
     if (hasAll) {
       setSelectedGameIds([]);
     } else {
-      const rawAllowed = Array.isArray(lic.allowed_games) ? lic.allowed_games : [];
+      let rawAllowed = Array.isArray(lic.allowed_games) ? [...lic.allowed_games] : [];
+
+      // Si la clave tiene un pedido asociado, enriquecer juegos desde promoGames o customPacks
+      if (lic.orderId) {
+        try {
+          const ordSnap = await getDoc(doc(db, "orders", lic.orderId));
+          if (ordSnap.exists()) {
+            const ordData = ordSnap.data();
+            const prods = ordData.productos || ordData.cart || [];
+            for (const p of prods) {
+              const sub = Array.isArray(p.promoGames) && p.promoGames.length > 0 ? p.promoGames :
+                (Array.isArray(p.juegos) && p.juegos.length > 0 ? p.juegos :
+                (Array.isArray(p.games) && p.games.length > 0 ? p.games : []));
+              for (const sg of sub) {
+                if (sg.app_id || sg.appId) rawAllowed.push(String(sg.app_id || sg.appId));
+                if (sg.name) rawAllowed.push(sg.name);
+              }
+              if (p.id && String(p.id).startsWith("custom-pack-")) {
+                const cId = String(p.id).replace("custom-pack-", "");
+                const cpSnap = await getDoc(doc(db, "customPacks", cId));
+                if (cpSnap.exists() && Array.isArray(cpSnap.data().juegos)) {
+                  for (const cj of cpSnap.data().juegos) {
+                    if (cj.app_id || cj.appId) rawAllowed.push(String(cj.app_id || cj.appId));
+                    if (cj.name) rawAllowed.push(cj.name);
+                  }
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("No se pudo obtener el pedido para enriquecer juegos:", e);
+        }
+      }
+
       const resolvedIds = new Set();
 
       rawAllowed.forEach(item => {
@@ -943,11 +982,11 @@ export default function AdminLicencias() {
           return;
         }
 
-        // 2. Coincidencia por nombre (normalizado)
-        const normItem = strItem.toLowerCase().replace(/[^a-z0-9]/g, '');
+        // 2. Coincidencia por nombre (normalizado con NFD para tildes y caracteres especiales)
+        const normItem = normalizeGameName(strItem);
         const nameMatch = games.find(g => {
-          const gNorm = (g.name || "").toLowerCase().replace(/[^a-z0-9]/g, '');
-          const gFolderNorm = (g.steam_folder_name || "").toLowerCase().replace(/[^a-z0-9]/g, '');
+          const gNorm = normalizeGameName(g.name);
+          const gFolderNorm = normalizeGameName(g.steam_folder_name);
           return (gNorm && gNorm === normItem) || (gFolderNorm && gFolderNorm === normItem);
         });
 
@@ -972,8 +1011,11 @@ export default function AdminLicencias() {
           return;
         }
 
-        // 4. Si no se pudo mapear numéricamente, conservar el string original
-        resolvedIds.add(strItem);
+        // 4. Si no se pudo mapear numéricamente y no es el título de un pack corrupto, conservar
+        const isCorruptPackTitle = /^(?:pack|promo|3x|5x|10x|23x)/i.test(strItem) || strItem.includes("4990") || strItem.includes("4500");
+        if (!isCorruptPackTitle) {
+          resolvedIds.add(strItem);
+        }
       });
 
       setSelectedGameIds(Array.from(resolvedIds));
@@ -1041,7 +1083,15 @@ export default function AdminLicencias() {
     }
 
     try {
-      const allowedArr = isAllGames ? ["*"] : selectedGameIds;
+      const allowedArr = isAllGames ? ["*"] : selectedGameIds.map(gid => {
+        const strGid = String(gid).trim();
+        const direct = games.find(g => String(g.app_id || g.id) === strGid || String(g.id) === strGid);
+        if (direct && (direct.app_id || direct.id)) return String(direct.app_id || direct.id);
+        const nGid = normalizeGameName(strGid);
+        const byName = games.find(g => normalizeGameName(g.name) === nGid);
+        if (byName && (byName.app_id || byName.id)) return String(byName.app_id || byName.id);
+        return strGid;
+      });
       const nowStr = new Date().toISOString();
       const finalHwid = newHwid.trim() ? newHwid.trim() : null;
       const licenseData = {
@@ -1087,22 +1137,22 @@ export default function AdminLicencias() {
     const idStr = String(appId);
     const g = games.find(game => String(game.app_id || game.id) === idStr);
     const gName = g?.name || "";
-    const gNorm = gName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const gNorm = normalizeGameName(gName);
 
     const isCurrentlySelected = selectedGameIds.some(sel => {
-      const s = String(sel);
+      const s = String(sel).trim();
       if (s === idStr) return true;
       if (g && (s === String(g.id) || s === String(g.app_id))) return true;
-      if (gNorm && s.toLowerCase().replace(/[^a-z0-9]/g, '') === gNorm) return true;
+      if (gNorm && normalizeGameName(s) === gNorm) return true;
       return false;
     });
 
     if (isCurrentlySelected) {
       setSelectedGameIds(prev => prev.filter(sel => {
-        const s = String(sel);
+        const s = String(sel).trim();
         if (s === idStr) return false;
         if (g && (s === String(g.id) || s === String(g.app_id))) return false;
-        if (gNorm && s.toLowerCase().replace(/[^a-z0-9]/g, '') === gNorm) return false;
+        if (gNorm && normalizeGameName(s) === gNorm) return false;
         return true;
       }));
       if (g && Array.isArray(g.dlcIds)) {
@@ -2401,7 +2451,8 @@ export default function AdminLicencias() {
                       <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", maxHeight: "180px", overflowY: "auto", padding: "4px" }}>
                           {(selectedSideLicense.allowed_games || []).map((gid, idx) => {
-                            const g = games.find(game => String(game.app_id || game.id) === String(gid));
+                            const nGid = normalizeGameName(gid);
+                            const g = games.find(game => String(game.app_id || game.id) === String(gid) || (game.name && normalizeGameName(game.name) === nGid));
                             const gDlcs = g?.dlcs || [];
                             const activeDlcsCount = gDlcs.filter(d => (selectedSideLicense.allowed_dlcs || []).map(String).includes(String(d.dlc_app_id))).length;
                             const hasDlc = Array.isArray(selectedSideLicense.allowed_dlcs) && (
@@ -2409,7 +2460,7 @@ export default function AdminLicencias() {
                             );
                             return (
                               <span key={idx} style={{ padding: "3px 8px", background: hasDlc ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.05)", border: hasDlc ? "1px solid #10b981" : "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontSize: "0.75rem", color: "#fff" }}>
-                                🎮 {g?.name || gid} {hasDlc && <strong style={{ color: "#34d399", marginLeft: 4 }}>+ 📦 {activeDlcsCount > 0 ? `${activeDlcsCount} DLCs` : "DLCs"}</strong>}
+                                🎮 {g?.name || gid} {g?.app_id ? <span style={{ opacity: 0.6, fontSize: "10px", marginLeft: 3 }}>({g.app_id})</span> : null} {hasDlc && <strong style={{ color: "#34d399", marginLeft: 4 }}>+ 📦 {activeDlcsCount > 0 ? `${activeDlcsCount} DLCs` : "DLCs"}</strong>}
                               </span>
                             );
                           })}
@@ -3056,16 +3107,17 @@ export default function AdminLicencias() {
                       padding: "4px 2px"
                     }}>
                       {selectedGameIds.map((gid) => {
-                        const strGid = String(gid);
+                        const strGid = String(gid).trim();
+                        const normGid = normalizeGameName(strGid);
                         const gObj = games.find(g =>
                           String(g.app_id || g.id) === strGid ||
                           String(g.id) === strGid ||
-                          (g.name && g.name.toLowerCase() === strGid.toLowerCase())
+                          (g.name && normalizeGameName(g.name) === normGid)
                         );
                         const displayName = gObj ? gObj.name : strGid;
                         const displayAppId = gObj ? (gObj.app_id || gObj.id) : strGid;
                         const hasDlc = Array.isArray(selectedDlcIds) && (
-                          selectedDlcIds.map(String).includes(displayAppId) ||
+                          selectedDlcIds.map(String).includes(String(displayAppId)) ||
                           (gObj && Array.isArray(gObj.dlcIds) && gObj.dlcIds.some(d => selectedDlcIds.map(String).includes(String(d))))
                         );
 
@@ -3092,12 +3144,12 @@ export default function AdminLicencias() {
                               type="button"
                               onClick={() => {
                                 setSelectedGameIds(prev => prev.filter(x => {
-                                  const s = String(x);
-                                  return s !== strGid && s !== displayAppId && (!gObj || s.toLowerCase() !== gObj.name.toLowerCase());
+                                  const s = String(x).trim();
+                                  return s !== strGid && s !== String(displayAppId) && normalizeGameName(s) !== normGid;
                                 }));
                                 if (gObj && Array.isArray(gObj.dlcIds)) {
                                   const dlcSet = new Set(gObj.dlcIds.map(String));
-                                  setSelectedDlcIds(prev => prev.filter(d => !dlcSet.has(String(d)) && String(d) !== displayAppId));
+                                  setSelectedDlcIds(prev => prev.filter(d => !dlcSet.has(String(d)) && String(d) !== String(displayAppId)));
                                 }
                               }}
                               style={{
@@ -3407,12 +3459,12 @@ export default function AdminLicencias() {
                             {visible.map(g => {
                               const appId = String(g.app_id || g.id);
                               const docId = String(g.id);
-                              const gNameNorm = (g.name || "").toLowerCase().replace(/[^a-z0-9]/g, '');
+                              const gNameNorm = normalizeGameName(g.name);
                               const isChecked = selectedGameIds.some(sel => {
                                 const s = String(sel).trim();
                                 if (s === appId || s === docId) return true;
-                                const sNorm = s.toLowerCase().replace(/[^a-z0-9]/g, '');
-                                return sNorm && (sNorm === gNameNorm || (gNameNorm.length > 5 && (sNorm.includes(gNameNorm) || gNameNorm.includes(sNorm))));
+                                const sNorm = normalizeGameName(s);
+                                return Boolean(sNorm && gNameNorm && sNorm === gNameNorm);
                               });
                               const gDlcs = Array.isArray(g.dlcs) ? g.dlcs : [];
                               const gDlcIds = Array.isArray(g.dlcIds) ? g.dlcIds : [];

@@ -1,4 +1,6 @@
 # https://www.robotstxt.org/robotstxt.html
+# PandaStore Gaming Chile - Optimizado para Buscadores y Agentes IA (100% Crawlability)
+
 User-agent: *
 Allow: /
 Disallow: /admin/
@@ -16,4 +18,33 @@ Disallow: /mi-rutina-fit
 Disallow: /rutina-gym
 Disallow: /pandafit
 
-Sitemap: https://pandastoreupdate.web.app/sitemap.xml
+# Agentes de Inteligencia Artificial (LLM & Web Agents)
+User-agent: GPTBot
+Allow: /
+Disallow: /admin/
+Disallow: /perfil
+Disallow: /checkoutcarrito
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin/
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Mapas de navegación y manifiesto para LLM
+Sitemap: https://pandastoregaming.cl/sitemap.xml
+# LLMs.txt Standard para agentes IA
+# https://pandastoregaming.cl/llms.txt

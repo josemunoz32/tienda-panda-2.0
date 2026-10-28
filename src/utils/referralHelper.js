@@ -12,7 +12,7 @@ import {
   collection, query, where, getDocs
 } from 'firebase/firestore';
 
-const BASE_URL = window.location.origin; // e.g. http://localhost:3000 or https://pandastoreupdate.web.app
+const BASE_URL = window.location.origin; // e.g. http://localhost:3000 or https://pandastoregaming.cl
 
 /** Genera un código único de referido basado en el UID */
 export function generateReferralCode(uid) {

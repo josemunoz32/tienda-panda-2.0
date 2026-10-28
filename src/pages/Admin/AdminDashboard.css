@@ -707,6 +707,37 @@
 .adm-daily-row { padding: 7px 8px; border-radius: 8px; background: rgba(255,255,255,.035); color: rgba(255,255,255,.66); font-size: .74rem; }
 .adm-daily-row b { color: #a7f3d0; font-size: .78rem; }
 
+.adm-live-visitors-section { margin: 0 0 18px; }
+.adm-live-visitors { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px; }
+.adm-live-visitor { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 9px; align-items: center; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,.035); }
+.adm-live-kind { border-radius: 999px; padding: 3px 8px; font-size: .65rem; font-weight: 800; white-space: nowrap; }
+.adm-live-kind.is-guest { color: #c4b5fd; background: rgba(162,89,255,.16); }
+.adm-live-kind.is-user { color: #86efac; background: rgba(34,197,94,.14); }
+.adm-live-page { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: rgba(255,255,255,.68); font-size: .76rem; }
+.adm-live-page b { color: #fff; }
+.adm-live-tabs { color: rgba(196,181,253,.6); font-size: .68rem; white-space: nowrap; }
+
+.adm-visitor-analysis-section { margin: 0 0 18px; }
+.adm-journey { display: grid; grid-template-columns: minmax(230px, .7fr) minmax(0, 1.3fr); gap: 14px; min-height: 260px; }
+.adm-journey-list { display: flex; flex-direction: column; gap: 6px; max-height: 430px; overflow-y: auto; padding-right: 3px; }
+.adm-journey-person { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 8px; align-items: center; text-align: left; border: 1px solid transparent; border-radius: 10px; padding: 9px 10px; background: rgba(255,255,255,.035); color: #fff; cursor: pointer; }
+.adm-journey-person:hover, .adm-journey-person.active { background: rgba(123,47,242,.16); border-color: rgba(162,89,255,.4); }
+.adm-journey-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .78rem; font-weight: 750; }
+.adm-journey-person small { grid-column: 2; color: rgba(196,181,253,.62); font-size: .67rem; }
+.adm-journey-detail { min-width: 0; padding: 14px; border-radius: 12px; background: rgba(255,255,255,.025); border: 1px solid rgba(162,89,255,.15); }
+.adm-journey-summary { display: flex; justify-content: space-between; gap: 14px; border-bottom: 1px solid rgba(255,255,255,.08); padding-bottom: 12px; }
+.adm-journey-summary h4 { margin: 7px 0 3px; color: #fff; font-size: .96rem; }
+.adm-journey-summary p { margin: 0; color: rgba(196,181,253,.58); font-size: .68rem; }
+.adm-journey-stats { display: grid; grid-template-columns: auto auto; align-content: center; column-gap: 7px; color: rgba(196,181,253,.55); font-size: .66rem; }
+.adm-journey-stats b { color: #a7f3d0; text-align: right; font-size: .85rem; }
+.adm-journey-interest { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; padding: 9px 0 0; color: rgba(255,255,255,.66); font-size: .7rem; }
+.adm-journey-interest b { color: #c4b5fd; }
+.adm-journey-interest span { background: rgba(162,89,255,.12); border-radius: 999px; padding: 3px 7px; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.adm-journey-timeline { display: flex; flex-direction: column; gap: 5px; margin-top: 12px; max-height: 235px; overflow-y: auto; }
+.adm-journey-event { display: grid; grid-template-columns: 105px minmax(0, 1fr); gap: 9px; border-left: 2px solid rgba(162,89,255,.45); padding: 5px 8px; background: rgba(255,255,255,.025); color: rgba(255,255,255,.75); font-size: .72rem; }
+.adm-journey-event time { color: rgba(196,181,253,.55); font-size: .65rem; }
+@media (max-width: 700px) { .adm-journey { grid-template-columns: 1fr; } .adm-journey-list { max-height: 210px; } .adm-journey-summary { flex-direction: column; } }
+
 /* ── Abandoned carts status ── */
 .adm-abandoned-stats {
   font-size: 0.75rem;

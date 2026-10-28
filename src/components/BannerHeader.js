@@ -8,7 +8,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./BannerHeader.css";
 import { useMoneda } from "../context/MonedaContext";
-import bannerHalloween from "../assets/halloween/banner-halloween-panoramico.png";
+import bannerHalloween from "../assets/halloween/banner-halloween-panoramico.webp";
 import { Menu, Heart, ShoppingBag, User as UserIcon, Key } from "lucide-react";
 
 export default function BannerHeader({
@@ -63,6 +63,8 @@ export default function BannerHeader({
           src={bannerHalloween}
           alt="Panda Store: especial de Halloween"
           className="banner-header-img"
+          fetchPriority="high"
+          decoding="async"
         />
         {/* Gradiente sutil arriba para legibilidad perfecta de los controles */}
         <div className="banner-header-top-vignette" />

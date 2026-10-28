@@ -14,9 +14,9 @@ import { isOnlineOnlySteamProduct } from "../../utils/steamCatalogCache";
 import { calculateSwitchStockMap, getGameStockCount } from "../../utils/switchStockHelper";
 import { hasResellerBenefits } from "../../utils/userRoles";
 import steamImportData from "../../assets/steam_import_data.json";
-import steamPromo3x from "../../assets/promos/steam_3x_4990.png";
-import steamPromo10x from "../../assets/promos/steam_10x_9990.png";
-import steamPromo23x from "../../assets/promos/steam_23x_17990.png";
+import steamPromo3x from "../../assets/promos/steam_3x_4990.webp";
+import steamPromo10x from "../../assets/promos/steam_10x_9990.webp";
+import steamPromo23x from "../../assets/promos/steam_23x_17990.webp";
 import { fetchRyuuCatalog, getDlcBundlePrice } from "../../utils/ryuuDlcHelper";
 import PromoDlcModal from "../../components/PromoDlcModal/PromoDlcModal";
 import "../../components/PromoDlcModal/PromoDlcModal.css";
@@ -115,26 +115,26 @@ const PROMOS = [
   },
 
   /* Packs Masivos Launcher */
-  { key: "promo-steam-100x", name: "Pack 100 Juegos Steam (Aleatorio)", priceCLP: 15000, image: require("../../assets/promos/steam_100x_15000.jpg"), selectCount: 100, restricted: false, isRandomPack: true, isSteam: true },
-  { key: "promo-steam-200x", name: "Pack 200 Juegos Steam (Aleatorio)", priceCLP: 25000, image: require("../../assets/promos/steam_200x_25000.jpg"), selectCount: 200, restricted: false, isRandomPack: true, isSteam: true },
-  { key: "promo-steam-300x", name: "Pack 300 Juegos Steam (Aleatorio)", priceCLP: 35000, image: require("../../assets/promos/steam_300x_35000.jpg"), selectCount: 300, restricted: false, isRandomPack: true, isSteam: true },
+  { key: "promo-steam-100x", name: "Pack 100 Juegos Steam (Aleatorio)", priceCLP: 15000, image: require("../../assets/promos/steam_100x_15000.webp"), selectCount: 100, restricted: false, isRandomPack: true, isSteam: true },
+  { key: "promo-steam-200x", name: "Pack 200 Juegos Steam (Aleatorio)", priceCLP: 25000, image: require("../../assets/promos/steam_200x_25000.webp"), selectCount: 200, restricted: false, isRandomPack: true, isSteam: true },
+  { key: "promo-steam-300x", name: "Pack 300 Juegos Steam (Aleatorio)", priceCLP: 35000, image: require("../../assets/promos/steam_300x_35000.webp"), selectCount: 300, restricted: false, isRandomPack: true, isSteam: true },
   { key: "promo-steam-400x", name: "Pack 400+ Juegos Steam (Aleatorio)", priceCLP: 40000, image: "/pack_400_steam.jpg", selectCount: 400, restricted: false, isRandomPack: true, isSteam: true },
 
   /* Nintendo promos */
-  { key: "promo-basica-2x",  name: "Pack 2X Básico",    priceCLP: 25000, image: require("../../assets/promos/2 x 25.000 basica.png"),      selectCount: 2, restricted: true, maxPriceCLP: 15000 },
+  { key: "promo-basica-2x",  name: "Pack 2X Básico",    priceCLP: 25000, image: require("../../assets/promos/2 x 25.000 basica.webp"),      selectCount: 2, restricted: true, maxPriceCLP: 15000 },
   { key: "promo-basica-3x",  name: "Pack 3X Básico",    priceCLP: 35000, image: require("../../assets/promos/3x1 $35.000 basica.png"),      selectCount: 3, restricted: true, maxPriceCLP: 17000 },
-  { key: "promo-deluxe-2x",  name: "Pack 2X Deluxe",    priceCLP: 30000, image: require("../../assets/promos/deluxe 2 x 30.000.png"),       selectCount: 2, restricted: true, maxPriceCLP: 20000 },
-  { key: "promo-deluxe-3x",  name: "Pack 3X Deluxe",    priceCLP: 40000, image: require("../../assets/promos/deluxe 3 x40.000.png"),        selectCount: 3, restricted: true, maxPriceCLP: 20000 },
-  { key: "promo-4x",         name: "Pack 4X Mega",       priceCLP: 55000, image: require("../../assets/promos/4x55.png"),                    selectCount: 4, restricted: true },
-  { key: "promo-kart",       name: "Kart + Pase",        priceCLP: 22000, image: require("../../assets/promos/kart + pase.png"),             selectCount: 1 },
-  { key: "promo-violet",     name: "Violet + DLC",       priceCLP: 24000, image: require("../../assets/promos/violet + dlc.png"),            selectCount: 1 },
-  { key: "promo-scarlet",    name: "Scarlet + DLC",      priceCLP: 24000, image: require("../../assets/promos/scarlet + dlc.png"),           selectCount: 1 },
-  { key: "promo-animal",     name: "Animal + DLC",       priceCLP: 20000, image: require("../../assets/promos/animal +dlc.png"),             selectCount: 1 },
-  { key: "promo-cuphead",    name: "Cuphead + DLC",      priceCLP: 12000, image: require("../../assets/promos/cuphead + dlc.png"),           selectCount: 1 },
-  { key: "promo-wild",       name: "Zelda Wild + Pass",  priceCLP: 24000, image: require("../../assets/promos/wild + dlc.png"),              selectCount: 1 },
-  { key: "promo-sword",      name: "Pokémon Espada + DLC", priceCLP: 23000, image: require("../../assets/promos/pokemon espada + dlc.png"), selectCount: 1 },
-  { key: "promo-shield",     name: "Pokémon Escudo + DLC", priceCLP: 23000, image: require("../../assets/promos/pokemon escudo +dlc.png"),  selectCount: 1 },
-  { key: "promo-splatoon",   name: "Splatoon 3 + DLC",   priceCLP: 24000, image: require("../../assets/promos/splatoon 3 + dlc.png"),       selectCount: 1 },
+  { key: "promo-deluxe-2x",  name: "Pack 2X Deluxe",    priceCLP: 30000, image: require("../../assets/promos/deluxe 2 x 30.000.webp"),       selectCount: 2, restricted: true, maxPriceCLP: 20000 },
+  { key: "promo-deluxe-3x",  name: "Pack 3X Deluxe",    priceCLP: 40000, image: require("../../assets/promos/deluxe 3 x40.000.webp"),        selectCount: 3, restricted: true, maxPriceCLP: 20000 },
+  { key: "promo-4x",         name: "Pack 4X Mega",       priceCLP: 55000, image: require("../../assets/promos/4x55.webp"),                    selectCount: 4, restricted: true },
+  { key: "promo-kart",       name: "Kart + Pase",        priceCLP: 22000, image: require("../../assets/promos/kart + pase.webp"),             selectCount: 1 },
+  { key: "promo-violet",     name: "Violet + DLC",       priceCLP: 24000, image: require("../../assets/promos/violet + dlc.webp"),            selectCount: 1 },
+  { key: "promo-scarlet",    name: "Scarlet + DLC",      priceCLP: 24000, image: require("../../assets/promos/scarlet + dlc.webp"),           selectCount: 1 },
+  { key: "promo-animal",     name: "Animal + DLC",       priceCLP: 20000, image: require("../../assets/promos/animal +dlc.webp"),             selectCount: 1 },
+  { key: "promo-cuphead",    name: "Cuphead + DLC",      priceCLP: 12000, image: require("../../assets/promos/cuphead + dlc.webp"),           selectCount: 1 },
+  { key: "promo-wild",       name: "Zelda Wild + Pass",  priceCLP: 24000, image: require("../../assets/promos/wild + dlc.webp"),              selectCount: 1 },
+  { key: "promo-sword",      name: "Pokémon Espada + DLC", priceCLP: 23000, image: require("../../assets/promos/pokemon espada + dlc.webp"), selectCount: 1 },
+  { key: "promo-shield",     name: "Pokémon Escudo + DLC", priceCLP: 23000, image: require("../../assets/promos/pokemon escudo +dlc.webp"),  selectCount: 1 },
+  { key: "promo-splatoon",   name: "Splatoon 3 + DLC",   priceCLP: 24000, image: require("../../assets/promos/splatoon 3 + dlc.webp"),       selectCount: 1 },
 ];
 
 const WA_ICON = (
@@ -905,14 +905,20 @@ export default function PromosList() {
       plataforma: activePromo.isSteam ? "steam" : null,
       categoryId: activePromo.isSteam ? "steam" : null,
       categoryName: activePromo.isSteam ? "Steam" : null,
-      isSteam: Boolean(activePromo.isSteam),
-      promoGames: chosen.map(p => ({
-        id: p.id,
-        name: p.name,
-        app_id: p.app_id,
-        appId: p.app_id,
-        selectedDlcs: promoSelectedDlcs[p.id] || []
-      })),
+      promoGames: chosen.map(p => {
+        let aid = p.app_id || p.appId || null;
+        if (!aid && p.id) {
+          const m = String(p.id).match(/^(?:ryuu_|vip-|promo-steam-)?(\d+)$/);
+          if (m) aid = m[1];
+        }
+        return {
+          id: p.id,
+          name: p.name,
+          app_id: aid,
+          appId: aid,
+          selectedDlcs: promoSelectedDlcs[p.id] || []
+        };
+      }),
       selectedDlcs: allSelectedDlcs,
       dlcsCount: allSelectedDlcs.length
     };
@@ -947,20 +953,20 @@ export default function PromosList() {
         <meta name="keywords" content="promociones videojuegos, packs juegos 2x1, ofertas juegos steam pc, packs nintendo switch baratos, juegos ps5 ofertas, packs juegos ps4, pandastore ofertas" />
         <meta property="og:title" content="Promociones y Packs de Videojuegos 2x1 y 3x1 | PandaStore" />
         <meta property="og:description" content="Packs 2x1, 3x1 y sagas completas para Steam PC, Nintendo Switch, PS4 y PS5. ¡Elige tus juegos favoritos con entrega inmediata 24/7!" />
-        <meta property="og:url" content="https://pandastoreupdate.web.app/promos" />
-        <meta property="og:image" content="https://pandastoreupdate.web.app/favicon.png" />
+        <meta property="og:url" content="https://pandastoregaming.cl/promos" />
+        <meta property="og:image" content="https://pandastoregaming.cl/favicon.png" />
         <meta name="twitter:title" content="Packs y Promociones de Videojuegos | PandaStore" />
         <meta name="twitter:description" content="Ahorra con packs 2x1 y 3x1 en juegos para PC, Switch y PlayStation en PandaStore." />
-        <meta name="twitter:image" content="https://pandastoreupdate.web.app/favicon96.png" />
-        <link rel="canonical" href="https://pandastoreupdate.web.app/promos" />
+        <meta name="twitter:image" content="https://pandastoregaming.cl/favicon96.png" />
+        <link rel="canonical" href="https://pandastoregaming.cl/promos" />
         <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "CollectionPage",
           "name": "Promociones y Packs de Videojuegos - PandaStore",
           "description": "Packs especiales 2x1 y 3x1 de videojuegos digitales para Steam PC, Nintendo Switch y PlayStation.",
-          "url": "https://pandastoreupdate.web.app/promos",
-          "isPartOf": { "@type": "VideoGameStore", "name": "PandaStore", "url": "https://pandastoreupdate.web.app" }
+          "url": "https://pandastoregaming.cl/promos",
+          "isPartOf": { "@type": "VideoGameStore", "name": "PandaStore", "url": "https://pandastoregaming.cl" }
         })}
         </script>
       </Helmet>

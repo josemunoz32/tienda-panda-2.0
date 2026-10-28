@@ -46,8 +46,8 @@ export default function InstalacionNintendo() {
         <meta name="keywords" content="como instalar juegos nintendo switch, activar cuenta switch, tutorial juegos digitales switch, soporte nintendo pandastore" />
         <meta property="og:title" content="Guía de Instalación Nintendo Switch | PandaStore" />
         <meta property="og:description" content="Aprende a instalar tus juegos de Nintendo Switch en simples pasos con imágenes ilustrativas." />
-        <meta property="og:url" content="https://pandastoreupdate.web.app/instalacion-nintendo" />
-        <link rel="canonical" href="https://pandastoreupdate.web.app/instalacion-nintendo" />
+        <meta property="og:url" content="https://pandastoregaming.cl/instalacion-nintendo" />
+        <link rel="canonical" href="https://pandastoregaming.cl/instalacion-nintendo" />
         <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",

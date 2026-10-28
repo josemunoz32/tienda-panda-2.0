@@ -165,11 +165,9 @@ export const ONLINE_ONLY_STEAM_APPIDS = new Set([
 
   // Shooters 100% Online
   '393380',  // Squad
-  '403240',  // Squad Dedicated Server
   '736220',  // Squad 44
-  '1874880', // Arma Reforger
+  // '1874880', // Arma Reforger (Habilitado para licencias y catálogo)
   '686810',  // Hell Let Loose
-  '3079210', // Hell Let Loose: Vietnam
   '581320',  // Insurgency: Sandstorm
   '674020',  // World War 3
   '1058650', // Beyond The Wire
@@ -303,7 +301,6 @@ const ONLINE_ONLY_KEYWORDS = [
   'minecraft dungeons',
   'minecraft legends',
   'squad 44',
-  'arma reforger',
   'hell let loose',
   'insurgency: sandstorm',
   'world war 3',
@@ -385,7 +382,6 @@ export function isOnlineOnlySteamProduct(product) {
   if (
     rawName === 'squad' ||
     rawName.startsWith('squad ') ||
-    rawName.includes('arma reforger') ||
     rawName.includes('hell let loose') ||
     rawName.includes('insurgency: sandstorm') ||
     rawName.includes('post scriptum') ||

@@ -138,12 +138,21 @@ export default function AdminArmarPack() {
         precio_clp: Number(precioCLP),
         precio_usd: precioUSD ? Number(precioUSD) : Math.round((Number(precioCLP) / 900) * 100) / 100,
         descripcion: descripcion.trim(),
-        juegos: selectedGames.map((g) => ({
-          id: g.id,
-          name: g.name || "",
-          imageUrl: g.imageUrl || g.image || "",
-          platform: g.platform || g.category || ""
-        })),
+        juegos: selectedGames.map((g) => {
+          let aid = g.app_id || g.appId || null;
+          if (!aid && g.id) {
+            const m = String(g.id).match(/^(?:ryuu_|vip-|promo-steam-)?(\d+)$/);
+            if (m) aid = m[1];
+          }
+          return {
+            id: g.id,
+            name: g.name || "",
+            app_id: aid,
+            appId: aid,
+            imageUrl: g.imageUrl || g.image || "",
+            platform: g.platform || g.category || ""
+          };
+        }),
         createdAt: Timestamp.now(),
         activo: true
       };

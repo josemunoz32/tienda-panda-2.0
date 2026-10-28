@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./InstagramFloatingBadge.css";
-import logoIg from "../../assets/logos/logoig.png";
+import logoIg from "../../assets/logos/logoig.webp";
 
 export default function InstagramFloatingBadge() {
   const [closed, setClosed] = useState(false);
@@ -33,6 +33,9 @@ export default function InstagramFloatingBadge() {
                 src={logoIg}
                 alt="Instagram @pandastoregaming.cl"
                 className="panda-ig-fab-icon"
+                width="48"
+                height="48"
+                decoding="async"
               />
             </div>
           </div>

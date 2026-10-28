@@ -78,8 +78,33 @@ export default function CustomPackDetail() {
         plataforma: "steam",
         categoryId: "steam",
         categoryName: "Steam",
-        isSteam: true,
-        promoGames: (pack.juegos || []).map(g => ({ id: g.id, name: g.name }))
+        promoGames: (pack.juegos || []).map(g => {
+          let aid = g.app_id || g.appId || null;
+          if (!aid && g.id) {
+            const m = String(g.id).match(/^(?:ryuu_|vip-|promo-steam-)?(\d+)$/);
+            if (m) aid = m[1];
+          }
+          return {
+            id: g.id,
+            name: g.name,
+            app_id: aid,
+            appId: aid,
+            selectedDlcs: g.selectedDlcs || []
+          };
+        }),
+        juegos: (pack.juegos || []).map(g => {
+          let aid = g.app_id || g.appId || null;
+          if (!aid && g.id) {
+            const m = String(g.id).match(/^(?:ryuu_|vip-|promo-steam-)?(\d+)$/);
+            if (m) aid = m[1];
+          }
+          return {
+            id: g.id,
+            name: g.name,
+            app_id: aid,
+            appId: aid
+          };
+        })
       };
 
       if (user) {

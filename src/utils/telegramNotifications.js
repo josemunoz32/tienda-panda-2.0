@@ -58,7 +58,7 @@ export async function notifyNewResellerApplication({ nombre, email, whatsapp, ti
     tipoNegocio ? `🏢 <b>Detalle:</b> ${tipoNegocio}` : null,
     `📅 <b>Fecha:</b> ${fechaStr}`,
     `━━━━━━━━━━━━━━━━━━━━━━`,
-    `🔗 <a href="https://pandastoreupdate.web.app/admin/revendedores">Abrir Panel de Revendedores</a>`,
+    `🔗 <a href="https://pandastoregaming.cl/admin/revendedores">Abrir Panel de Revendedores</a>`,
     `━━━━━━━━━━━━━━━━━━━━━━`,
     `🌐 <i>PandaStore 2.0 · Alerta Automática</i>`
   ].filter(Boolean).join("\n");
@@ -111,7 +111,7 @@ export async function notifyNewDistributorRequest({
     comprobanteUrl ? `📎 <b>Comprobante:</b> <a href="${comprobanteUrl}">Ver Archivo Adjunto</a>` : null,
     `📅 <b>Fecha:</b> ${fechaStr}`,
     `━━━━━━━━━━━━━━━━━━━━━━`,
-    `🔗 <a href="https://pandastoreupdate.web.app/admin/distribuidores">Abrir Panel de Distribuidores</a>`,
+    `🔗 <a href="https://pandastoregaming.cl/admin/distribuidores">Abrir Panel de Distribuidores</a>`,
     `━━━━━━━━━━━━━━━━━━━━━━`,
     `🌐 <i>PandaStore 2.0 · Alerta Automática</i>`
   ].filter(Boolean).join("\n");
@@ -151,7 +151,7 @@ export async function notifyNewWalletRecharge({
     comprobanteUrl ? `📎 <b>Comprobante:</b> <a href="${comprobanteUrl}">Ver Comprobante de Pago</a>` : null,
     `📅 <b>Fecha:</b> ${fechaStr}`,
     `━━━━━━━━━━━━━━━━━━━━━━`,
-    `🔗 <a href="https://pandastoreupdate.web.app/admin/revendedores">Validar en Panel de Recargas</a>`,
+    `🔗 <a href="https://pandastoregaming.cl/admin/revendedores">Validar en Panel de Recargas</a>`,
     `━━━━━━━━━━━━━━━━━━━━━━`,
     `🌐 <i>PandaStore 2.0 · Alerta Automática</i>`
   ].filter(Boolean).join("\n");

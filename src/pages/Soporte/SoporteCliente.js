@@ -147,8 +147,8 @@ export default function SoporteCliente() {
         <meta name="keywords" content="soporte pandastore, ayuda juegos digitales, tickets pandastore, atencion al cliente pandastore, soporte tecnico steam ps5 switch" />
         <meta property="og:title" content="Centro de Ayuda y Soporte al Cliente | PandaStore" />
         <meta property="og:description" content="Atención al cliente 24/7 y soporte de activación garantizado en PandaStore." />
-        <meta property="og:url" content="https://pandastoreupdate.web.app/soporte" />
-        <link rel="canonical" href="https://pandastoreupdate.web.app/soporte" />
+        <meta property="og:url" content="https://pandastoregaming.cl/soporte" />
+        <link rel="canonical" href="https://pandastoregaming.cl/soporte" />
       </Helmet>
       <h1 style={{
         textAlign: "center",

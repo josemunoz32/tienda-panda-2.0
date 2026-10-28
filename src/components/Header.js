@@ -11,9 +11,9 @@ import { markCartActive } from "../utils/abandonedCart";
 import { isOnlineOnlySteamProduct } from "../utils/steamCatalogCache";
 import { getProductPricing, parseNumberCLP } from "../utils/priceHelper";
 import { hasActiveSteamDistributorAccess, hasResellerBenefits } from "../utils/userRoles";
-import homeHalloweenIcon from '../assets/halloween/menu-icons/home-halloween.png';
-import categoriesHalloweenIcon from '../assets/halloween/menu-icons/categories-halloween.png';
-import installationHalloweenIcon from '../assets/halloween/menu-icons/installation-halloween.png';
+import homeHalloweenIcon from '../assets/halloween/menu-icons/home-halloween.webp';
+import categoriesHalloweenIcon from '../assets/halloween/menu-icons/categories-halloween.webp';
+import installationHalloweenIcon from '../assets/halloween/menu-icons/installation-halloween.webp';
 import "./Header.css";
 
 // Retorna el precio base en CLP del producto para que el motor

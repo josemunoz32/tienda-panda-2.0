@@ -40,6 +40,7 @@ import {
 import "./AdminDistribuidores.css";
 
 const PLAN_CONFIG = {
+  inicial: { name: "Inicial (20 claves)", baseQuota: 20, price: 20000, color: "#06b6d4" },
   basico: { name: "Básico (60 claves)", baseQuota: 60, price: 50000, color: "#38bdf8" },
   pro: { name: "Pro (130 claves + 3 All-Access)", baseQuota: 130, price: 85000, color: "#c084fc" },
   supreme: { name: "Supreme (250 claves + 8 All-Access)", baseQuota: 250, price: 139000, color: "#fbbf24" },
@@ -439,7 +440,7 @@ export default function AdminDistribuidores({ user, role }) {
             <ShieldCheck className="adm-dist-title-icon" /> Control Maestro de Distribuidores Steam
           </h1>
           <p className="adm-dist-subtitle">
-            Supervisa planes Steam (Básico $50k / Pro $85k / Supreme $139k / Vitalicio $270k), cuotas mensuales y recargas.
+            Supervisa planes Steam (Inicial $20k / Básico $50k / Pro $85k / Supreme $139k / Vitalicio $270k), cuotas mensuales y recargas.
           </p>
         </div>
 
@@ -812,10 +813,11 @@ export default function AdminDistribuidores({ user, role }) {
                   onChange={(e) => {
                     const p = e.target.value;
                     setSelectedPlan(p);
-                    setCustomQuota(String(PLAN_CONFIG[p]?.baseQuota || 60));
+                    setCustomQuota(String(PLAN_CONFIG[p]?.baseQuota || 20));
                   }}
                   className="adm-dist-select"
                 >
+                  <option value="inicial">Distribuidor Inicial ($20.000 / mes - 20 claves)</option>
                   <option value="basico">Distribuidor Básico ($50.000 / mes - 60 claves)</option>
                   <option value="pro">Distribuidor Pro ($85.000 / mes - 130 claves + 3 All-Access)</option>
                   <option value="supreme">Distribuidor Supreme ($139.000 / mes - 250 claves + 8 All-Access)</option>

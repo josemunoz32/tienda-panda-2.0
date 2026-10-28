@@ -515,38 +515,30 @@ namespace PandaStoreLauncher.Services
         /// <summary>
         /// Global strict game cleaner: eliminates Betas, Alphas, Playtests, standalone Multiplayers, demos and server tools.
         /// </summary>
-        public static bool IsCleanPlayableGame(string appId, string name)
+        public static bool IsCleanPlayableGame(string appId, string name, bool isAuthorized = false)
         {
             if (string.IsNullOrWhiteSpace(name)) return false;
 
-            // Standalone Call of Duty Multiplayers & Excluded CoD titles (MW 2019, MW II, MW III, Black Ops 1, Black Ops 2, Black Ops 3, Black Ops 6, Infinite Warfare, MW2 2009, MW3 2011)
+            // Si el cliente tiene este juego autorizado en su licencia, NUNCA debe ser excluido
+            if (isAuthorized) return true;
+
+            // Standalone Call of Duty Multiplayers puros (sin campaña ni modo historia) y launchers HQ Warzone
             var excludedCoDIds = new HashSet<string> 
             { 
                 "10190", "42690", "42710", "202990", "209170", "209660", "393100", "47830", "476620", // Multiplayers
-                "2000950", "1938090", "3595230", "2075730", "3595270", "2519060", // MW 2019, MW II 2022, MW III 2023
-                "42700", "42720", "42740", "214630", "214646", "214649", // Black Ops 1
-                "202970", "212910", // Black Ops 2
-                "311210", // Black Ops 3
-                "292730", // Infinite Warfare
-                "2933620", "4384550", // Black Ops 6
-                "10180", "42680" // Modern Warfare 2 (2009), Modern Warfare 3 (2011)
+                "2000950", "1938090", "3595230", "2075730", "3595270", "2519060" // CoD HQ / Warzone
             };
             if (excludedCoDIds.Contains(appId)) return false;
 
-            // Specific broken / legacy DRM / discontinued games requested to be excluded
+            // Juegos discontinuados o servidores rotos
             var legacyDrmExcludedIds = new HashSet<string>
             {
                 "90200", "220260", "313160", // Farming Simulator 2011, 2013, 15
-                "17390", "24720", "29210", // Spore
-                "17300", "17330", // Crysis 2007, Crysis Warhead
-                "33900", "33930", "107410", // Arma 2, Arma 2: Operation Arrowhead, Arma 3
-                "22300", "22370", // Fallout 3
                 "12360", // FlatOut: Ultimate Carnage
                 "48120", "57520", // The Settlers 7
                 "33250", "1281630", // Anno 1404
                 "39650", "39660", "39670", // The Guild 2
-                "2344520", // Diablo IV
-                "1238820", "1238860", "1238840", "1517290", "1238880", "1238810" // Battlefield 3, 4, 1, 2042, Hardline, V (EA App)
+                "2344520" // Diablo IV
             };
             if (legacyDrmExcludedIds.Contains(appId)) return false;
 
@@ -554,21 +546,11 @@ namespace PandaStoreLauncher.Services
 
             // Explicit name checks for requested excluded titles
             if (Regex.IsMatch(name, @"\bfarming\s*simulator\s*(?:2011|2013|15\b|2015)\b", RegexOptions.IgnoreCase)) return false;
-            if (Regex.IsMatch(name, @"\bspore\b", RegexOptions.IgnoreCase)) return false;
-            if (Regex.IsMatch(name, @"\bcrysis\b", RegexOptions.IgnoreCase) && !lower.Contains("remastered")) return false;
-            if (Regex.IsMatch(name, @"\barma\s*(?:2|3|ii|iii)\b", RegexOptions.IgnoreCase)) return false;
-            if (Regex.IsMatch(name, @"\bfallout\s*3\b", RegexOptions.IgnoreCase)) return false;
             if (lower.Contains("flatout") && lower.Contains("carnage")) return false;
             if (Regex.IsMatch(name, @"\bthe\s*settlers\s*7\b", RegexOptions.IgnoreCase)) return false;
             if (Regex.IsMatch(name, @"\banno\s*1404\b", RegexOptions.IgnoreCase)) return false;
             if (Regex.IsMatch(name, @"\bthe\s*guild\s*(?:2|ii)\b", RegexOptions.IgnoreCase)) return false;
             if (Regex.IsMatch(name, @"\bdiablo\s*(?:4|iv)\b", RegexOptions.IgnoreCase)) return false;
-            if (Regex.IsMatch(name, @"\bbattlefield\b", RegexOptions.IgnoreCase)) return false;
-
-            // Explicit name checks for requested Call of Duty titles
-            if (lower.Contains("infinite warfare")) return false;
-            if (Regex.IsMatch(name, @"\bblack\s*ops\b", RegexOptions.IgnoreCase)) return false;
-            if (Regex.IsMatch(name, @"\bmodern\s*warfare\b", RegexOptions.IgnoreCase)) return false;
 
             // Legitimate full games containing 'alpha'
             if (appId == "34010" || appId == "2590" || appId == "39000") return true;
@@ -597,7 +579,7 @@ namespace PandaStoreLauncher.Services
         public async Task<List<GameModel>> GetAllGamesAsync(List<string>? allowedGames = null, bool forceRefresh = false, List<string>? allowedDlcs = null)
         {
             string cacheDir = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PandaStore");
-            string cacheFile = System.IO.Path.Combine(cacheDir, "cache_games_ryuu_v3.json");
+            string cacheFile = System.IO.Path.Combine(cacheDir, "cache_games_ryuu_v4.json");
             
             bool hasLicense = allowedGames != null && allowedGames.Count > 0;
             bool fullAccess = hasLicense && allowedGames!.Any(g => g == "*" || g.Equals("ALL", StringComparison.OrdinalIgnoreCase));
@@ -607,7 +589,7 @@ namespace PandaStoreLauncher.Services
             {
                 try
                 {
-                    string bundledCache = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache_games_ryuu_v3.json");
+                    string bundledCache = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cache_games_ryuu_v4.json");
                     if (System.IO.File.Exists(bundledCache))
                     {
                         if (!System.IO.Directory.Exists(cacheDir)) System.IO.Directory.CreateDirectory(cacheDir);
@@ -629,15 +611,23 @@ namespace PandaStoreLauncher.Services
                         var rawCached = await Task.Run(() => JsonSerializer.Deserialize<List<GameModel>>(cachedJson));
                         if (rawCached != null && rawCached.Count > 0)
                         {
-                            // El caché se escribe sólo después del filtro de juegos base; repetir
-                            // expresiones regulares sobre decenas de miles de registros en cada
-                            // inicio provocaba una pausa perceptible antes de mostrar la biblioteca.
                             foreach (var game in rawCached)
                             {
                                 game.IsAuthorizedForClient = fullAccess || (hasLicense && (allowedGames!.Contains(game.AppId) || allowedGames!.Contains(game.Name)));
                                 game.RefreshDlcOwnership(allowedDlcs, fullAccess);
                             }
-                            return rawCached;
+
+                            // Si el cliente tiene juegos autorizados en su licencia que faltan en el cache local, continuar abajo para refrescar de la API
+                            bool hasMissingAuthorized = false;
+                            if (hasLicense && !fullAccess && allowedGames != null)
+                            {
+                                hasMissingAuthorized = allowedGames.Any(ag => !string.IsNullOrWhiteSpace(ag) && ag != "*" && !rawCached.Any(cg => cg.AppId == ag || cg.Name.Equals(ag, StringComparison.OrdinalIgnoreCase)));
+                            }
+
+                            if (!hasMissingAuthorized)
+                            {
+                                return rawCached;
+                            }
                         }
                     }
                 }
@@ -798,8 +788,31 @@ namespace PandaStoreLauncher.Services
                 Helpers.Logger.LogError(ex, "Ryuu Games Catalog Fetch Error");
             }
 
-            // Final safety filter across all catalog sources
-            gamesList = gamesList.Where(g => IsCleanPlayableGame(g.AppId, g.Name)).ToList();
+            // Final safety filter across all catalog sources - Never filter authorized games
+            gamesList = gamesList.Where(g => g.IsAuthorizedForClient || IsCleanPlayableGame(g.AppId, g.Name, g.IsAuthorizedForClient)).ToList();
+
+            // Garantizar que todos los juegos autorizados en la licencia del cliente estén incluidos en la lista
+            if (hasLicense && !fullAccess && allowedGames != null)
+            {
+                var existingAppIds = new HashSet<string>(gamesList.Select(g => g.AppId), StringComparer.OrdinalIgnoreCase);
+                foreach (var authGame in allowedGames)
+                {
+                    if (string.IsNullOrWhiteSpace(authGame) || authGame == "*") continue;
+                    if (!existingAppIds.Contains(authGame))
+                    {
+                        gamesList.Add(new GameModel
+                        {
+                            AppId = authGame,
+                            Name = authGame,
+                            SteamFolderName = authGame,
+                            IsAuthorizedForClient = true,
+                            HasFix = fixAppIds.Contains(authGame)
+                        });
+                        existingAppIds.Add(authGame);
+                    }
+                }
+            }
+
             gamesList.ForEach(g => g.RefreshDlcOwnership(allowedDlcs, fullAccess));
 
             // Save to local cache asynchronously

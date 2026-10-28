@@ -41,6 +41,37 @@ import {
   Filter
 } from "lucide-react";
 import "./MisPedidos.css";
+import steamImportData from "../../assets/steam_import_data.json";
+
+export function normalizeGameName(name) {
+  if (!name) return "";
+  return String(name)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function resolveSteamAppId(name, candidateId) {
+  if (candidateId) {
+    const rawNum = String(candidateId).match(/\d+/)?.[0];
+    if (rawNum && rawNum.length >= 3) return rawNum;
+  }
+  if (!name) return null;
+  const targetNorm = normalizeGameName(name);
+  if (!targetNorm) return null;
+
+  const foundSteam = steamImportData.find(item => {
+    if (!item) return false;
+    const itemNorm = normalizeGameName(item.name || item.title);
+    return itemNorm && itemNorm === targetNorm;
+  });
+  if (foundSteam) {
+    const raw = foundSteam.app_id || foundSteam.appid || foundSteam.appId;
+    if (raw) return String(raw);
+  }
+  return null;
+}
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 export function isGhostOrder(p) {
@@ -395,78 +426,167 @@ async function generarKeyDirectaFallback(pedido) {
       continue;
     }
 
-    if (clean.includes("pack steam") || clean.includes("todos los juegos") || clean.includes("catálogo completo")) {
+    // Pack completo Steam / Panda Pass / Random masivos
+    const isAllAccessPack = (
+      clean.includes("todos los juegos") ||
+      clean.includes("catálogo completo") ||
+      clean.includes("catalogo completo") ||
+      clean.includes("suscripción steam") ||
+      clean.includes("suscripcion steam") ||
+      clean.includes("panda pass") ||
+      clean.includes("steam vip (+1.500") ||
+      clean.includes("pack todo steam") ||
+      clean.includes("pack 100") ||
+      clean.includes("pack 200") ||
+      clean.includes("pack 300") ||
+      clean.includes("pack 400") ||
+      (clean.includes("pack steam") && !clean.match(/pack\s*(?:3|5|10|23)x?\b/i) && !clean.includes("(")) ||
+      Boolean(p.isFullAccess) ||
+      Boolean(p.isSteamPass) ||
+      Boolean(p.isRandomPack)
+    );
+
+    if (isAllAccessPack) {
       isFullAccess = true;
       break;
     }
 
-    let appId = p.appId || p.app_id || p.steamAppId || null;
-    if (!appId && p.id) {
-      const m = String(p.id).match(/^(?:ryuu_|vip-)?(\d+)$/);
-      if (m) appId = m[1];
-    }
+    // Identificar si es Saga de Steam
+    const isSaga = Boolean(
+      p.isSaga ||
+      clean.includes("saga") ||
+      (p.id && String(p.id).startsWith("promo-saga-")) ||
+      (p.key && String(p.key).startsWith("promo-saga-"))
+    );
 
-    if (appId) {
-      allowedGames.push(String(appId));
-    }
-    if (nom) {
-      allowedGames.push(nom);
-    }
+    // Identificar si es un Pack / Promo armable a elección
+    const isPack = Boolean(
+      p.isPromo ||
+      p.isCustomPack ||
+      (Array.isArray(p.promoGames) && p.promoGames.length > 0) ||
+      (Array.isArray(p.juegos) && p.juegos.length > 0) ||
+      (p.id && (String(p.id).startsWith("promo-") || String(p.id).startsWith("custom-pack-"))) ||
+      clean.includes("pack ") ||
+      clean.startsWith("pack") ||
+      clean.match(/\b\d+x\b/i) ||
+      clean.includes("elección") ||
+      clean.includes("eleccion")
+    );
 
-    // Extraer DLCs seleccionados en el producto
+    let appId = resolveSteamAppId(nom, p.appId || p.app_id || p.steamAppId || p.id);
+
+    // Extraer DLCs seleccionados en el producto (solo si el cliente compró DLCs)
     const dlcsArr = Array.isArray(p.selectedDlcs) && p.selectedDlcs.length > 0 ?
       p.selectedDlcs :
       (Array.isArray(p.dlcs) ? p.dlcs : []);
+    let productHasDlcs = false;
     for (const d of dlcsArr) {
-      const did = d.dlc_app_id || d.id || d.appId;
-      if (did && !isNaN(did)) allowedDlcs.push(String(did));
-      if (d.name) allowedGames.push(d.name);
+      const did = d.dlc_app_id || d.app_id || d.id || d.appId;
+      const numId = did ? String(did).match(/\d+/)?.[0] : null;
+      if (numId) {
+        allowedDlcs.push(String(numId));
+        productHasDlcs = true;
+      }
+    }
+    // Si compró DLCs de este juego, autorizar también el juego base en allowedDlcs para el launcher
+    if (productHasDlcs && appId) {
+      allowedDlcs.push(String(appId));
     }
 
-    // Si tiene sub-juegos en promoGames
-    if (Array.isArray(p.promoGames) && p.promoGames.length > 0) {
-      for (const pg of p.promoGames) {
-        const pgName = (pg.name || pg.title || (typeof pg === "string" ? pg : "")).trim();
-        const pgAppId = pg.app_id || pg.appId || pg.id || null;
-        if (pgName) allowedGames.push(pgName);
-        if (pgAppId && !isNaN(pgAppId)) allowedGames.push(String(pgAppId));
-        if (Array.isArray(pg.selectedDlcs)) {
-          for (const d of pg.selectedDlcs) {
-            const did = d.dlc_app_id || d.id || d.appId;
-            if (did && !isNaN(did)) allowedDlcs.push(String(did));
-            if (d.name) allowedGames.push(d.name);
-          }
-        }
+    // Si es un juego individual normal (ni Saga ni Pack), agregar appId numérico y nombre
+    if (!isSaga && !isPack) {
+      if (appId) {
+        allowedGames.push(String(appId));
+      }
+      if (nom) {
+        allowedGames.push(nom);
       }
     }
 
-    // Si tiene games
-    if (Array.isArray(p.games) && p.games.length > 0) {
-      for (const g of p.games) {
-        const gName = (typeof g === "string" ? g : (g.name || "")).trim();
+    // Si es Saga
+    if (isSaga) {
+      let sagaGames = [];
+      if (Array.isArray(p.games) && p.games.length > 0) {
+        sagaGames = p.games;
+      } else {
+        const cleanSaga = clean.replace(/\(.*?\)/g, "").replace(/colecci[oó]n/g, "").trim();
+        const foundSaga = STEAM_SAGAS.find(s =>
+          (p.id && s.key === p.id) ||
+          (s.name && clean.includes(s.name.toLowerCase())) ||
+          (s.name && cleanSaga && s.name.toLowerCase().includes(cleanSaga))
+        );
+        if (foundSaga && Array.isArray(foundSaga.games)) {
+          sagaGames = foundSaga.games;
+        }
+      }
+      for (const g of sagaGames) {
+        const gName = typeof g === "string" ? g : (g.name || "");
+        const gId = typeof g === "object" ? (g.app_id || g.appId || g.id) : null;
+        const resolvedGId = resolveSteamAppId(gName, gId);
+        if (resolvedGId) allowedGames.push(String(resolvedGId));
         if (gName) allowedGames.push(gName);
       }
-    } else if (p.isSaga || clean.includes("saga")) {
-      const cleanSaga = clean.replace(/\(.*?\)/g, "").replace(/colecci[oó]n/g, "").trim();
-      const foundSaga = STEAM_SAGAS.find(s =>
-        (p.id && s.key === p.id) ||
-        (s.name && clean.includes(s.name.toLowerCase())) ||
-        (s.name && cleanSaga && s.name.toLowerCase().includes(cleanSaga))
-      );
-      if (foundSaga && Array.isArray(foundSaga.games)) {
-        for (const g of foundSaga.games) {
-          allowedGames.push(typeof g === "string" ? g : g.name);
+      // Extras VIP
+      const extras = Array.isArray(p.selectedVipExtras) && p.selectedVipExtras.length > 0
+        ? p.selectedVipExtras
+        : (Array.isArray(p.vipExtras) ? p.vipExtras : []);
+      for (const ex of extras) {
+        const exName = (ex.name || ex.title || (typeof ex === "string" ? ex : "")).trim();
+        const exId = typeof ex === "object" ? (ex.app_id || ex.appId || ex.id) : null;
+        const resolvedExId = resolveSteamAppId(exName, exId);
+        if (resolvedExId) allowedGames.push(String(resolvedExId));
+        if (exName) allowedGames.push(exName);
+      }
+    } else if (isPack) {
+      // Si es Pack (Pack 3X, 10X, 23X, VIP, Custom Pack)
+      let subGames = [];
+
+      if (Array.isArray(p.promoGames) && p.promoGames.length > 0) {
+        subGames = p.promoGames;
+      } else if (Array.isArray(p.juegos) && p.juegos.length > 0) {
+        subGames = p.juegos;
+      } else if (Array.isArray(p.games) && p.games.length > 0) {
+        subGames = p.games;
+      } else if (Array.isArray(p.selectedGames) && p.selectedGames.length > 0) {
+        subGames = p.selectedGames;
+      }
+
+      // Fallback: extraer juegos listados entre paréntesis en el nombre o descripción
+      if (subGames.length === 0) {
+        const sourceStr = `${nom} ${p.description || ""}`;
+        const parenMatch = sourceStr.match(/\(([^)]+)\)/);
+        if (parenMatch && parenMatch[1].includes("+")) {
+          const gameTitles = parenMatch[1].split("+").map(s => s.trim()).filter(Boolean);
+          subGames = gameTitles.map(t => ({ name: t }));
         }
       }
-    }
 
-    // Extras VIP
-    const extras = Array.isArray(p.selectedVipExtras) && p.selectedVipExtras.length > 0
-      ? p.selectedVipExtras
-      : (Array.isArray(p.vipExtras) ? p.vipExtras : []);
-    for (const ex of extras) {
-      const exName = (ex.name || ex.title || (typeof ex === "string" ? ex : "")).trim();
-      if (exName) allowedGames.push(exName);
+      for (const pg of subGames) {
+        const pgName = (typeof pg === "string" ? pg : (pg.name || pg.title || "")).trim();
+        let pgAppId = resolveSteamAppId(
+          pgName,
+          typeof pg === "object" ? (pg.app_id || pg.appId || pg.id) : null
+        );
+
+        if (pgName) allowedGames.push(pgName);
+        if (pgAppId) allowedGames.push(String(pgAppId));
+
+        const pgDlcs = typeof pg === "object" && Array.isArray(pg.selectedDlcs) ?
+          pg.selectedDlcs :
+          (typeof pg === "object" && Array.isArray(pg.dlcs) ? pg.dlcs : []);
+        let pgHasDlcs = false;
+        for (const d of pgDlcs) {
+          const did = d.dlc_app_id || d.app_id || d.id || d.appId;
+          const numId = did ? String(did).match(/\d+/)?.[0] : null;
+          if (numId) {
+            allowedDlcs.push(String(numId));
+            pgHasDlcs = true;
+          }
+        }
+        if (pgHasDlcs && pgAppId) {
+          allowedDlcs.push(String(pgAppId));
+        }
+      }
     }
   }
 
@@ -868,7 +988,7 @@ function PedidoCard({ pedido, userId, isAdmin, setPedidos, onCopyKey, copiedKey,
       const res = await fetch("https://us-central1-pandastoreupdate.cloudfunctions.net/entregarKeyPedido", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token || ""}` },
-        body: JSON.stringify({ orderId: idToSend })
+        body: JSON.stringify({ orderId: idToSend, forceApproved: true, forceSendEmail: true })
       });
       const data = await res.json().catch(() => null);
       if (data && data.licenseKey) {
@@ -933,6 +1053,15 @@ function PedidoCard({ pedido, userId, isAdmin, setPedidos, onCopyKey, copiedKey,
     };
 
     try {
+      // 1. Guardar primero el estado en Firestore para que el pedido figure como aprobado
+      await updateDoc(doc(db, "orders", pedido.id), updateData);
+      try {
+        const ref = doc(db, `users/${userId}/orders`, pedido.id);
+        const snap = await getDoc(ref);
+        if (snap.exists()) await updateDoc(ref, updateData);
+      } catch (_) {}
+
+      // 2. Si es exitoso y tiene juegos de Steam, generar y enviar clave al cliente
       if (nuevoEstado === "exitoso" && !isSilent && tieneJuegosSteam) {
         const idToSend = pedido.globalOrderId || pedido.id;
         try {
@@ -940,15 +1069,25 @@ function PedidoCard({ pedido, userId, isAdmin, setPedidos, onCopyKey, copiedKey,
           const res = await fetch("https://us-central1-pandastoreupdate.cloudfunctions.net/entregarKeyPedido", {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token || ""}` },
-            body: JSON.stringify({ orderId: idToSend })
+            body: JSON.stringify({ orderId: idToSend, forceApproved: true, forceSendEmail: true })
           });
           const data = await res.json().catch(() => null);
           if (data && data.licenseKey) {
             updateData.licenseKey = data.licenseKey;
+            await updateDoc(doc(db, "orders", pedido.id), { licenseKey: data.licenseKey });
+            try {
+              const uRef = doc(db, `users/${userId}/orders`, pedido.id);
+              if ((await getDoc(uRef)).exists()) await updateDoc(uRef, { licenseKey: data.licenseKey });
+            } catch (_) {}
           } else if (!pedido.licenseKey) {
             const fallbackKey = await generarKeyDirectaFallback(pedido);
             if (fallbackKey) {
               updateData.licenseKey = fallbackKey;
+              await updateDoc(doc(db, "orders", pedido.id), { licenseKey: fallbackKey });
+              try {
+                const uRef = doc(db, `users/${userId}/orders`, pedido.id);
+                if ((await getDoc(uRef)).exists()) await updateDoc(uRef, { licenseKey: fallbackKey });
+              } catch (_) {}
             }
           }
         } catch (_) {
@@ -956,17 +1095,15 @@ function PedidoCard({ pedido, userId, isAdmin, setPedidos, onCopyKey, copiedKey,
             const fallbackKey = await generarKeyDirectaFallback(pedido).catch(() => null);
             if (fallbackKey) {
               updateData.licenseKey = fallbackKey;
+              await updateDoc(doc(db, "orders", pedido.id), { licenseKey: fallbackKey });
+              try {
+                const uRef = doc(db, `users/${userId}/orders`, pedido.id);
+                if ((await getDoc(uRef)).exists()) await updateDoc(uRef, { licenseKey: fallbackKey });
+              } catch (_) {}
             }
           }
         }
       }
-
-      await updateDoc(doc(db, "orders", pedido.id), updateData);
-      try {
-        const ref = doc(db, `users/${userId}/orders`, pedido.id);
-        const snap = await getDoc(ref);
-        if (snap.exists()) await updateDoc(ref, updateData);
-      } catch (_) {}
 
       setPedidos(prev => {
         if (isAdmin) {

@@ -214,20 +214,20 @@ export default function PacksNintendo() {
         <meta name="keywords" content="packs nintendo switch, juegos nintendo switch baratos, cuentas nintendo switch, packs switch 2, mario zelda pokemon pack, pandastore" />
         <meta property="og:title" content="Packs Nintendo Switch 1 y 2 | PandaStore" />
         <meta property="og:description" content="Ahorra en grande con cuentas que incluyen 2, 3 o más juegos top de Nintendo Switch." />
-        <meta property="og:url" content="https://pandastoreupdate.web.app/packs-nintendo" />
-        <meta property="og:image" content="https://pandastoreupdate.web.app/favicon.png" />
+        <meta property="og:url" content="https://pandastoregaming.cl/packs-nintendo" />
+        <meta property="og:image" content="https://pandastoregaming.cl/favicon.png" />
         <meta name="twitter:title" content="Packs Nintendo Switch | PandaStore" />
         <meta name="twitter:description" content="Packs de juegos digitales para Nintendo Switch a precios de oferta." />
-        <meta name="twitter:image" content="https://pandastoreupdate.web.app/favicon96.png" />
-        <link rel="canonical" href="https://pandastoreupdate.web.app/packs-nintendo" />
+        <meta name="twitter:image" content="https://pandastoregaming.cl/favicon96.png" />
+        <link rel="canonical" href="https://pandastoregaming.cl/packs-nintendo" />
         <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "CollectionPage",
           "name": "Packs Nintendo Switch - PandaStore",
           "description": "Cuentas y packs con múltiples juegos para Nintendo Switch y Switch 2.",
-          "url": "https://pandastoreupdate.web.app/packs-nintendo",
-          "isPartOf": { "@type": "VideoGameStore", "name": "PandaStore", "url": "https://pandastoreupdate.web.app" }
+          "url": "https://pandastoregaming.cl/packs-nintendo",
+          "isPartOf": { "@type": "VideoGameStore", "name": "PandaStore", "url": "https://pandastoregaming.cl" }
         })}
         </script>
       </Helmet>

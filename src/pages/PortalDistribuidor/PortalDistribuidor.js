@@ -203,19 +203,39 @@ export function checkRequiresActivationCode(game) {
   return getActivationCodeInfo(game).requiresCode;
 }
 
-// ─── DEFINICIÓN DE LOS 4 PLANES OFICIALES STEAM ─────────────────────────
+// ─── DEFINICIÓN DE LOS 5 PLANES OFICIALES STEAM ─────────────────────────
 export const DISTRIBUTOR_PLANS = {
+  inicial: {
+    id: "inicial",
+    name: "Distribuidor Inicial",
+    badge: "Para Empezar 🌱",
+    baseQuota: 20,
+    price: 20000,
+    unitPriceEstimate: 1000,
+    color: "#06b6d4",
+    gradient: "linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(14, 116, 144, 0.3) 100%)",
+    borderColor: "#06b6d4",
+    description: "Ideal para dar tus primeros pasos y comenzar a revender juegos con una inversión mínima.",
+    features: [
+      "20 Claves de Activación Mensuales ($1.000 c/u)",
+      "Acceso al Launcher Oficial PandaStore",
+      "Descargas de juegos a máxima velocidad",
+      "Panel de emisión con formato para WhatsApp",
+      "Pausar o reactivar claves en tiempo real",
+      "Soporte por WhatsApp"
+    ]
+  },
   basico: {
     id: "basico",
     name: "Distribuidor Básico",
-    badge: "Inicial",
+    badge: "Crecimiento 📈",
     baseQuota: 60,
     price: 50000,
     unitPriceEstimate: 833,
     color: "#38bdf8",
     gradient: "linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(3, 105, 161, 0.3) 100%)",
     borderColor: "#38bdf8",
-    description: "Ideal para iniciar tu propio negocio de venta de juegos de Steam en redes sociales.",
+    description: "Para revendedores en crecimiento que buscan mayor margen por cada clave vendida.",
     features: [
       "60 Claves de Activación Mensuales (~$833 c/u)",
       "Acceso al Launcher Oficial PandaStore",
@@ -579,15 +599,47 @@ export default function PortalDistribuidor() {
           });
         }
 
+        // Integrar el catálogo global de Ryuu (60k+ juegos de Steam)
+        try {
+          const ryuuData = await fetchRyuuCatalog();
+          if (Array.isArray(ryuuData) && ryuuData.length > 0) {
+            const NON_BASE_REGEX = /\b(soundtrack|original sound track|artbook|digital artbook|wallpaper pack|dedicated server|mod kit|sdk)\b/i;
+            const existingIds = new Set(list.map((g) => String(g.app_id || g.id)));
+            ryuuData.forEach((r) => {
+              const appIdStr = String(r.appid);
+              if (!appIdStr || existingIds.has(appIdStr)) return;
+              const rType = (r.type || "game").toLowerCase();
+              const rName = r.name || "";
+              if (rType !== "game" || NON_BASE_REGEX.test(rName)) return;
+
+              const activationInfo = getActivationCodeInfo({
+                ...r,
+                id: appIdStr,
+                name: rName
+              });
+
+              list.push({
+                id: appIdStr,
+                name: rName,
+                app_id: appIdStr,
+                requires_code: activationInfo.requiresCode,
+                activation_info: activationInfo
+              });
+              existingIds.add(appIdStr);
+            });
+          }
+        } catch (ryuuErr) {
+          console.warn("No se pudo cargar el catálogo global de Ryuu en distribuidor:", ryuuErr);
+        }
+
         // Construir campo _search enriquecido con sinónimos (FIFA, FC, etc.)
         list.forEach((g) => {
           const raw = `${g.name || ""} ${g.app_id || ""}`.toLowerCase();
-          const clean = raw.replace(/[^a-z0-9]/g, "");
           let aliases = "";
-          if (raw.includes("ea sports fc") || raw.includes("fc 2") || clean.includes("fc2") || clean.includes("fifa")) {
-            aliases += " fifa fifa 24 fifa 25 fifa 26 fifa 27 fifa24 fifa25 fifa26 fifa27 fc24 fc25 fc26 fc27 ea fc fútbol soccer";
+          if (raw.includes("ea sports fc") || raw.includes("fifa")) {
+            aliases = " fifa fc24 fc25 fc26 fc27 ea fc fútbol soccer";
           }
-          g._search = `${raw} ${clean} ${aliases}`.trim();
+          g._search = `${raw}${aliases}`.trim();
         });
 
         setAvailableGames(list);
@@ -796,7 +848,7 @@ export default function PortalDistribuidor() {
       `📦 *Juegos Habilitados:*\n${gamesDesc}\n\n` +
       `⏳ *Vigencia:* ${vigencia}\n\n` +
       `📥 *Descarga e instala el Launcher Oficial aquí:*\n` +
-      `https://pandastoreupdate.web.app/descargar-launcher\n\n` +
+      `https://pandastoregaming.cl/descargar-launcher\n\n` +
       `🚀 *Pasos rápidos:*\n` +
       `1. Abre PandaStore Launcher en tu PC.\n` +
       `2. Pega tu clave de activación.\n` +

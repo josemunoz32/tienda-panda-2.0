@@ -3,16 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { catUrl } from "../../utils/slugify";
 import { useMoneda, PAISES_CONFIG } from "../../context/MonedaContext";
 
-// Logos e imágenes oficiales del proyecto
-import pandaHalloween from "../../assets/halloween/panda-bienvenida-halloween.png";
-import steamImg from "../../assets/logos/logosteam.png";
-import psnImg from "../../assets/categorias y prom,o/psn.png";
-import switchImg from "../../assets/categorias y prom,o/switch.png";
-import packSwitchImg from "../../assets/categorias y prom,o/pack-switch.png";
-import streamingImg from "../../assets/categorias y prom,o/streaming.png";
-import suscripcionesImg from "../../assets/categorias y prom,o/suscripciones.png";
-import promosImg from "../../assets/categorias y prom,o/promos.png";
-import provedoresImg from "../../assets/fotos publicidad menu/provedores.png";
+// Logos e imágenes oficiales del proyecto (optimizadas en WebP)
+import pandaHalloween from "../../assets/halloween/panda-bienvenida-halloween.webp";
+import steamImg from "../../assets/logos/logosteam.webp";
+import psnImg from "../../assets/categorias y prom,o/psn.webp";
+import switchImg from "../../assets/categorias y prom,o/switch.webp";
+import packSwitchImg from "../../assets/categorias y prom,o/pack-switch.webp";
+import streamingImg from "../../assets/categorias y prom,o/streaming.webp";
+import suscripcionesImg from "../../assets/categorias y prom,o/suscripciones.webp";
+import promosImg from "../../assets/categorias y prom,o/promos.webp";
+import provedoresImg from "../../assets/fotos publicidad menu/provedores.webp";
 
 import "./WelcomeCategoriesModal.css";
 
@@ -175,7 +175,7 @@ export default function WelcomeCategoriesModal({ visible, onClose, categoryIds, 
   const currentPaisConfig = PAISES_CONFIG.find(p => p.codigo === pais) || PAISES_CONFIG[0];
 
   return (
-    <div className="welcome-modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
+    <div className="welcome-modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="welcome-modal-title">
       <div className="welcome-modal-card" onClick={(e) => e.stopPropagation()}>
         {/* Glow de fondo */}
         <div className="welcome-modal-ambient-glow" aria-hidden="true" />
@@ -193,11 +193,11 @@ export default function WelcomeCategoriesModal({ visible, onClose, categoryIds, 
         {/* Encabezado */}
         <div className="welcome-modal-header">
           <div className="welcome-logo-badge">
-            <img src={pandaHalloween} alt="Pandita de Halloween de PandaStore" className="welcome-panda-avatar" />
+            <img src={pandaHalloween} alt="Pandita de Halloween de PandaStore" className="welcome-panda-avatar" width="94" height="94" decoding="async" />
             <span className="welcome-online-dot" />
           </div>
           <p className="welcome-modal-kicker">🎃 Especial de Halloween</p>
-          <h2 className="welcome-modal-title">¡Buu! Bienvenido a PandaStore</h2>
+          <h2 id="welcome-modal-title" className="welcome-modal-title">¡Buu! Bienvenido a PandaStore</h2>
           <p className="welcome-modal-subtitle">
             Nuestro pandita tiene las mejores ofertas escondidas. Elige tu plataforma y empieza a jugar:
           </p>
@@ -253,7 +253,7 @@ export default function WelcomeCategoriesModal({ visible, onClose, categoryIds, 
                 className="welcome-cat-thumb-box"
                 style={cat.bg ? { background: cat.bg } : undefined}
               >
-                <img src={cat.img} alt={cat.name} className="welcome-cat-img" loading="eager" />
+                <img src={cat.img} alt={cat.name} className="welcome-cat-img" loading="lazy" decoding="async" width="64" height="64" />
               </div>
               <div className="welcome-cat-info">
                 <div className="welcome-cat-text-col">
