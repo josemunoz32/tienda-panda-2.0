@@ -8,7 +8,7 @@
   }
 }
 
-/* LOADER DE INICIO HOME */
+/* CARRUSELES EN HOME CON CONTENT-VISIBILITY */
 .home-depth-carousel-wrapper {
   width: 100%;
   max-width: 1480px;
@@ -18,11 +18,14 @@
   background: rgba(13, 15, 24, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
+  content-visibility: auto;
+  contain-intrinsic-size: 380px;
 }
 
 @media (max-width: 768px) {
   .home-depth-carousel-wrapper {
     height: 380px !important;
+    contain-intrinsic-size: 380px;
   }
 }
 

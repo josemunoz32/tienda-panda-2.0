@@ -29,10 +29,7 @@ const googleProvider = new GoogleAuthProvider();
 const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
 export { app, database, storage, functions, auth, googleProvider, analytics, logEvent };
 
-// initializeFirestore con long-polling resuelve el bug interno del watch stream
-// (ID: ca9 / b815) presente en Firestore SDK v12.x con múltiples onSnapshot.
-// experimentalForceLongPolling evita el WebSocket stream que se corrompe.
 export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
+  experimentalAutoDetectLongPolling: true,
   localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager({}) }),
 });

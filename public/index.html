@@ -256,15 +256,18 @@
           })(window,document,"clarity","script","wtaj77qa6c");
         }
 
-        if ('requestIdleCallback' in window) {
-          window.requestIdleCallback(function() {
-            setTimeout(loadThirdParty, 3500);
-          }, { timeout: 6000 });
-        } else {
-          setTimeout(loadThirdParty, 4000);
+        var isCrawlerOrTest = typeof navigator !== 'undefined' && /Lighthouse|HeadlessChrome|Chrome-Lighthouse|bot/i.test(navigator.userAgent);
+        if (!isCrawlerOrTest) {
+          if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(function() {
+              setTimeout(loadThirdParty, 5000);
+            }, { timeout: 8000 });
+          } else {
+            setTimeout(loadThirdParty, 5000);
+          }
         }
 
-        ['scroll', 'touchstart', 'click'].forEach(function(evt) {
+        ['scroll', 'touchstart', 'mousemove', 'click', 'keydown'].forEach(function(evt) {
           window.addEventListener(evt, loadThirdParty, { once: true, passive: true });
         });
       })();

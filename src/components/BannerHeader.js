@@ -51,13 +51,6 @@ export default function BannerHeader({
     <header className="banner-header">
       {/* Contenedor del Banner - Escala generosa y presencia completa */}
       <div className="banner-header-media">
-        {/* Fondo ambiental difuminado para llenar suavemente pantallas ultra-anchas */}
-        <img
-          src={bannerHalloween}
-          alt=""
-          aria-hidden="true"
-          className="banner-header-ambient"
-        />
         {/* Banner principal nítido */}
         <img
           src={bannerHalloween}
@@ -65,6 +58,8 @@ export default function BannerHeader({
           className="banner-header-img"
           fetchPriority="high"
           decoding="async"
+          width="1920"
+          height="289"
         />
         {/* Gradiente sutil arriba para legibilidad perfecta de los controles */}
         <div className="banner-header-top-vignette" />

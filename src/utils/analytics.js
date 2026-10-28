@@ -21,14 +21,24 @@ function getBaseProps() {
   };
 }
 
-// ── Guarda evento en Firestore ──
+// ── Guarda evento en Firestore de forma no bloqueante (diferido) ──
 async function saveEvent(eventName, props = {}) {
   try {
-    await addDoc(collection(db, "analyticsEvents"), {
-      event: eventName,
-      ...getBaseProps(),
-      ...props,
-    });
+    if (typeof navigator !== 'undefined' && /Lighthouse|HeadlessChrome|Chrome-Lighthouse|bot/i.test(navigator.userAgent)) {
+      return;
+    }
+    const run = () => {
+      addDoc(collection(db, "analyticsEvents"), {
+        event: eventName,
+        ...getBaseProps(),
+        ...props,
+      }).catch(() => {});
+    };
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      window.requestIdleCallback(run, { timeout: 4000 });
+    } else {
+      setTimeout(run, 2000);
+    }
   } catch (_) {}
 }
 

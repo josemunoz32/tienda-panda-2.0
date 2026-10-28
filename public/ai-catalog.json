@@ -1,17 +1,16 @@
 {
   "specVersion": "1.0",
   "host": {
-    "displayName": "PandaStore Gaming Chile",
     "identifier": "did:web:pandastoregaming.cl",
-    "documentationUrl": "https://pandastoregaming.cl/llms.txt"
+    "displayName": "PandaStore Gaming Chile"
   },
   "entries": [
     {
       "identifier": "urn:air:pandastoregaming.cl:catalog:games",
-      "displayName": "Catálogo de Juegos PandaStore",
-      "type": "text/markdown; profile=\"urn:air:agent-skills\"",
+      "displayName": "Catalogo de Juegos PandaStore",
+      "mediaType": "text/markdown; profile=\"urn:air:agent-skills\"",
       "url": "https://pandastoregaming.cl/llms.txt",
-      "description": "Catálogo oficial de juegos digitales para PC Steam, Nintendo Switch, PlayStation 4 y PlayStation 5 en Chile y Latinoamérica con precios en CLP y USD.",
+      "description": "Catalogo oficial de videojuegos digitales para Steam PC, Nintendo Switch, PS5 y PS4 en Chile y Latinoamerica con precios en CLP y USD.",
       "representativeQueries": [
         "comprar juegos digitales en chile",
         "precios juegos steam switch ps5 chile",

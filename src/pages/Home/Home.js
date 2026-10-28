@@ -45,9 +45,6 @@ import Loader from "../../components/Loader";
 import WelcomeCategoriesModal from "../../components/WelcomeCategoriesModal/WelcomeCategoriesModal";
 import "./Home.css";
 
-function HomeLoadingScreen() {
-  return <Loader text="Cargando..." subtext="PandaStore • Catálogo & Novedades" fullScreen={true} />;
-}
 
 // (All misplaced CSS removed. Use Home.css for styles.)
 
@@ -268,7 +265,16 @@ export default function Home() {
   ), [promosPreview]);
 
   // Estados necesarios antes de cualquier uso
-  const [productos, setProductos] = useState([]);
+  const [productos, setProductos] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem('panda_home_prods');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return [];
+  });
   const [destacados, setDestacados] = useState([]);
   const [selectedCat, setSelectedCat] = useState("");
   const [minPrice, setMinPrice] = useState("");
@@ -508,7 +514,7 @@ export default function Home() {
   const [testimonios, setTestimonios] = useState([]);
   const driftWallItems = useMemo(() => {
     if (!Array.isArray(testimonios) || testimonios.length === 0) return [];
-    return testimonios.map(t => ({
+    return testimonios.slice(0, 24).map(t => ({
       image: t.imagen,
       title: t.nombre || t.titulo || 'Venta PandaStore',
       href: '/testimonios'
@@ -527,7 +533,7 @@ export default function Home() {
     });
   }, []);
   const [modal, setModal] = useState({ open: false, prod: null, opciones: [], tipo: null });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [inCart, setInCart] = useState({});
   const [favIds, setFavIds] = useState([]);
   const user = auth.currentUser;
@@ -641,6 +647,9 @@ export default function Home() {
         if (!isMounted) return;
         const prods = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setProductos(prods);
+        try {
+          sessionStorage.setItem('panda_home_prods', JSON.stringify(prods.slice(0, 100)));
+        } catch (_) {}
         // Generar destacados aleatorios solo una vez
         setDestacados(prods.length > 0 ? [...prods].sort(() => 0.5 - Math.random()).slice(0, 10) : []);
         // Mezclar productos solo una vez para el listado principal
@@ -774,7 +783,6 @@ export default function Home() {
     setPage(1);
   }, [search, selectedCat, minPrice, maxPrice, moneda]);
 
-  if (loading) return <HomeLoadingScreen />;
 
   const isMobile = window.innerWidth <= 700;
 

@@ -18,8 +18,8 @@ import Loader from './components/Loader';
 import PandaModalAlert from './components/PandaModalAlert/PandaModalAlert';
 import ErrorBoundary from './components/ErrorBoundary';
 
-// Lazy-loaded pages (Code Splitting para carga ultra-rápida)
-const Home = lazy(() => import('./pages/Home/Home'));
+import Home from './pages/Home/Home';
+// Lazy-loaded pages (Code Splitting para el resto de rutas)
 const DesarrolloWeb = lazy(() => import('./pages/DesarrolloWeb/DesarrolloWeb'));
 const Registro = lazy(() => import('./pages/Registro/Registro'));
 const IniciarSesion = lazy(() => import('./pages/IniciarSesion/IniciarSesion'));
