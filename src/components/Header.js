@@ -578,7 +578,7 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
           <aside className="header-navbar-sidebar dark-sidebar" ref={sidebarRef}>
             <div className="sidebar-logo-title">
               <Link to="/home" onClick={() => setSidebarOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', flex: 1, minWidth: 0 }}>
-                <img src={require('../assets/logos/miicono.png')} alt="Logo" style={{ height: 48, width: 48, objectFit: 'cover', borderRadius: '50%', background: '#fff', padding: 2, boxShadow: '0 2px 12px #a259ff44', border: '2.5px solid #a259ff', flexShrink: 0 }} />
+                <img src={require('../assets/logos/miicono.webp')} alt="Logo" width={48} height={48} loading="lazy" decoding="async" style={{ height: 48, width: 48, objectFit: 'cover', borderRadius: '50%', background: '#fff', padding: 2, boxShadow: '0 2px 12px #a259ff44', border: '2.5px solid #a259ff', flexShrink: 0 }} />
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontWeight: 800, fontSize: '1.25rem', color: '#fff', letterSpacing: '-0.5px', lineHeight: 1.2 }}>PandaStore</div>
                   <div style={{ fontSize: '0.75rem', color: '#a259ff', fontWeight: 500, opacity: 0.85 }}>Tu tienda de juegos</div>
@@ -1247,7 +1247,7 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
             <div style={{ padding: '22px 18px 20px', textAlign: 'center' }}>
               <div style={{ position: 'relative', width: 64, height: 64, margin: '0 auto 12px' }}>
                 <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg, rgba(162,89,255,0.3), rgba(0,245,212,0.3))', border: '2px solid #a259ff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(162,89,255,0.3)' }}>
-                  <img src={require('../assets/logos/miicono.png')} alt="Panda Logo" style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} />
+                  <img src={require('../assets/logos/miicono.webp')} alt="Panda Logo" width={44} height={44} loading="lazy" decoding="async" style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} />
                 </div>
                 <span style={{ position: 'absolute', bottom: 0, right: 0, width: 14, height: 14, borderRadius: '50%', background: '#10b981', border: '2.5px solid #1a1035', boxShadow: '0 0 8px #10b981' }} title="Online" />
               </div>

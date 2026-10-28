@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import pandaLogo from '../../assets/logos/miicono.png';
+import pandaLogo from '../../assets/logos/miicono.webp';
 
 const Loader = ({
   text = "Cargando...",
@@ -19,7 +19,7 @@ const Loader = ({
           <div className="loader-content">
             {showLogo && (
               <div className="loader-logo-wrap">
-                <img src={pandaLogo} alt="Panda Store" className="loader-logo-img" />
+                <img src={pandaLogo} alt="Panda Store" className="loader-logo-img" width="77" height="77" decoding="async" />
               </div>
             )}
             <div className="loader-text-row">

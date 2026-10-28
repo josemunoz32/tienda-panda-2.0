@@ -1,3 +1,13 @@
+/* CONTENEDOR PRINCIPAL HOME */
+.home-root {
+  margin-top: 220px;
+}
+@media (max-width: 768px) {
+  .home-root {
+    margin-top: 90px;
+  }
+}
+
 /* LOADER DE INICIO HOME */
 .home-depth-carousel-wrapper {
   width: 100%;

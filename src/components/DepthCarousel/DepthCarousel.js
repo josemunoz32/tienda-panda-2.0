@@ -14,6 +14,14 @@ const DEFAULT_ITEMS = [
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 const normalizeItem = it => (typeof it === 'string' ? { image: it, alt: '' } : it);
 
+function getOptimizedCarouselImage(url, width = 380) {
+  if (!url || typeof url !== 'string') return url;
+  if (url.includes('assets.nintendo.com/image/upload/') && !url.includes('f_auto')) {
+    return url.replace('/image/upload/', `/image/upload/f_auto,q_auto,w_${width}/`);
+  }
+  return url;
+}
+
 const DepthCarousel = ({
   items = DEFAULT_ITEMS,
   cardWidth = 300,
@@ -386,7 +394,7 @@ const DepthCarousel = ({
           >
             <img
               className="depth-carousel__img"
-              src={item.image}
+              src={getOptimizedCarouselImage(item.image, cardWidth)}
               alt={item.alt || item.title || 'Juego digital PandaStore'}
               draggable={false}
               loading="lazy"

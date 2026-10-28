@@ -6,6 +6,8 @@ import { getPresenceTabId, getVisitorId } from "./visitorIdentity";
 
 export default function usePresence(page = "/") {
   useEffect(() => {
+    if (!database) return;
+
     let unsub = null;
     let removeConnectionListener = null;
     let heartbeat = null;

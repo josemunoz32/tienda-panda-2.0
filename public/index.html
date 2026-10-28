@@ -232,8 +232,6 @@
     }
     </script>
 
-    <script defer src="https://sdk.mercadopago.com/js/v2"></script>
-
     <!-- Meta Pixel & Microsoft Clarity (Carga Asíncrona Defer/Idle para 100% Core Web Vitals) -->
     <script>
       (function() {
@@ -260,10 +258,10 @@
 
         if ('requestIdleCallback' in window) {
           window.requestIdleCallback(function() {
-            setTimeout(loadThirdParty, 2000);
-          }, { timeout: 4000 });
+            setTimeout(loadThirdParty, 3500);
+          }, { timeout: 6000 });
         } else {
-          setTimeout(loadThirdParty, 2500);
+          setTimeout(loadThirdParty, 4000);
         }
 
         ['scroll', 'touchstart', 'click'].forEach(function(evt) {
@@ -274,7 +272,7 @@
     <noscript><img height="1" width="1" style="display:none"
       src="https://www.facebook.com/tr?id=1015159907609792&ev=PageView&noscript=1"/></noscript>
 
-    <!-- Estilos Críticos Inmediatos (Evita FOUC / Parpadeo Blanco) -->
+    <!-- Estilos Críticos Inmediatos (Evita FOUC / Parpadeo Blanco / Layout Shift) -->
     <style>
       html, body {
         margin: 0;
@@ -282,6 +280,27 @@
         background-color: #0b0518 !important;
         color: #f1f5f9;
         font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      .material-icons {
+        font-family: 'Material Icons';
+        font-weight: normal;
+        font-style: normal;
+        font-size: 24px;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1em;
+        height: 1em;
+        overflow: hidden;
+      }
+      .home-root {
+        margin-top: 220px;
+      }
+      @media (max-width: 768px) {
+        .home-root {
+          margin-top: 90px;
+        }
       }
       .seo-semantic-crawler-only {
         position: absolute;

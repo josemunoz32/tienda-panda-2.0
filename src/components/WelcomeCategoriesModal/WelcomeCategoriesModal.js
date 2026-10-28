@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ReactDOM from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { catUrl } from "../../utils/slugify";
 import { useMoneda, PAISES_CONFIG } from "../../context/MonedaContext";
@@ -174,7 +175,10 @@ export default function WelcomeCategoriesModal({ visible, onClose, categoryIds, 
 
   const currentPaisConfig = PAISES_CONFIG.find(p => p.codigo === pais) || PAISES_CONFIG[0];
 
-  return (
+  if (!visible) return null;
+  if (typeof document === "undefined") return null;
+
+  return ReactDOM.createPortal(
     <div className="welcome-modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="welcome-modal-title">
       <div className="welcome-modal-card" onClick={(e) => e.stopPropagation()}>
         {/* Glow de fondo */}
@@ -273,6 +277,7 @@ export default function WelcomeCategoriesModal({ visible, onClose, categoryIds, 
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

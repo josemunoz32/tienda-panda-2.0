@@ -43,7 +43,6 @@ import DriftWall from "../../components/DriftWall/DriftWall";
 import AccordionGallery from "../../components/AccordionGallery/AccordionGallery";
 import Loader from "../../components/Loader";
 import WelcomeCategoriesModal from "../../components/WelcomeCategoriesModal/WelcomeCategoriesModal";
-import ReviewRewardModal, { REVIEW_REWARD_KEY } from "../../components/ReviewRewardModal/ReviewRewardModal";
 import "./Home.css";
 
 function HomeLoadingScreen() {
@@ -169,42 +168,25 @@ function DestacadosCarrusel({ productos, moneda, handleFav, favIds, openAuthModa
 export default function Home() {
   // Modal de bienvenida con categorías oficiales que sale al entrar a la web
   const [showModal, setShowModal] = useState(() => {
+    try {
+      if (sessionStorage.getItem("pandaWelcomeModalClosed") === "true") return false;
+    } catch (_) {}
     const path = window.location.pathname.toLowerCase();
     return path === "/" || path === "/home";
   });
-  const [showReviewReward, setShowReviewReward] = useState(false);
-
-  const openReviewRewardIfEligible = async () => {
-    if (localStorage.getItem(REVIEW_REWARD_KEY)) return;
-
-    const currentUser = auth.currentUser;
-    if (currentUser?.uid) {
-      try {
-        const existingReview = await getDocs(query(
-          collection(db, "testimonios_reviews"),
-          where("userId", "==", currentUser.uid),
-          limit(1)
-        ));
-        if (!existingReview.empty) {
-          // Evita volver a consultar y mostrar el incentivo a un cliente que ya participó.
-          localStorage.setItem(REVIEW_REWARD_KEY, "true");
-          return;
-        }
-      } catch (error) {
-        console.warn("No se pudo comprobar la reseña anterior del cliente:", error);
-        return;
-      }
-    }
-    setShowReviewReward(true);
-  };
 
   const handleCloseModal = () => {
     setShowModal(false);
-    void openReviewRewardIfEligible();
+    try {
+      sessionStorage.setItem("pandaWelcomeModalClosed", "true");
+    } catch (_) {}
   };
 
   const handleSelect = async (opcion) => {
-    localStorage.setItem("pandaModalDismissed", "true");
+    try {
+      sessionStorage.setItem("pandaWelcomeModalClosed", "true");
+      localStorage.setItem("pandaModalDismissed", "true");
+    } catch (_) {}
     setShowModal(false);
     if (opcion === "promos") {
       navigate("/promos");
@@ -833,12 +815,6 @@ export default function Home() {
           categoryNames={categoryNames}
         />
       )}
-      {showReviewReward && (
-        <ReviewRewardModal
-          visible={showReviewReward}
-          onClose={() => setShowReviewReward(false)}
-        />
-      )}
       <div
         className="home-root"
         style={{
@@ -848,7 +824,6 @@ export default function Home() {
           zIndex: 10,
           background: 'transparent',
           paddingBottom: 80,
-          marginTop: isMobile ? 90 : 220,
         }}
       >
       {/* Auth modal removido */}

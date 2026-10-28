@@ -206,8 +206,9 @@ export default function AdminDashboard() {
 
   // No limit here: the daily totals and peak/low days must use all recorded
   // events, not an arbitrary sample of the latest records.
-  useEffect(() => onSnapshot(query(collection(db, "analyticsEvents"), orderBy("timestamp", "desc")), (snapshot) => setEvents(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))), () => setLoadError("No fue posible leer los eventos analíticos.")), []);
-  useEffect(() => onValue(ref(database, "presence"), (snapshot) => {
+  useEffect(() => {
+    if (!database) return;
+    return onValue(ref(database, "presence"), (snapshot) => {
     const cutoff = Date.now() - 90000;
     const visitors = [];
     Object.entries(snapshot.val() || {}).forEach(([identity, entry]) => {
@@ -239,7 +240,8 @@ export default function AdminDashboard() {
       visitors,
       checkedAt: new Date(),
     });
-  }), []);
+  });
+  }, []);
 
   const model = useMemo(() => {
     if (!store) return null;
