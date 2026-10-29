@@ -42,95 +42,287 @@ namespace PandaStoreLauncher.Helpers
 
         /// <summary>
         /// Gets the main Steam installation path from Windows Registry.
-        /// </summary>
-        public static string GetSteamPath()
-        {
-            string? path = null;
+        private static string? _cachedSteamPath = null;
+        private static readonly string CustomSteamPathConfigFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "PandaStore",
+            "steam_path.txt");
 
+        private static bool IsValidSteamDir(string dir)
+        {
             try
             {
-                path = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "SteamPath", null) as string;
+                if (!Directory.Exists(dir)) return false;
+                return File.Exists(Path.Combine(dir, "steam.exe")) ||
+                       File.Exists(Path.Combine(dir, "Steam.exe")) ||
+                       Directory.Exists(Path.Combine(dir, "steamapps")) ||
+                       Directory.Exists(Path.Combine(dir, "appcache"));
             }
-            catch { }
+            catch { return false; }
+        }
 
-            if (string.IsNullOrEmpty(path))
+        private static void SaveSteamPath(string dir)
+        {
+            try
             {
+                string? folder = Path.GetDirectoryName(CustomSteamPathConfigFile);
+                if (!string.IsNullOrEmpty(folder) && !Directory.Exists(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                }
+                File.WriteAllText(CustomSteamPathConfigFile, dir);
+
                 try
                 {
-                    path = Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Valve\Steam", "InstallPath", null) as string;
+                    Registry.SetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "SteamPath", dir.Replace(@"\", "/"));
                 }
                 catch { }
             }
+            catch { }
+        }
 
-            // Check standard Windows default paths
-            if (string.IsNullOrEmpty(path))
+        private static string? PromptUserForSteamPath()
+        {
+            string? selectedPath = null;
+            try
             {
-                if (Directory.Exists(@"C:\Program Files (x86)\Steam"))
-                    path = @"C:\Program Files (x86)\Steam";
-                else if (Directory.Exists(@"C:\Program Files\Steam"))
-                    path = @"C:\Program Files\Steam";
+                if (System.Windows.Application.Current != null)
+                {
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        System.Windows.MessageBox.Show(
+                            "PandaStore no pudo localizar automáticamente tu carpeta de Steam.\n\nPor favor, en la siguiente ventana selecciona el archivo 'steam.exe' en la carpeta donde tienes instalado Steam (puede estar en el disco C:, D:, etc.).",
+                            "Localizar Steam - PandaStore",
+                            System.Windows.MessageBoxButton.OK,
+                            System.Windows.MessageBoxImage.Information);
+
+                        var ofd = new Microsoft.Win32.OpenFileDialog
+                        {
+                            Title = "Selecciona el archivo steam.exe de tu Steam",
+                            Filter = "Steam Executable (steam.exe)|steam.exe|Todos los archivos (*.*)|*.*",
+                            CheckFileExists = true
+                        };
+
+                        if (ofd.ShowDialog() == true)
+                        {
+                            string dir = Path.GetDirectoryName(ofd.FileName)!;
+                            if (Directory.Exists(dir))
+                            {
+                                selectedPath = dir.Replace("/", @"\");
+                            }
+                        }
+                    });
+                }
+            }
+            catch { }
+            return selectedPath;
+        }
+
+        /// <summary>
+        /// Detects the Steam installation path intelligently across running processes, registry, all connected drives, and UI fallback.
+        /// </summary>
+        public static string GetSteamPath()
+        {
+            // 1. In-memory cache
+            if (!string.IsNullOrEmpty(_cachedSteamPath) && Directory.Exists(_cachedSteamPath) && IsValidSteamDir(_cachedSteamPath))
+            {
+                return _cachedSteamPath;
             }
 
-            // Check SteamOS / Linux / Proton drive_c mapped paths
-            if (string.IsNullOrEmpty(path))
+            // 2. Check saved file in %AppData%\PandaStore\steam_path.txt
+            try
             {
-                if (Directory.Exists(@"Z:\home"))
+                if (File.Exists(CustomSteamPathConfigFile))
+                {
+                    string saved = File.ReadAllText(CustomSteamPathConfigFile).Trim().Replace("/", @"\");
+                    if (!string.IsNullOrEmpty(saved) && Directory.Exists(saved) && IsValidSteamDir(saved))
+                    {
+                        _cachedSteamPath = saved;
+                        return saved;
+                    }
+                }
+            }
+            catch { }
+
+            // 3. Check currently running steam process (100% accurate if Steam is running)
+            try
+            {
+                var procs = Process.GetProcessesByName("steam");
+                foreach (var p in procs)
                 {
                     try
                     {
-                        foreach (var userDir in Directory.GetDirectories(@"Z:\home"))
+                        string? exePath = p.MainModule?.FileName;
+                        if (!string.IsNullOrEmpty(exePath))
                         {
-                            string[] candidates = new[]
+                            string? dir = Path.GetDirectoryName(exePath)?.Replace("/", @"\");
+                            if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir) && IsValidSteamDir(dir))
                             {
-                                Path.Combine(userDir, @".local\share\Steam"),
-                                Path.Combine(userDir, @".steam\steam"),
-                                Path.Combine(userDir, @".steam\root")
-                            };
-                            foreach (var cand in candidates)
-                            {
-                                if (Directory.Exists(cand))
-                                {
-                                    path = cand;
-                                    break;
-                                }
+                                SaveSteamPath(dir);
+                                _cachedSteamPath = dir;
+                                return dir;
                             }
-                            if (!string.IsNullOrEmpty(path)) break;
                         }
                     }
                     catch { }
                 }
+            }
+            catch { }
 
-                if (string.IsNullOrEmpty(path))
+            // 4. Check Windows Registry HKCU (CurrentUser)
+            try
+            {
+                string? regPath = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "SteamPath", null) as string;
+                if (!string.IsNullOrEmpty(regPath))
                 {
-                    string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                    string[] linuxSteamPaths = new[]
+                    regPath = regPath.Replace("/", @"\");
+                    if (Directory.Exists(regPath) && IsValidSteamDir(regPath))
                     {
-                        Path.Combine(userProfile, @".local\share\Steam"),
-                        Path.Combine(userProfile, @".steam\steam"),
-                        Path.Combine(userProfile, @".steam\root")
-                    };
+                        SaveSteamPath(regPath);
+                        _cachedSteamPath = regPath;
+                        return regPath;
+                    }
+                }
 
-                    foreach (var linuxPath in linuxSteamPaths)
+                string? regExe = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "SteamExe", null) as string;
+                if (!string.IsNullOrEmpty(regExe))
+                {
+                    string? dir = Path.GetDirectoryName(regExe)?.Replace("/", @"\");
+                    if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir) && IsValidSteamDir(dir))
                     {
-                        if (Directory.Exists(linuxPath))
+                        SaveSteamPath(dir);
+                        _cachedSteamPath = dir;
+                        return dir;
+                    }
+                }
+            }
+            catch { }
+
+            // 5. Check Windows Registry HKLM (LocalMachine 32 & 64 bit)
+            try
+            {
+                string[] hklmKeys = new[]
+                {
+                    @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Valve\Steam",
+                    @"HKEY_LOCAL_MACHINE\SOFTWARE\Valve\Steam"
+                };
+                foreach (var key in hklmKeys)
+                {
+                    string? regPath = Registry.GetValue(key, "InstallPath", null) as string;
+                    if (!string.IsNullOrEmpty(regPath))
+                    {
+                        regPath = regPath.Replace("/", @"\");
+                        if (Directory.Exists(regPath) && IsValidSteamDir(regPath))
                         {
-                            path = linuxPath;
-                            break;
+                            SaveSteamPath(regPath);
+                            _cachedSteamPath = regPath;
+                            return regPath;
                         }
                     }
                 }
             }
+            catch { }
 
-            if (string.IsNullOrEmpty(path))
+            // 6. Deep Scan across ALL connected drives (C:, D:, E:, F:, G:, etc.)
+            try
             {
-                throw new DirectoryNotFoundException("No se encontró la instalación de Steam en el registro ni en las rutas de SteamOS / Windows.");
+                foreach (var drive in DriveInfo.GetDrives())
+                {
+                    if (!drive.IsReady) continue;
+                    string root = drive.RootDirectory.FullName;
+                    string[] candidates = new[]
+                    {
+                        Path.Combine(root, "Program Files (x86)", "Steam"),
+                        Path.Combine(root, "Program Files", "Steam"),
+                        Path.Combine(root, "Steam"),
+                        Path.Combine(root, "Games", "Steam"),
+                        Path.Combine(root, "Juegos", "Steam"),
+                        Path.Combine(root, "SteamLibrary")
+                    };
+
+                    foreach (var cand in candidates)
+                    {
+                        if (Directory.Exists(cand) && IsValidSteamDir(cand))
+                        {
+                            string formatted = cand.Replace("/", @"\");
+                            SaveSteamPath(formatted);
+                            _cachedSteamPath = formatted;
+                            return formatted;
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            // 7. Check SteamOS / Linux / Proton drive_c mapped paths
+            if (Directory.Exists(@"Z:\home"))
+            {
+                try
+                {
+                    foreach (var userDir in Directory.GetDirectories(@"Z:\home"))
+                    {
+                        string[] candidates = new[]
+                        {
+                            Path.Combine(userDir, @".local\share\Steam"),
+                            Path.Combine(userDir, @".steam\steam"),
+                            Path.Combine(userDir, @".steam\root")
+                        };
+                        foreach (var cand in candidates)
+                        {
+                            if (Directory.Exists(cand))
+                            {
+                                string formatted = cand.Replace("/", @"\");
+                                SaveSteamPath(formatted);
+                                _cachedSteamPath = formatted;
+                                return formatted;
+                            }
+                        }
+                    }
+                }
+                catch { }
             }
 
-            return path.Replace("/", @"\");
+            // 8. Linux user profile fallback
+            try
+            {
+                string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string[] linuxSteamPaths = new[]
+                {
+                    Path.Combine(userProfile, @".local\share\Steam"),
+                    Path.Combine(userProfile, @".steam\steam"),
+                    Path.Combine(userProfile, @".steam\root")
+                };
+
+                foreach (var linuxPath in linuxSteamPaths)
+                {
+                    if (Directory.Exists(linuxPath))
+                    {
+                        string formatted = linuxPath.Replace("/", @"\");
+                        SaveSteamPath(formatted);
+                        _cachedSteamPath = formatted;
+                        return formatted;
+                    }
+                }
+            }
+            catch { }
+
+            // 9. Interactive User Selection Fallback
+            string? userSelected = PromptUserForSteamPath();
+            if (!string.IsNullOrEmpty(userSelected) && Directory.Exists(userSelected))
+            {
+                SaveSteamPath(userSelected);
+                _cachedSteamPath = userSelected;
+                return userSelected;
+            }
+
+            // 10. Default fallback creation if all else fails
+            string defaultPath = @"C:\Program Files (x86)\Steam";
+            try { Directory.CreateDirectory(defaultPath); } catch { }
+            return defaultPath;
         }
 
         /// <summary>
-        /// Returns all potential Steam installation paths (especially useful in Linux / Steam Deck multi-user / symlink setups).
+        /// Returns all potential Steam installation paths across drives and Linux / Steam Deck environments.
         /// </summary>
         public static List<string> GetAllSteamPaths()
         {
@@ -141,6 +333,32 @@ namespace PandaStoreLauncher.Helpers
                 string mainPath = GetSteamPath();
                 if (!string.IsNullOrEmpty(mainPath) && Directory.Exists(mainPath))
                     paths.Add(mainPath);
+            }
+            catch { }
+
+            try
+            {
+                foreach (var drive in DriveInfo.GetDrives())
+                {
+                    if (!drive.IsReady) continue;
+                    string root = drive.RootDirectory.FullName;
+                    string[] candidates = new[]
+                    {
+                        Path.Combine(root, "Program Files (x86)", "Steam"),
+                        Path.Combine(root, "Program Files", "Steam"),
+                        Path.Combine(root, "Steam"),
+                        Path.Combine(root, "Games", "Steam"),
+                        Path.Combine(root, "Juegos", "Steam")
+                    };
+                    foreach (var cand in candidates)
+                    {
+                        string formatted = cand.Replace("/", @"\");
+                        if (Directory.Exists(cand) && IsValidSteamDir(cand) && !paths.Contains(formatted, StringComparer.OrdinalIgnoreCase))
+                        {
+                            paths.Add(formatted);
+                        }
+                    }
+                }
             }
             catch { }
 
@@ -158,10 +376,10 @@ namespace PandaStoreLauncher.Helpers
                         };
                         foreach (var cand in candidates)
                         {
-                            string formattedPath = cand.Replace("/", @"\");
-                            if (Directory.Exists(cand) && !paths.Contains(formattedPath, StringComparer.OrdinalIgnoreCase))
+                            string formatted = cand.Replace("/", @"\");
+                            if (Directory.Exists(cand) && !paths.Contains(formatted, StringComparer.OrdinalIgnoreCase))
                             {
-                                paths.Add(formattedPath);
+                                paths.Add(formatted);
                             }
                         }
                     }
@@ -344,6 +562,24 @@ namespace PandaStoreLauncher.Helpers
         /// </summary>
         public static void ExtractInjectorComponents(string steamPath)
         {
+            if (string.IsNullOrWhiteSpace(steamPath) || !Directory.Exists(steamPath))
+            {
+                steamPath = GetSteamPath();
+            }
+
+            try
+            {
+                if (!Directory.Exists(steamPath))
+                {
+                    Directory.CreateDirectory(steamPath);
+                }
+                Directory.CreateDirectory(Path.Combine(steamPath, "plugins"));
+                Directory.CreateDirectory(Path.Combine(steamPath, "depotcache"));
+                Directory.CreateDirectory(Path.Combine(steamPath, "config", "st-plugin"));
+                Directory.CreateDirectory(Path.Combine(steamPath, "config", "depotcache"));
+            }
+            catch { }
+
             Assembly assembly = Assembly.GetExecutingAssembly();
 
             // Clean up any rogue/cached update files or duplicate hijackers
@@ -374,12 +610,22 @@ namespace PandaStoreLauncher.Helpers
                 string resourceName = $"PandaStoreLauncher.Resources.Injector.{filename}";
                 string destinationPath = Path.Combine(steamPath, filename);
 
-                using Stream? resourceStream = assembly.GetManifestResourceStream(resourceName);
-                if (resourceStream != null)
+                try
                 {
-                    using FileStream fileStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write);
-                    resourceStream.CopyTo(fileStream);
+                    string? dir = Path.GetDirectoryName(destinationPath);
+                    if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                    {
+                        Directory.CreateDirectory(dir);
+                    }
+
+                    using Stream? resourceStream = assembly.GetManifestResourceStream(resourceName);
+                    if (resourceStream != null)
+                    {
+                        using FileStream fileStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write);
+                        resourceStream.CopyTo(fileStream);
+                    }
                 }
+                catch { }
             }
 
             // Ensure intermediate CA certificates (YE1 / ISRG Root) are installed so CloudRedirect SSL requests don't fail
