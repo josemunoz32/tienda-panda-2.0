@@ -33,18 +33,60 @@ namespace PandaStoreLauncher
 
                 if (File.Exists(tempSetupExe)) File.Delete(tempSetupExe);
 
-                using (var client = new HttpClient())
+                // Resilient resumable downloader with automatic retry and range recovery
+                var handler = new SocketsHttpHandler
                 {
-                    using (var response = await client.GetAsync(_downloadUrl, HttpCompletionOption.ResponseHeadersRead))
+                    PooledConnectionLifetime = TimeSpan.FromMinutes(15),
+                    ConnectTimeout = TimeSpan.FromSeconds(30),
+                    ResponseDrainTimeout = TimeSpan.FromMinutes(10),
+                    AutomaticDecompression = System.Net.DecompressionMethods.All
+                };
+
+                using var client = new HttpClient(handler) { Timeout = TimeSpan.FromMinutes(15) };
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) PandaStoreLauncher/2.4.36");
+
+                long? totalBytes = null;
+                long totalRead = 0;
+                int maxRetries = 5;
+                int retryCount = 0;
+
+                while (retryCount < maxRetries)
+                {
+                    try
                     {
-                        response.EnsureSuccessStatusCode();
-                        long? totalBytes = response.Content.Headers.ContentLength;
+                        using var request = new HttpRequestMessage(HttpMethod.Get, _downloadUrl);
+                        if (totalRead > 0)
+                        {
+                            request.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(totalRead, null);
+                        }
+
+                        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+                        if (response.StatusCode == System.Net.HttpStatusCode.PartialContent)
+                        {
+                            if (response.Content.Headers.ContentRange?.Length.HasValue == true)
+                            {
+                                totalBytes = response.Content.Headers.ContentRange.Length.Value;
+                            }
+                        }
+                        else if (response.IsSuccessStatusCode)
+                        {
+                            totalBytes = response.Content.Headers.ContentLength;
+                            if (totalRead > 0 && response.StatusCode == System.Net.HttpStatusCode.OK)
+                            {
+                                // Server didn't support Range, restart file
+                                totalRead = 0;
+                            }
+                        }
+                        else
+                        {
+                            response.EnsureSuccessStatusCode();
+                        }
 
                         using (var contentStream = await response.Content.ReadAsStreamAsync())
-                        using (var fileStream = new FileStream(tempSetupExe, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
+                        using (var fileStream = new FileStream(tempSetupExe, totalRead > 0 ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.None, 65536, true))
                         {
-                            var buffer = new byte[8192];
-                            long totalRead = 0;
+                            var buffer = new byte[65536];
                             int read;
 
                             while ((read = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
@@ -52,7 +94,7 @@ namespace PandaStoreLauncher
                                 await fileStream.WriteAsync(buffer, 0, read);
                                 totalRead += read;
 
-                                if (totalBytes.HasValue)
+                                if (totalBytes.HasValue && totalBytes.Value > 0)
                                 {
                                     double progress = (double)totalRead / totalBytes.Value * 100;
                                     Dispatcher.Invoke(() =>
@@ -64,6 +106,33 @@ namespace PandaStoreLauncher
                                 }
                             }
                         }
+
+                        // Verify download is complete
+                        if (totalBytes.HasValue && totalRead >= totalBytes.Value)
+                        {
+                            break;
+                        }
+                        else if (!totalBytes.HasValue && totalRead > 50 * 1024 * 1024)
+                        {
+                            break;
+                        }
+
+                        // Stream ended early without error, try resuming
+                        retryCount++;
+                        Dispatcher.Invoke(() =>
+                        {
+                            lblStatus.Text = $"Reconectando descarga ({totalRead / 1024 / 1024} MB descargados)...";
+                        });
+                        await Task.Delay(1000);
+                    }
+                    catch (Exception) when (retryCount < maxRetries - 1)
+                    {
+                        retryCount++;
+                        Dispatcher.Invoke(() =>
+                        {
+                            lblStatus.Text = $"Reconectando descarga (intento {retryCount + 1}/{maxRetries})...";
+                        });
+                        await Task.Delay(1500);
                     }
                 }
 

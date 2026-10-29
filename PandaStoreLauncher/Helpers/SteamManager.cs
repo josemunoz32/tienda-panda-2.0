@@ -810,6 +810,26 @@ namespace PandaStoreLauncher.Helpers
                                 // Ensure depotcache has all manifests and clean stubs
                                 SyncDepotCaches(sPath);
 
+                                // Also distribute manifests to all external Steam library folders (e.g. D:\SteamLibrary\depotcache)
+                                try
+                                {
+                                    var libraries = GetSteamLibraryFolders();
+                                    foreach (var lib in libraries)
+                                    {
+                                        var steamappsDir = Directory.GetParent(lib);
+                                        if (steamappsDir != null && steamappsDir.Parent != null)
+                                        {
+                                            string libDepot = Path.Combine(steamappsDir.Parent.FullName, "depotcache");
+                                            Directory.CreateDirectory(libDepot);
+                                            foreach (var kvp in validManifests)
+                                            {
+                                                try { File.WriteAllBytes(Path.Combine(libDepot, kvp.Key), kvp.Value); } catch { }
+                                            }
+                                        }
+                                    }
+                                }
+                                catch { }
+
                                 // Also include any pre-existing real manifests on disk for this app
                                 foreach (var diskPath in targetSteamPaths)
                                 {
@@ -1060,29 +1080,48 @@ namespace PandaStoreLauncher.Helpers
                     continue;
                 }
 
-                var matchApp = Regex.Match(line, @"addappid\(\s*(\d+)", RegexOptions.IgnoreCase);
-                var matchManifest = Regex.Match(line, @"setManifestid\(\s*(\d+)", RegexOptions.IgnoreCase);
-                string targetId = matchApp.Success ? matchApp.Groups[1].Value : (matchManifest.Success ? matchManifest.Groups[1].Value : "");
+                // Check if this line is a single-argument addappid(appId) (DLC / sub-app)
+                // Examples: addappid(4024620), addappid( 4024630 )
+                bool isSingleAppId = Regex.IsMatch(trimmed, @"^addappid\(\s*\d+\s*\)", RegexOptions.IgnoreCase);
 
-                if (!string.IsNullOrEmpty(targetId))
+                // A depot key has 3 arguments: addappid(depotId, flag, "key")
+                // A manifest line has 2 arguments: setManifestid(depotId, "manifestId")
+
+                if (isSingleAppId)
                 {
-                    if (IsCorruptDepot(targetId))
+                    var matchSingle = Regex.Match(trimmed, @"^addappid\(\s*(\d+)\s*\)", RegexOptions.IgnoreCase);
+                    if (matchSingle.Success)
                     {
-                        lines[li] = "-- [BAD_KEY] " + line;
-                        continue;
+                        string dlcId = matchSingle.Groups[1].Value;
+                        // Never filter base game AppID
+                        if (dlcId != appId)
+                        {
+                            if (shouldFilterDlcs && allowedSet != null && !allowedSet.Contains(dlcId))
+                            {
+                                lines[li] = "-- [NO_COMPRADO] " + line;
+                            }
+                        }
                     }
+                }
+                else
+                {
+                    // It's a depot decryption key or setManifestid
+                    var matchManifest = Regex.Match(line, @"setManifestid\(\s*(\d+)", RegexOptions.IgnoreCase);
+                    var matchDepotKey = Regex.Match(line, @"addappid\(\s*(\d+)\s*,\s*\d+\s*,\s*""([^""]+)""", RegexOptions.IgnoreCase);
 
-                    // Distinguish single-argument addappid(appId) (DLCs / sub-apps) from depot decryption keys / manifests
-                    // Single-argument addappid registers DLC ownership and NEVER has a separate .manifest file.
-                    bool isSingleAppId = Regex.IsMatch(trimmed, @"^addappid\(\s*\d+\s*\)", RegexOptions.IgnoreCase);
+                    string depotId = matchManifest.Success ? matchManifest.Groups[1].Value : (matchDepotKey.Success ? matchDepotKey.Groups[1].Value : "");
 
-                    if (shouldFilterDlcs && allowedSet != null && !allowedSet.Contains(targetId) && targetId != appId)
+                    if (!string.IsNullOrEmpty(depotId))
                     {
-                        lines[li] = "-- [NO_COMPRADO] " + line;
-                    }
-                    else if (!isSingleAppId && validDepotIds != null && validDepotIds.Count > 0 && !validDepotIds.Contains(targetId) && targetId != appId)
-                    {
-                        lines[li] = "-- [NO_MANIFEST] " + line;
+                        if (IsCorruptDepot(depotId))
+                        {
+                            lines[li] = "-- [BAD_KEY] " + line;
+                        }
+                        // Only comment out setManifestid if the manifest is genuinely missing from disk
+                        else if (matchManifest.Success && validDepotIds != null && validDepotIds.Count > 0 && !validDepotIds.Contains(depotId))
+                        {
+                            lines[li] = "-- [NO_MANIFEST] " + line;
+                        }
                     }
                 }
             }
