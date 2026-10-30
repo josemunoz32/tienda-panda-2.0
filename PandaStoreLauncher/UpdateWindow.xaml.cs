@@ -39,15 +39,15 @@ namespace PandaStoreLauncher
                     PooledConnectionLifetime = TimeSpan.FromMinutes(15),
                     ConnectTimeout = TimeSpan.FromSeconds(30),
                     ResponseDrainTimeout = TimeSpan.FromMinutes(10),
-                    AutomaticDecompression = System.Net.DecompressionMethods.All
+                    AutomaticDecompression = System.Net.DecompressionMethods.None
                 };
 
                 using var client = new HttpClient(handler) { Timeout = TimeSpan.FromMinutes(15) };
-                client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) PandaStoreLauncher/2.4.36");
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) PandaStoreLauncher/2.4.37");
 
                 long? totalBytes = null;
                 long totalRead = 0;
-                int maxRetries = 5;
+                int maxRetries = 6;
                 int retryCount = 0;
 
                 while (retryCount < maxRetries)
@@ -62,6 +62,14 @@ namespace PandaStoreLauncher
 
                         using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
+                        if (response.StatusCode == System.Net.HttpStatusCode.RequestedRangeNotSatisfiable)
+                        {
+                            // Range invalid, reset to beginning
+                            totalRead = 0;
+                            if (File.Exists(tempSetupExe)) File.Delete(tempSetupExe);
+                            continue;
+                        }
+
                         if (response.StatusCode == System.Net.HttpStatusCode.PartialContent)
                         {
                             if (response.Content.Headers.ContentRange?.Length.HasValue == true)
@@ -74,8 +82,9 @@ namespace PandaStoreLauncher
                             totalBytes = response.Content.Headers.ContentLength;
                             if (totalRead > 0 && response.StatusCode == System.Net.HttpStatusCode.OK)
                             {
-                                // Server didn't support Range, restart file
+                                // Server didn't support Range, restart file from scratch
                                 totalRead = 0;
+                                if (File.Exists(tempSetupExe)) File.Delete(tempSetupExe);
                             }
                         }
                         else
@@ -84,9 +93,9 @@ namespace PandaStoreLauncher
                         }
 
                         using (var contentStream = await response.Content.ReadAsStreamAsync())
-                        using (var fileStream = new FileStream(tempSetupExe, totalRead > 0 ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.None, 65536, true))
+                        using (var fileStream = new FileStream(tempSetupExe, totalRead > 0 ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.None, 131072, true))
                         {
-                            var buffer = new byte[65536];
+                            var buffer = new byte[131072];
                             int read;
 
                             while ((read = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
@@ -168,28 +177,58 @@ Start-Sleep -Seconds 1
 try {{ Stop-Process -Id {currentPid} -Force -ErrorAction SilentlyContinue }} catch {{}}
 try {{ Stop-Process -Name PandaStoreLauncher, PandaChecker, PandaStoreActivator -Force -ErrorAction SilentlyContinue }} catch {{}}
 taskkill /F /T /IM PandaStoreLauncher.exe /IM PandaChecker.exe /IM PandaStoreActivator.exe 2>$null
-Start-Sleep -Seconds 1
+Start-Sleep -Seconds 2
 
-# Instalar la nueva version silenciosamente con elevacion de Administrador
-Start-Process -FilePath '{tempSetupExe}' -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART' -Verb RunAs -Wait
+# Ejecutar el instalador con elevacion de Administrador y esperar rigurosamente a que termine de instalar
+$proc = Start-Process -FilePath '{tempSetupExe}' -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART' -Verb RunAs -PassThru
+if ($proc) {{
+    try {{ $proc.WaitForExit() }} catch {{}}
+}}
 
-# Si el launcher actual no estaba en Program Files (ej: en el Escritorio o Descargas),
-# y el instalador instalo el nuevo en Program Files, actualizamos tambien el EXE en la ruta original
-if (Test-Path '{installedExe}') {{
-    if ('{currentExe}' -ne '' -and '{currentExe}' -ne '{installedExe}' -and (Test-Path '{currentExe}')) {{
-        try {{ Copy-Item -Path '{installedExe}' -Destination '{currentExe}' -Force }} catch {{}}
+# Doble seguro: esperar a que no quede ningun proceso de PandaStoreSetup en ejecucion
+$waitSec = 0
+while ((Get-Process PandaStoreSetup* -ErrorAction SilentlyContinue) -and $waitSec -lt 90) {{
+    Start-Sleep -Seconds 1
+    $waitSec++
+}}
+Start-Sleep -Seconds 2
+
+# Determinar el ejecutable instalado mas reciente
+$installedExe86 = '{installedExe86}'
+$installedExe = '{installedExe}'
+$targetExe = $installedExe86
+
+if (-not (Test-Path $targetExe)) {{
+    $targetExe = $installedExe
+}}
+if (Test-Path $installedExe) {{
+    if ((-not (Test-Path $targetExe)) -or ((Get-Item $installedExe).LastWriteTime -gt (Get-Item $targetExe).LastWriteTime)) {{
+        $targetExe = $installedExe
     }}
-    Start-Process -FilePath '{installedExe}'
-}} elseif (Test-Path '{installedExe86}') {{
-    if ('{currentExe}' -ne '' -and '{currentExe}' -ne '{installedExe86}' -and (Test-Path '{currentExe}')) {{
-        try {{ Copy-Item -Path '{installedExe86}' -Destination '{currentExe}' -Force }} catch {{}}
+}}
+
+# Si el launcher se estaba ejecutando desde otra ruta (ej: Escritorio, Descargas), actualizar tambien ese archivo
+$currentExe = '{currentExe}'
+if ($targetExe -and (Test-Path $targetExe) -and $currentExe -ne '' -and $currentExe -ne $targetExe -and (Test-Path $currentExe)) {{
+    for ($i = 0; $i -lt 5; $i++) {{
+        try {{
+            Copy-Item -Path $targetExe -Destination $currentExe -Force -ErrorAction Stop
+            break
+        }} catch {{
+            Start-Sleep -Milliseconds 800
+        }}
     }}
-    Start-Process -FilePath '{installedExe86}'
-}} elseif ('{currentExe}' -ne '' -and (Test-Path '{currentExe}')) {{
-    Start-Process -FilePath '{currentExe}'
+}}
+
+# Iniciar SIEMPRE la version recien instalada y verificada
+if ($targetExe -and (Test-Path $targetExe)) {{
+    Start-Process -FilePath $targetExe
+}} elseif ($currentExe -ne '' -and (Test-Path $currentExe)) {{
+    Start-Process -FilePath $currentExe
 }}
 
 # Limpiar el instalador temporal
+Start-Sleep -Seconds 3
 try {{ Remove-Item -Path '{tempSetupExe}' -Force -ErrorAction SilentlyContinue }} catch {{}}
 ";
 

@@ -75,7 +75,7 @@ namespace PandaStoreLauncher
             }
         }
 
-        private const string CurrentVersion = "2.4.36"; // Current client executable version
+        private const string CurrentVersion = "2.4.37"; // Current client executable version
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -212,19 +212,40 @@ namespace PandaStoreLauncher
                             btnCheckUpdate.Style = (Style)FindResource("GoldButtonStyle");
                             btnCheckUpdate.Visibility = Visibility.Visible;
 
-                            var askUpdate = MessageBox.Show(
-                                $"🚀 ¡NUEVA ACTUALIZACIÓN DISPONIBLE!\n\n" +
-                                $"Versión actual: v{CurrentVersion}\n" +
-                                $"Nueva versión: v{targetVer}\n\n" +
-                                "¿Deseas actualizar PandaStore Launcher ahora automáticamente?",
-                                "PandaStore Actualizador",
-                                MessageBoxButton.YesNo,
-                                MessageBoxImage.Question);
-
-                            if (askUpdate == MessageBoxResult.Yes)
+                            // Prevent infinite update prompt loop if recently installed/attempted
+                            bool wasRecentlyAttempted = false;
+                            try
                             {
-                                UpdateWindow updateWindow = new UpdateWindow(targetUrl, targetVer);
-                                updateWindow.ShowDialog();
+                                string flagFile = Path.Combine(pandaDir, "update_just_installed.flag");
+                                if (File.Exists(flagFile))
+                                {
+                                    string flagVer = File.ReadAllText(flagFile).Trim();
+                                    var fi = new FileInfo(flagFile);
+                                    if (flagVer.Equals(targetVer, StringComparison.OrdinalIgnoreCase) &&
+                                        (DateTime.UtcNow - fi.LastWriteTimeUtc).TotalMinutes < 5)
+                                    {
+                                        wasRecentlyAttempted = true;
+                                    }
+                                }
+                            }
+                            catch { }
+
+                            if (!wasRecentlyAttempted)
+                            {
+                                var askUpdate = MessageBox.Show(
+                                    $"🚀 ¡NUEVA ACTUALIZACIÓN DISPONIBLE!\n\n" +
+                                    $"Versión actual: v{CurrentVersion}\n" +
+                                    $"Nueva versión: v{targetVer}\n\n" +
+                                    "¿Deseas actualizar PandaStore Launcher ahora automáticamente?",
+                                    "PandaStore Actualizador",
+                                    MessageBoxButton.YesNo,
+                                    MessageBoxImage.Question);
+
+                                if (askUpdate == MessageBoxResult.Yes)
+                                {
+                                    UpdateWindow updateWindow = new UpdateWindow(targetUrl, targetVer);
+                                    updateWindow.ShowDialog();
+                                }
                             }
                         });
                     }

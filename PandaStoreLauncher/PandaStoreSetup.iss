@@ -1,6 +1,6 @@
 [Setup]
 AppName=PandaStore Launcher
-AppVersion=2.4.36
+AppVersion=2.4.37
 AppPublisher=PandaStore Official
 AppPublisherURL=https://pandastoreupdate.web.app
 DefaultDirName={autopf}\PandaStore
@@ -45,8 +45,8 @@ Filename: "{app}\PandaChecker.exe"; Flags: nowait runhidden
 ; Create Scheduled Task for PandaChecker (Runs every hour silently)
 Filename: "schtasks.exe"; Parameters: "/Create /F /TN ""PandaStore License Checker"" /TR """"{app}\PandaChecker.exe"""" /SC DAILY /ST 09:00 /RI 60 /DU 24:00 /RL HIGHEST"; Flags: runhidden
 
-; Launch Launcher on finish (always, including silent/auto-update installs)
-Filename: "{app}\PandaStoreLauncher.exe"; Flags: nowait shellexec
+; Launch Launcher on finish (only when interactive, skipped on silent/auto-update)
+Filename: "{app}\PandaStoreLauncher.exe"; Flags: nowait postinstall skipifsilent
 
 [UninstallRun]
 ; Remove Scheduled Task on uninstall
