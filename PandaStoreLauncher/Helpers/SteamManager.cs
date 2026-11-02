@@ -1839,6 +1839,35 @@ namespace PandaStoreLauncher.Helpers
                 catch { }
             }
 
+            // Fallback: Escaneo universal de todas las unidades de disco (C:, D:, E:, etc.) para bibliotecas Steam personalizadas
+            try
+            {
+                foreach (var drive in DriveInfo.GetDrives())
+                {
+                    if (!drive.IsReady) continue;
+                    string root = drive.RootDirectory.FullName;
+
+                    string[] candidateSubpaths = new[]
+                    {
+                        Path.Combine(root, "SteamLibrary", "steamapps", "common"),
+                        Path.Combine(root, "Steam", "steamapps", "common"),
+                        Path.Combine(root, "Juegos", "Steam", "steamapps", "common"),
+                        Path.Combine(root, "Games", "Steam", "steamapps", "common"),
+                        Path.Combine(root, "Program Files (x86)", "Steam", "steamapps", "common"),
+                        Path.Combine(root, "Program Files", "Steam", "steamapps", "common")
+                    };
+
+                    foreach (var c in candidateSubpaths)
+                    {
+                        if (Directory.Exists(c) && !libraries.Any(l => string.Equals(l, c, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            libraries.Add(c);
+                        }
+                    }
+                }
+            }
+            catch { }
+
             return libraries;
         }
 
@@ -2260,6 +2289,15 @@ namespace PandaStoreLauncher.Helpers
 
                 string folderName = new DirectoryInfo(gameFolderPath).Name;
 
+                // Prioridad especial Unreal Engine / Juegos modernos (ej: Sparking! ZERO):
+                // Si existe un ejecutable en Binaries/Win64 o que termine en "Shipping.exe", ese es el binario REAL del juego.
+                // Evita ejecutar el launcher/stub de 500 KB de la raíz que provoca Error 54 en Steam.
+                var shippingExe = validExecutables.FirstOrDefault(e =>
+                    e.EndsWith("Shipping.exe", StringComparison.OrdinalIgnoreCase) ||
+                    (e.Contains(@"\Binaries\Win64\", StringComparison.OrdinalIgnoreCase) && new FileInfo(e).Length > 5 * 1024 * 1024));
+                if (shippingExe != null)
+                    return shippingExe;
+
                 // Coincidencia con el nombre de la carpeta o nombre del juego
                 var bestMatch = validExecutables.FirstOrDefault(e =>
                     Path.GetFileNameWithoutExtension(e).Contains(folderName, StringComparison.OrdinalIgnoreCase) ||
@@ -2281,8 +2319,113 @@ namespace PandaStoreLauncher.Helpers
         }
 
         /// <summary>
+        /// Automatically installs game prerequisites and SDKs silently:
+        /// - PlayStation PC SDK (*PsPcSdk*.msi) for Ghost of Tsushima, God of War, Spider-Man, Horizon
+        /// - EasyAntiCheat setups (EasyAntiCheat*Setup.exe)
+        /// - Visual C++ / DirectX setups in _CommonRedist / dependencies
+        /// </summary>
+        public static void AutoInstallPrerequisites(string gameDir)
+        {
+            if (string.IsNullOrWhiteSpace(gameDir) || !Directory.Exists(gameDir)) return;
+
+            try
+            {
+                string markerFile = Path.Combine(gameDir, ".panda_prereqs_ok");
+                if (File.Exists(markerFile)) return;
+
+                // 1. PlayStation PC SDK (Ghost of Tsushima, God of War Ragnarok, etc.)
+                try
+                {
+                    var msiFiles = Directory.GetFiles(gameDir, "*PsPcSdk*.msi", SearchOption.AllDirectories);
+                    if (msiFiles.Length == 0)
+                    {
+                        msiFiles = Directory.GetFiles(gameDir, "*.msi", SearchOption.AllDirectories);
+                    }
+
+                    foreach (var msi in msiFiles)
+                    {
+                        try
+                        {
+                            var psi = new ProcessStartInfo
+                            {
+                                FileName = "msiexec.exe",
+                                Arguments = $"/i \"{msi}\" /quiet /qn /norestart",
+                                UseShellExecute = true,
+                                CreateNoWindow = true,
+                                WindowStyle = ProcessWindowStyle.Hidden
+                            };
+                            var proc = Process.Start(psi);
+                            proc?.WaitForExit(25000);
+                        }
+                        catch { }
+                    }
+                }
+                catch { }
+
+                // 2. EasyAntiCheat Service setup
+                try
+                {
+                    var eacFiles = Directory.GetFiles(gameDir, "EasyAntiCheat*Setup.exe", SearchOption.AllDirectories);
+                    foreach (var eac in eacFiles)
+                    {
+                        try
+                        {
+                            var psi = new ProcessStartInfo
+                            {
+                                FileName = eac,
+                                Arguments = "install",
+                                UseShellExecute = true,
+                                CreateNoWindow = true,
+                                WindowStyle = ProcessWindowStyle.Hidden
+                            };
+                            var proc = Process.Start(psi);
+                            proc?.WaitForExit(15000);
+                        }
+                        catch { }
+                    }
+                }
+                catch { }
+
+                // 3. DirectX & VC_Redist in _CommonRedist / dependencies
+                try
+                {
+                    var redists = Directory.GetFiles(gameDir, "*redist*.exe", SearchOption.AllDirectories);
+                    foreach (var red in redists)
+                    {
+                        if (red.Contains("vcredist", StringComparison.OrdinalIgnoreCase) || red.Contains("VC_redist", StringComparison.OrdinalIgnoreCase))
+                        {
+                            try
+                            {
+                                var psi = new ProcessStartInfo
+                                {
+                                    FileName = red,
+                                    Arguments = "/quiet /norestart /q",
+                                    UseShellExecute = true,
+                                    CreateNoWindow = true,
+                                    WindowStyle = ProcessWindowStyle.Hidden
+                                };
+                                var proc = Process.Start(psi);
+                                proc?.WaitForExit(20000);
+                            }
+                            catch { }
+                        }
+                    }
+                }
+                catch { }
+
+                try
+                {
+                    File.WriteAllText(markerFile, DateTime.UtcNow.ToString("O"));
+                }
+                catch { }
+            }
+            catch { }
+        }
+
+        /// <summary>
         /// Ensures steam_appid.txt is present in the game directory and executable subdirectories
         /// for a specific game. This prevents "filesystem failed to initialize" or SteamAPI initialization crashes.
+        /// Deep recursive scanning ensures subdirectories like SparkingZERO\Binaries\Win64 are covered.
         /// </summary>
         public static void EnsureAppIdFileForGame(string appId, string steamFolderName = "")
         {
@@ -2314,37 +2457,20 @@ namespace PandaStoreLauncher.Helpers
                 {
                     WriteAppIdSafely(gameDir, appId);
 
-                    // Check bin subfolders
-                    string binDir = Path.Combine(gameDir, "bin");
-                    if (Directory.Exists(binDir))
+                    // Escaneo recursivo profundo en TODAS las subcarpetas que contengan ejecutables (.exe)
+                    try
                     {
-                        WriteAppIdSafely(binDir, appId);
-                        foreach (var sub in Directory.GetDirectories(binDir))
+                        var allExeFiles = Directory.GetFiles(gameDir, "*.exe", SearchOption.AllDirectories);
+                        foreach (var exeFile in allExeFiles)
                         {
-                            WriteAppIdSafely(sub, appId);
-                        }
-                    }
-
-                    // Check all 1st and 2nd level subdirectories that contain .exe
-                    foreach (var sub in Directory.GetDirectories(gameDir))
-                    {
-                        try
-                        {
-                            if (Directory.GetFiles(sub, "*.exe").Length > 0)
+                            string? dir = Path.GetDirectoryName(exeFile);
+                            if (!string.IsNullOrEmpty(dir))
                             {
-                                WriteAppIdSafely(sub, appId);
-                            }
-
-                            foreach (var sub2 in Directory.GetDirectories(sub))
-                            {
-                                if (Directory.GetFiles(sub2, "*.exe").Length > 0)
-                                {
-                                    WriteAppIdSafely(sub2, appId);
-                                }
+                                WriteAppIdSafely(dir, appId);
                             }
                         }
-                        catch { }
                     }
+                    catch { }
                 }
             }
             catch { }
@@ -2367,7 +2493,7 @@ namespace PandaStoreLauncher.Helpers
         /// <summary>
         /// Scans all Steam libraries for installed games (via appmanifest_*.acf)
         /// and guarantees steam_appid.txt exists in each game directory and exe folders.
-        /// Prevents games like American Truck Simulator / Euro Truck Simulator 2 from failing filesystem init.
+        /// Prevents games like American Truck Simulator / Euro Truck Simulator 2 / Sparking Zero from failing.
         /// </summary>
         public static void EnsureAllInstalledSteamAppIdFiles()
         {
@@ -2412,40 +2538,16 @@ namespace PandaStoreLauncher.Helpers
                                         gameDirs.Add(gameDir);
                                         WriteAppIdSafely(gameDir, appId);
 
-                                        foreach (var f in Directory.GetFiles(gameDir, "*.exe", SearchOption.TopDirectoryOnly))
+                                        // Escaneo recursivo profundo a cualquier nivel de subcarpetas
+                                        var allSubExes = Directory.GetFiles(gameDir, "*.exe", SearchOption.AllDirectories);
+                                        foreach (var exe in allSubExes)
                                         {
-                                            exePaths.Add(f);
-                                        }
-
-                                        string binDir = Path.Combine(gameDir, "bin");
-                                        if (Directory.Exists(binDir))
-                                        {
-                                            WriteAppIdSafely(binDir, appId);
-                                            foreach (var sub in Directory.GetDirectories(binDir))
+                                            exePaths.Add(exe);
+                                            string? dir = Path.GetDirectoryName(exe);
+                                            if (!string.IsNullOrEmpty(dir))
                                             {
-                                                WriteAppIdSafely(sub, appId);
-                                                foreach (var f in Directory.GetFiles(sub, "*.exe", SearchOption.TopDirectoryOnly))
-                                                {
-                                                    exePaths.Add(f);
-                                                }
+                                                WriteAppIdSafely(dir, appId);
                                             }
-                                        }
-
-                                        foreach (var sub in Directory.GetDirectories(gameDir))
-                                        {
-                                            try
-                                            {
-                                                var subExes = Directory.GetFiles(sub, "*.exe", SearchOption.TopDirectoryOnly);
-                                                if (subExes.Length > 0)
-                                                {
-                                                    WriteAppIdSafely(sub, appId);
-                                                    foreach (var exe in subExes)
-                                                    {
-                                                        exePaths.Add(exe);
-                                                    }
-                                                }
-                                            }
-                                            catch { }
                                         }
                                     }
                                 }

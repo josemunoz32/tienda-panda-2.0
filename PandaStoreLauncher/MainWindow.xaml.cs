@@ -45,6 +45,18 @@ namespace PandaStoreLauncher
             catch { }
 
             Loaded += MainWindow_Loaded;
+            Activated += MainWindow_Activated;
+        }
+
+        private DateTime _lastFocusFilterTime = DateTime.MinValue;
+        private void MainWindow_Activated(object? sender, EventArgs e)
+        {
+            // Re-evaluar librerías cuando el usuario vuelve a enfocar la ventana del Launcher (ej: tras descargar en Steam)
+            if ((DateTime.UtcNow - _lastFocusFilterTime).TotalSeconds > 4)
+            {
+                _lastFocusFilterTime = DateTime.UtcNow;
+                ApplyGameFilter(resetLimit: false);
+            }
         }
 
         public static readonly DependencyProperty CardWidthProperty =
@@ -75,7 +87,7 @@ namespace PandaStoreLauncher
             }
         }
 
-        private const string CurrentVersion = "2.4.37"; // Current client executable version
+        private const string CurrentVersion = "2.4.38"; // Current client executable version
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -110,6 +122,20 @@ namespace PandaStoreLauncher
                     }
                     catch { }
                 });
+
+                // Timer reactivo de auto-detección cada 10 segundos para habilitar el botón "JUGAR" al terminar descargas
+                var autoDetectTimer = new System.Windows.Threading.DispatcherTimer
+                {
+                    Interval = TimeSpan.FromSeconds(10)
+                };
+                autoDetectTimer.Tick += (s, ev) =>
+                {
+                    if (this.IsVisible && this.WindowState != WindowState.Minimized && !string.IsNullOrEmpty(_activeLicense?.Key))
+                    {
+                        ApplyGameFilter(resetLimit: false);
+                    }
+                };
+                autoDetectTimer.Start();
             }
             catch (Exception ex)
             {
@@ -1390,7 +1416,17 @@ namespace PandaStoreLauncher
 
                     if (!string.IsNullOrEmpty(gameFolder) && Directory.Exists(gameFolder))
                     {
-                        // Prioridad 1: Escáner inteligente de ejecutables y launchers modificados
+                        // 1. Instalar silenciosamente SDKs y prerrequisitos requeridos (PlayStation PC SDK, EasyAntiCheat, etc.)
+                        try
+                        {
+                            SteamManager.AutoInstallPrerequisites(gameFolder);
+                        }
+                        catch { }
+
+                        // 2. Asegurar steam_appid.txt de forma profunda en todas las subcarpetas con ejecutables
+                        SteamManager.EnsureAppIdFileForGame(juego.AppId, juego.SteamFolderName);
+
+                        // 3. Escáner inteligente de ejecutables y launchers modificados / Binarios reales de Unreal
                         // Ejecución directa para evitar bloqueos de Steam con Online Fixes (Spacewar) o lanzadores alternativos
                         string? targetExe = SteamManager.FindGameExecutable(gameFolder, juego.Name);
 

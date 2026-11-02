@@ -43,7 +43,7 @@ namespace PandaStoreLauncher
                 };
 
                 using var client = new HttpClient(handler) { Timeout = TimeSpan.FromMinutes(15) };
-                client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) PandaStoreLauncher/2.4.37");
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) PandaStoreLauncher/2.4.38");
 
                 long? totalBytes = null;
                 long totalRead = 0;
