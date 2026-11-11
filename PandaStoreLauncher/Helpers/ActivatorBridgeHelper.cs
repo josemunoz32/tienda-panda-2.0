@@ -59,7 +59,7 @@ namespace PandaStoreLauncher.Helpers
                 }
 
                 Logger.Log("Descargando PandaStoreActivator.exe...", "INFO");
-                string downloadUrl = "https://pandastoreupdate.web.app/downloads/PandaStoreActivator.exe";
+                string downloadUrl = "https://github.com/josemunoz32/tienda-panda-2.0/releases/latest/download/PandaStoreActivator.exe";
 
                 try
                 {
@@ -148,38 +148,46 @@ namespace PandaStoreLauncher.Helpers
             catch { }
         }
 
+        private static async Task<bool> ResolveAndStartActivatorAsync(string arguments)
+        {
+            // Look up executable off the UI thread so disk/AV checks never stall WPF
+            string? exePath = await Task.Run(() => FindActivatorExecutable());
+            if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
+            {
+                exePath = await EnsureActivatorDownloadedAsync();
+            }
+
+            if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
+            {
+                Logger.Log("PandaStoreActivator.exe no fue encontrado ni se pudo descargar.", "WARN");
+                return false;
+            }
+
+            string finalExePath = exePath;
+            return await Task.Run(() =>
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = finalExePath,
+                    Arguments = arguments,
+                    UseShellExecute = true,
+                    WorkingDirectory = Path.GetDirectoryName(finalExePath) ?? string.Empty
+                };
+                Process.Start(psi);
+                return true;
+            });
+        }
+
         public static async Task<bool> LaunchActivatorManualAsync()
         {
             try
             {
-                ClearBridgeFiles();
-
-                string? exePath = FindActivatorExecutable();
-                if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
-                {
-                    exePath = await EnsureActivatorDownloadedAsync();
-                }
-
-                if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
-                {
-                    Logger.Log("PandaStoreActivator.exe no fue encontrado ni se pudo descargar.", "WARN");
-                    return false;
-                }
-
-                var psi = new ProcessStartInfo
-                {
-                    FileName = exePath,
-                    Arguments = string.Empty,
-                    UseShellExecute = true,
-                    WorkingDirectory = Path.GetDirectoryName(exePath) ?? string.Empty
-                };
-
-                Process.Start(psi);
-                return true;
+                await Task.Run(() => ClearBridgeFiles());
+                return await ResolveAndStartActivatorAsync(string.Empty);
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Fallo al lanzar activador en modo manual libre");
+                Logger.LogError(ex, "Fallo al lanzar PandaStoreActivator.exe en modo manual");
                 return false;
             }
         }
@@ -190,34 +198,12 @@ namespace PandaStoreLauncher.Helpers
             {
                 string cleanAppId = (appId ?? string.Empty).Trim();
 
-                // 1. Escribir archivos puente para el activador
-                WriteBridgeFiles(cleanAppId, gameName);
+                // 1. Escribir archivos puente para el activador fuera del hilo UI
+                await Task.Run(() => WriteBridgeFiles(cleanAppId, gameName));
 
-                // 2. Buscar ejecutable del activador
-                string? exePath = FindActivatorExecutable();
-                if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
-                {
-                    // Si no está localmente, intentar auto-descargarlo directamente
-                    exePath = await EnsureActivatorDownloadedAsync();
-                }
-
-                if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
-                {
-                    Logger.Log("PandaStoreActivator.exe no fue encontrado ni se pudo descargar.", "WARN");
-                    return false;
-                }
-
-                // 3. Iniciar el proceso con argumentos CLI
-                var psi = new ProcessStartInfo
-                {
-                    FileName = exePath,
-                    Arguments = string.IsNullOrEmpty(cleanAppId) ? string.Empty : $"--appid {cleanAppId} --autofill",
-                    UseShellExecute = true,
-                    WorkingDirectory = Path.GetDirectoryName(exePath) ?? string.Empty
-                };
-
-                Process.Start(psi);
-                return true;
+                // 2. Buscar / descargar e iniciar el activador con AppID precargado
+                string args = string.IsNullOrEmpty(cleanAppId) ? string.Empty : $"--appid {cleanAppId} --autofill";
+                return await ResolveAndStartActivatorAsync(args);
             }
             catch (Exception ex)
             {
