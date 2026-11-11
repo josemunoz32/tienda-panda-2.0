@@ -174,16 +174,26 @@
                         </StackPanel>
 
                         <!-- Email Pill Badge -->
-                        <Border Background="#130E26" BorderBrush="#251E3D" BorderThickness="1" CornerRadius="16" Padding="14,6" Margin="24,0,0,0" VerticalAlignment="Center">
+                        <Border Background="#130E26" BorderBrush="#251E3D" BorderThickness="1" CornerRadius="16" Padding="14,6" Margin="18,0,0,0" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="👤 " Foreground="#8B5CF6" FontSize="12"/>
-                                <TextBlock x:Name="lblClientEmail" Text="Invitado / Vista Catálogo" Foreground="{StaticResource TextWhiteBrush}" FontSize="12" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="lblClientEmail" Text="Invitado / Vista Catálogo" Foreground="{StaticResource TextWhiteBrush}" FontSize="12" FontWeight="SemiBold" MaxWidth="190" TextTrimming="CharacterEllipsis"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
 
                     <!-- Top Action Buttons -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="btnStaticManualActivator"
+                                Content="🔑 Activar"
+                                Style="{StaticResource GoldButtonStyle}"
+                                Padding="14,9"
+                                FontSize="12"
+                                FontWeight="Bold"
+                                Margin="0,0,10,0"
+                                ToolTip="Abrir Activador Steam manual ingresando el AppID del juego"
+                                Click="BtnOpenManualActivator_Click"/>
+
                         <Button x:Name="btnOpenProfile" 
                                 Content="🧑‍🚀 Mi cuenta"
                                 Style="{StaticResource GoldButtonStyle}" 
@@ -1125,6 +1135,141 @@
                         </StackPanel>
                     </Grid>
                 </Border>
+        </Grid>
+
+        <!-- ========================================== -->
+        <!-- VIEW 4: MANUAL ACTIVATOR BY APPID MODAL    -->
+        <!-- ========================================== -->
+        <Grid x:Name="ManualActivatorOverlay"
+              Background="#D905020C"
+              Visibility="Collapsed"
+              Panel.ZIndex="1001">
+            <Border Width="560"
+                    Background="#100B22"
+                    BorderBrush="#F59E0B"
+                    BorderThickness="1.5"
+                    CornerRadius="16"
+                    Padding="28"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center">
+                <Border.Effect>
+                    <DropShadowEffect Color="#F59E0B" BlurRadius="35" ShadowDepth="0" Opacity="0.2"/>
+                </Border.Effect>
+                <StackPanel>
+                    <!-- Modal Header -->
+                    <Grid Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#2D1C08" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="10" Width="42" Height="42" Margin="0,0,12,0">
+                                <TextBlock Text="🔑" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="ACTIVADOR MANUAL STEAM (APPID)" Foreground="{StaticResource PrimaryGoldBrush}" FontSize="17" FontWeight="Bold"/>
+                                <TextBlock Text="Ingresa el AppID de cualquier juego para iniciar el Activador" Foreground="{StaticResource TextMutedBrush}" FontSize="11"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Button Content="✕"
+                                Background="Transparent"
+                                Foreground="#9CA3AF"
+                                BorderThickness="0"
+                                FontSize="18"
+                                FontWeight="Bold"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Cursor="Hand"
+                                Click="BtnCloseManualActivator_Click"/>
+                    </Grid>
+
+                    <!-- Info Box -->
+                    <Border Background="#16102E" BorderBrush="#2C2050" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,0,0,16">
+                        <TextBlock Text="💡 Usa esta herramienta para activar manualmente cualquier juego VIP, Denuvo, EA o Ubisoft ingresando su AppID de Steam (ej: 2358720 para Black Myth: Wukong). Si el juego ya está en Steam, asegúrate de haberlo descargado al 100% primero."
+                                   Foreground="#D1D5DB"
+                                   FontSize="11.5"
+                                   TextWrapping="Wrap"
+                                   LineHeight="17"/>
+                    </Border>
+
+                    <!-- Optional Quick Picker -->
+                    <TextBlock Text="Opcional: Elegir juego de tu lista para autocompletar AppID:"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               FontSize="11.5"
+                               Margin="0,0,0,6"/>
+                    <ComboBox x:Name="cmbManualGamePicker"
+                              FontSize="12"
+                              Margin="0,0,0,14"
+                              SelectionChanged="CmbManualGamePicker_SelectionChanged"/>
+
+                    <!-- Manual AppID Input -->
+                    <TextBlock Text="Ingresa el Steam AppID del juego:"
+                               Foreground="{StaticResource TextWhiteBrush}"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,6"/>
+                    <TextBox x:Name="txtManualAppId"
+                             Text=""
+                             FontSize="16"
+                             FontWeight="Bold"
+                             Margin="0,0,0,8"
+                             ToolTip="Ingresa solo los números del AppID de Steam (ej: 2358720)"
+                             TextChanged="TxtManualAppId_TextChanged"
+                             KeyDown="TxtManualAppId_KeyDown"/>
+
+                    <!-- Live Detected Game / Hint Badge -->
+                    <Border Background="#0B1324" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,14">
+                        <TextBlock x:Name="lblManualDetectedGame"
+                                   Text="🔍 Tip: Encuentras el AppID en la URL de Steam (store.steampowered.com/app/APPID) o clic en ••• → Copiar AppID."
+                                   Foreground="#94A3B8"
+                                   FontSize="11"
+                                   TextWrapping="Wrap"/>
+                    </Border>
+
+                    <!-- Status Message -->
+                    <TextBlock x:Name="lblManualActivatorStatus"
+                               Text=""
+                               Foreground="#F87171"
+                               FontSize="12"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,12"
+                               Visibility="Collapsed"/>
+
+                    <!-- Action Buttons -->
+                    <Button x:Name="btnLaunchManualWithAppId"
+                            Content="🔑 Activar Juego con este AppID"
+                            Style="{StaticResource GoldButtonStyle}"
+                            Height="44"
+                            FontSize="13.5"
+                            Margin="0,0,0,10"
+                            Click="BtnLaunchManualWithAppId_Click"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button x:Name="btnLaunchManualBlank"
+                                Grid.Column="0"
+                                Content="⚡ Abrir Activador Libre (sin AppID)"
+                                Style="{StaticResource PurpleButtonStyle}"
+                                Padding="14,9"
+                                FontSize="12"
+                                Margin="0,0,10,0"
+                                ToolTip="Abre PandaStoreActivator directamente para ingresar los datos allá"
+                                Click="BtnLaunchManualBlank_Click"/>
+
+                        <Button Grid.Column="1"
+                                Content="Cerrar"
+                                Style="{StaticResource VacButtonStyle}"
+                                Foreground="#FFFFFF"
+                                BorderBrush="#3B2E63"
+                                Background="#1A1433"
+                                Padding="18,9"
+                                FontSize="12"
+                                Cursor="Hand"
+                                Click="BtnCloseManualActivator_Click"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
         </Grid>
     </Grid>
 </Window>

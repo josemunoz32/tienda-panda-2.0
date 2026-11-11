@@ -87,7 +87,7 @@ namespace PandaStoreLauncher
             }
         }
 
-        private const string CurrentVersion = "2.4.38"; // Current client executable version
+        private const string CurrentVersion = "2.4.39"; // Current client executable version
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -810,21 +810,7 @@ namespace PandaStoreLauncher
                         RefreshUi();
 
                         // Fallback to WhatsApp if activator binary is missing
-                        string licKey = _activeLicense?.Key ?? "Sin clave";
-                        string email = _activeLicense?.ClientEmail ?? "Invitado";
-                        string mensaje = Uri.EscapeDataString(
-                            $"🐼 *PANDA STORE - ACTIVACIÓN VIP / EXCLUSIVO* 🔑\n\n" +
-                            $"¡Hola Panda Store! Solicito la activación para el siguiente juego VIP:\n\n" +
-                            $"🎮 *Juego:* {juego.Name}\n" +
-                            $"🆔 *AppID:* {juego.AppId}\n" +
-                            $"🔑 *Clave PandaStore:* {licKey}\n" +
-                            $"📧 *Email:* {email}\n" +
-                            $"💻 *HWID:* {_currentHwid}\n\n" +
-                            $"Quedo atento a la confirmación de la activación. ¡Muchas gracias!"
-                        );
-
-                        string whatsappUrl = $"https://wa.me/56974751810?text={mensaje}";
-                        Process.Start(new ProcessStartInfo(whatsappUrl) { UseShellExecute = true });
+                        OpenActivatorWhatsappFallback(juego.Name, juego.AppId);
                     }
                 }
                 catch (Exception ex)
@@ -832,6 +818,240 @@ namespace PandaStoreLauncher
                     Logger.LogError(ex, "Error al lanzar Activador VIP");
                     MessageBox.Show($"Error al abrir el Activador VIP: {ex.Message}", "PandaStore", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
+            }
+        }
+
+        private void OpenActivatorWhatsappFallback(string gameName, string appId)
+        {
+            string licKey = _activeLicense?.Key ?? "Sin clave";
+            string email = _activeLicense?.ClientEmail ?? "Invitado";
+            string mensaje = Uri.EscapeDataString(
+                $"🐼 *PANDA STORE - ACTIVACIÓN VIP / EXCLUSIVO* 🔑\n\n" +
+                $"¡Hola Panda Store! Solicito la activación para el siguiente juego:\n\n" +
+                $"🎮 *Juego:* {gameName}\n" +
+                $"🆔 *AppID:* {appId}\n" +
+                $"🔑 *Clave PandaStore:* {licKey}\n" +
+                $"📧 *Email:* {email}\n" +
+                $"💻 *HWID:* {_currentHwid}\n\n" +
+                $"Quedo atento a la confirmación de la activación. ¡Muchas gracias!"
+            );
+
+            string whatsappUrl = $"https://wa.me/56974751810?text={mensaje}";
+            Process.Start(new ProcessStartInfo(whatsappUrl) { UseShellExecute = true });
+        }
+
+        private bool _isUpdatingManualPicker = false;
+
+        private void BtnOpenManualActivator_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                _isUpdatingManualPicker = true;
+                cmbManualGamePicker.Items.Clear();
+                cmbManualGamePicker.Items.Add(new ComboBoxItem
+                {
+                    Content = "-- Opcional: Selecciona un juego de tu biblioteca --",
+                    Tag = string.Empty,
+                    IsSelected = true
+                });
+
+                var candidates = _allGames
+                    .Where(g => !string.IsNullOrWhiteSpace(g.AppId))
+                    .OrderByDescending(g => g.IsInstalled)
+                    .ThenByDescending(g => g.IsAuthorizedForClient)
+                    .ThenByDescending(g => g.IsVip)
+                    .ThenBy(g => g.Name)
+                    .ToList();
+
+                foreach (var g in candidates)
+                {
+                    string prefix = g.IsInstalled ? "✔ " : (g.IsVip ? "🔑 " : "• ");
+                    cmbManualGamePicker.Items.Add(new ComboBoxItem
+                    {
+                        Content = $"{prefix}{g.Name} ({g.AppId})",
+                        Tag = g.AppId
+                    });
+                }
+
+                cmbManualGamePicker.SelectedIndex = 0;
+                _isUpdatingManualPicker = false;
+
+                lblManualActivatorStatus.Visibility = Visibility.Collapsed;
+                lblManualActivatorStatus.Text = string.Empty;
+                UpdateManualAppIdHint(txtManualAppId.Text);
+
+                ManualActivatorOverlay.Visibility = Visibility.Visible;
+                txtManualAppId.Focus();
+                txtManualAppId.SelectAll();
+            }
+            catch (Exception ex)
+            {
+                _isUpdatingManualPicker = false;
+                Logger.LogError(ex, "Error abriendo modal Activador Manual");
+            }
+        }
+
+        private void BtnCloseManualActivator_Click(object sender, RoutedEventArgs e)
+        {
+            ManualActivatorOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private void CmbManualGamePicker_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isUpdatingManualPicker) return;
+            if (cmbManualGamePicker.SelectedItem is ComboBoxItem item && item.Tag is string appId && !string.IsNullOrWhiteSpace(appId))
+            {
+                txtManualAppId.Text = appId;
+                txtManualAppId.CaretIndex = txtManualAppId.Text.Length;
+            }
+        }
+
+        private static string ExtractCleanAppId(string? rawInput)
+        {
+            string val = (rawInput ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(val)) return string.Empty;
+
+            // Support pasting a Steam store URL like https://store.steampowered.com/app/2358720/...
+            var urlMatch = System.Text.RegularExpressions.Regex.Match(val, @"/app/(\d+)");
+            if (urlMatch.Success)
+            {
+                return urlMatch.Groups[1].Value;
+            }
+
+            // Pure digits only
+            if (val.All(char.IsDigit))
+            {
+                return val;
+            }
+
+            return string.Empty;
+        }
+
+        private void UpdateManualAppIdHint(string? rawInput)
+        {
+            string cleanAppId = ExtractCleanAppId(rawInput);
+            if (string.IsNullOrEmpty(cleanAppId))
+            {
+                if (string.IsNullOrWhiteSpace(rawInput))
+                {
+                    lblManualDetectedGame.Text = "🔍 Tip: Encuentras el AppID en la URL de Steam (store.steampowered.com/app/APPID) o clic en ••• → Copiar AppID.";
+                    lblManualDetectedGame.Foreground = new SolidColorBrush(Color.FromRgb(148, 163, 184));
+                }
+                else
+                {
+                    lblManualDetectedGame.Text = "⚠️ Ingresa solo los dígitos del Steam AppID (o pega el link de la tienda de Steam).";
+                    lblManualDetectedGame.Foreground = new SolidColorBrush(Color.FromRgb(251, 191, 36));
+                }
+                return;
+            }
+
+            var matched = _allGames.FirstOrDefault(g => string.Equals(g.AppId, cleanAppId, StringComparison.OrdinalIgnoreCase));
+            if (matched != null)
+            {
+                lblManualDetectedGame.Text = $"🎮 Juego detectado: {matched.Name} (AppID: {cleanAppId})";
+                lblManualDetectedGame.Foreground = new SolidColorBrush(Color.FromRgb(16, 185, 129));
+            }
+            else
+            {
+                lblManualDetectedGame.Text = $"🆔 AppID válido listo para enviar al Activador: {cleanAppId}";
+                lblManualDetectedGame.Foreground = new SolidColorBrush(Color.FromRgb(0, 240, 255));
+            }
+        }
+
+        private void TxtManualAppId_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            lblManualActivatorStatus.Visibility = Visibility.Collapsed;
+            UpdateManualAppIdHint(txtManualAppId.Text);
+        }
+
+        private void TxtManualAppId_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                BtnLaunchManualWithAppId_Click(sender, e);
+            }
+        }
+
+        private async void BtnLaunchManualWithAppId_Click(object sender, RoutedEventArgs e)
+        {
+            string cleanAppId = ExtractCleanAppId(txtManualAppId.Text);
+            if (string.IsNullOrEmpty(cleanAppId))
+            {
+                lblManualActivatorStatus.Text = "⚠️ Por favor ingresa un AppID numérico válido (ejemplo: 2358720).";
+                lblManualActivatorStatus.Foreground = new SolidColorBrush(Color.FromRgb(248, 113, 113));
+                lblManualActivatorStatus.Visibility = Visibility.Visible;
+                txtManualAppId.Focus();
+                return;
+            }
+
+            btnLaunchManualWithAppId.IsEnabled = false;
+            btnLaunchManualBlank.IsEnabled = false;
+            lblManualActivatorStatus.Text = "⚡ Iniciando Activador PandaStore con tu AppID...";
+            lblManualActivatorStatus.Foreground = new SolidColorBrush(Color.FromRgb(0, 240, 255));
+            lblManualActivatorStatus.Visibility = Visibility.Visible;
+
+            try
+            {
+                var matched = _allGames.FirstOrDefault(g => string.Equals(g.AppId, cleanAppId, StringComparison.OrdinalIgnoreCase));
+                string gameName = matched?.Name ?? $"Juego Steam ({cleanAppId})";
+
+                bool launched = await ActivatorBridgeHelper.LaunchActivatorAsync(cleanAppId, gameName);
+                if (launched)
+                {
+                    ManualActivatorOverlay.Visibility = Visibility.Collapsed;
+                    ShowWindowsToast("Activador Iniciado", $"PandaStoreActivator abierto para {gameName} (AppID: {cleanAppId}).");
+                }
+                else
+                {
+                    lblManualActivatorStatus.Text = "⚠️ No se encontró PandaStoreActivator.exe en el equipo. Redirigiendo a soporte por WhatsApp...";
+                    lblManualActivatorStatus.Foreground = new SolidColorBrush(Color.FromRgb(251, 191, 36));
+                    OpenActivatorWhatsappFallback(gameName, cleanAppId);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error en BtnLaunchManualWithAppId_Click");
+                lblManualActivatorStatus.Text = $"Error al iniciar Activador: {ex.Message}";
+                lblManualActivatorStatus.Foreground = new SolidColorBrush(Color.FromRgb(248, 113, 113));
+            }
+            finally
+            {
+                btnLaunchManualWithAppId.IsEnabled = true;
+                btnLaunchManualBlank.IsEnabled = true;
+            }
+        }
+
+        private async void BtnLaunchManualBlank_Click(object sender, RoutedEventArgs e)
+        {
+            btnLaunchManualWithAppId.IsEnabled = false;
+            btnLaunchManualBlank.IsEnabled = false;
+            lblManualActivatorStatus.Text = "⚡ Abriendo Activador PandaStore en modo manual...";
+            lblManualActivatorStatus.Foreground = new SolidColorBrush(Color.FromRgb(0, 240, 255));
+            lblManualActivatorStatus.Visibility = Visibility.Visible;
+
+            try
+            {
+                bool launched = await ActivatorBridgeHelper.LaunchActivatorManualAsync();
+                if (launched)
+                {
+                    ManualActivatorOverlay.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    lblManualActivatorStatus.Text = "⚠️ No se encontró PandaStoreActivator.exe. Contáctanos por WhatsApp para asistencia.";
+                    lblManualActivatorStatus.Foreground = new SolidColorBrush(Color.FromRgb(251, 191, 36));
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error en BtnLaunchManualBlank_Click");
+                lblManualActivatorStatus.Text = $"Error al iniciar Activador: {ex.Message}";
+                lblManualActivatorStatus.Foreground = new SolidColorBrush(Color.FromRgb(248, 113, 113));
+            }
+            finally
+            {
+                btnLaunchManualWithAppId.IsEnabled = true;
+                btnLaunchManualBlank.IsEnabled = true;
             }
         }
 

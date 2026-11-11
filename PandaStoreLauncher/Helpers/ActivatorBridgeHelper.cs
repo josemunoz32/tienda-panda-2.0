@@ -130,12 +130,68 @@ namespace PandaStoreLauncher.Helpers
             }
         }
 
+        public static void ClearBridgeFiles()
+        {
+            try
+            {
+                string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string bridgeJsonPath = Path.Combine(localAppData, "PandaStore", "launch_bridge.json");
+                if (File.Exists(bridgeJsonPath)) File.Delete(bridgeJsonPath);
+            }
+            catch { }
+
+            try
+            {
+                string tempFile = Path.Combine(Path.GetTempPath(), "pandastore_pending_appid.txt");
+                if (File.Exists(tempFile)) File.Delete(tempFile);
+            }
+            catch { }
+        }
+
+        public static async Task<bool> LaunchActivatorManualAsync()
+        {
+            try
+            {
+                ClearBridgeFiles();
+
+                string? exePath = FindActivatorExecutable();
+                if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
+                {
+                    exePath = await EnsureActivatorDownloadedAsync();
+                }
+
+                if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
+                {
+                    Logger.Log("PandaStoreActivator.exe no fue encontrado ni se pudo descargar.", "WARN");
+                    return false;
+                }
+
+                var psi = new ProcessStartInfo
+                {
+                    FileName = exePath,
+                    Arguments = string.Empty,
+                    UseShellExecute = true,
+                    WorkingDirectory = Path.GetDirectoryName(exePath) ?? string.Empty
+                };
+
+                Process.Start(psi);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Fallo al lanzar activador en modo manual libre");
+                return false;
+            }
+        }
+
         public static async Task<bool> LaunchActivatorAsync(string appId, string gameName)
         {
             try
             {
+                string cleanAppId = (appId ?? string.Empty).Trim();
+
                 // 1. Escribir archivos puente para el activador
-                WriteBridgeFiles(appId, gameName);
+                WriteBridgeFiles(cleanAppId, gameName);
 
                 // 2. Buscar ejecutable del activador
                 string? exePath = FindActivatorExecutable();
@@ -155,7 +211,7 @@ namespace PandaStoreLauncher.Helpers
                 var psi = new ProcessStartInfo
                 {
                     FileName = exePath,
-                    Arguments = $"--appid {appId} --autofill",
+                    Arguments = string.IsNullOrEmpty(cleanAppId) ? string.Empty : $"--appid {cleanAppId} --autofill",
                     UseShellExecute = true,
                     WorkingDirectory = Path.GetDirectoryName(exePath) ?? string.Empty
                 };
