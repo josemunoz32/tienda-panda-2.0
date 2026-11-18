@@ -42,7 +42,85 @@ namespace PandaStoreLauncher.Helpers
         private static System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FixItemModel>>? _fixesCatalogCache;
         private static readonly SemaphoreSlim _fixesCacheLock = new SemaphoreSlim(1, 1);
 
+        // ── Peron Depot: fuente prioritaria para los juegos listados en su índice (ej. Sparking Zero) ──
+        private const string PeronIndexUrl = "https://api.perondepot.online/all/";
+        private static System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FixItemModel>>? _peronCatalogCache;
+        private static readonly SemaphoreSlim _peronCacheLock = new SemaphoreSlim(1, 1);
+
+        public static bool IsPeronFix(string? url) =>
+            !string.IsNullOrEmpty(url) && url.Contains("perondepot.online", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Devuelve los fixes de Peron Depot para el AppID (archivos "[AppID]_Nombre.rar" del índice).
+        /// Lista vacía si el juego no está en Peron o si el índice no responde.
+        /// </summary>
+        public static async Task<System.Collections.Generic.List<FixItemModel>> GetPeronFixesForAppIdAsync(string appId)
+        {
+            if (string.IsNullOrWhiteSpace(appId)) return new System.Collections.Generic.List<FixItemModel>();
+
+            if (_peronCatalogCache == null)
+            {
+                await _peronCacheLock.WaitAsync();
+                try
+                {
+                    if (_peronCatalogCache == null)
+                    {
+                        using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+                        client.DefaultRequestHeaders.UserAgent.ParseAdd("PandaStoreLauncher/2.4");
+                        string html = await client.GetStringAsync(PeronIndexUrl);
+                        var dict = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<FixItemModel>>(StringComparer.OrdinalIgnoreCase);
+
+                        foreach (Match m in Regex.Matches(html, "href=\"(%5B(\\d+)%5D[^\"]+)\""))
+                        {
+                            string rawHref = m.Groups[1].Value;
+                            string id = m.Groups[2].Value;
+                            if (!dict.TryGetValue(id, out var list))
+                            {
+                                list = new System.Collections.Generic.List<FixItemModel>();
+                                dict[id] = list;
+                            }
+                            list.Add(new FixItemModel
+                            {
+                                Href = PeronIndexUrl + rawHref,
+                                Filename = Uri.UnescapeDataString(rawHref),
+                                Size = "",
+                                Badges = new List<string> { "Peron" }
+                            });
+                        }
+                        _peronCatalogCache = dict;
+                    }
+                }
+                catch { /* sin Peron → se usa Ryuu */ }
+                finally
+                {
+                    _peronCacheLock.Release();
+                }
+            }
+
+            if (_peronCatalogCache != null && _peronCatalogCache.TryGetValue(appId, out var fixes))
+                return fixes;
+
+            return new System.Collections.Generic.List<FixItemModel>();
+        }
+
+        /// <summary>AppIDs con fix en Peron Depot (carga el índice si aún no está en caché).</summary>
+        public static async Task<System.Collections.Generic.IReadOnlyCollection<string>> GetPeronAppIdsAsync()
+        {
+            await GetPeronFixesForAppIdAsync("0");
+            return _peronCatalogCache?.Keys.ToList() ?? new System.Collections.Generic.List<string>();
+        }
+
+        /// <summary>
+        /// Fuente de fixes: Peron Depot si el juego está en su listado; si no, Ryuu.
+        /// </summary>
         public static async Task<System.Collections.Generic.List<FixItemModel>> GetFixesForAppIdAsync(string appId)
+        {
+            var peron = await GetPeronFixesForAppIdAsync(appId);
+            if (peron.Count > 0) return peron;
+            return await GetRyuuFixesForAppIdAsync(appId);
+        }
+
+        public static async Task<System.Collections.Generic.List<FixItemModel>> GetRyuuFixesForAppIdAsync(string appId)
         {
             if (string.IsNullOrWhiteSpace(appId)) return new System.Collections.Generic.List<FixItemModel>();
 
@@ -176,9 +254,12 @@ namespace PandaStoreLauncher.Helpers
                     using var client = new HttpClient(socketsHandler);
                     client.Timeout = TimeSpan.FromHours(2);
                     client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-                    string token = GetGoFileToken();
-                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-                    client.DefaultRequestHeaders.Add("Cookie", $"accountToken={token}");
+                    if (!IsPeronFix(fixLocation))
+                    {
+                        string token = GetGoFileToken();
+                        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+                        client.DefaultRequestHeaders.Add("Cookie", $"accountToken={token}");
+                    }
 
                     string downloadUrl = await ResolveDownloadUrl(client, fixLocation, cancellationToken);
 

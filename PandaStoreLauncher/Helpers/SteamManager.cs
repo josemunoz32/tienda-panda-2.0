@@ -1971,6 +1971,43 @@ namespace PandaStoreLauncher.Helpers
         /// <summary>
         /// Checks if a game is 100% fully installed in Steam by verifying appmanifest_{appId}.acf or game directory files.
         /// </summary>
+        /// <summary>
+        /// Lee appmanifest_{appId}.acf: true = Steam terminó de instalar al 100%,
+        /// false = descargando/actualizando/incompleto, null = no hay manifest (no se puede saber).
+        /// </summary>
+        public static bool? IsGameFullyInstalled(string appId)
+        {
+            if (string.IsNullOrWhiteSpace(appId)) return null;
+            foreach (var common in GetSteamLibraryFolders())
+            {
+                try
+                {
+                    string? steamapps = Path.GetDirectoryName(common.TrimEnd('\\', '/'));
+                    if (steamapps == null) continue;
+                    string acf = Path.Combine(steamapps, $"appmanifest_{appId}.acf");
+                    if (!File.Exists(acf)) continue;
+
+                    string text = File.ReadAllText(acf);
+                    long Val(string key)
+                    {
+                        var m = Regex.Match(text, $"\"{key}\"\\s+\"(\\d+)\"", RegexOptions.IgnoreCase);
+                        return m.Success && long.TryParse(m.Groups[1].Value, out var v) ? v : -1;
+                    }
+
+                    long flags = Val("StateFlags");
+                    long toDl = Val("BytesToDownload");
+                    long dl = Val("BytesDownloaded");
+
+                    // 4 = FullyInstalled; 2 = UpdateRequired; 1024 = UpdateRunning; 512 = UpdatePaused; 1048576 = Downloading
+                    bool installedFlag = flags >= 0 && (flags & 4) != 0 && (flags & (2 | 512 | 1024 | 1048576)) == 0;
+                    bool bytesOk = toDl <= 0 || dl >= toDl;
+                    return installedFlag && bytesOk;
+                }
+                catch { }
+            }
+            return null;
+        }
+
         public static bool IsGameInstalled(string appId, string steamFolderName)
         {
             if (string.IsNullOrWhiteSpace(appId) && string.IsNullOrWhiteSpace(steamFolderName)) return false;

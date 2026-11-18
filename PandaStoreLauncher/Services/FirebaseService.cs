@@ -673,6 +673,17 @@ namespace PandaStoreLauncher.Services
                 Helpers.Logger.LogError(ex, "Ryuu Fixes Fetch Error");
             }
 
+            // 2b. Sumar los juegos con fix en Peron Depot (api.perondepot.online/all/)
+            try
+            {
+                foreach (var peronId in await Helpers.DriveDownloader.GetPeronAppIdsAsync())
+                    fixAppIds.Add(peronId);
+            }
+            catch (Exception ex)
+            {
+                Helpers.Logger.LogError(ex, "Peron Fixes Fetch Error");
+            }
+
             // 3. Load games directly and exclusively from Ryuu global catalog API
             try
             {

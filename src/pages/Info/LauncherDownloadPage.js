@@ -141,7 +141,7 @@ function TutorialVideoCard({ title, subtitle, badge, badgeColor, videoSrc, icon 
 
 export default function LauncherDownloadPage() {
   const WIN_DOWNLOAD_URL =
-    "https://github.com/josemunoz32/tienda-panda-2.0/releases/download/v2.4.40/PandaStoreSetup.exe";
+    "https://github.com/josemunoz32/tienda-panda-2.0/releases/download/v2.4.41/PandaStoreSetup.exe";
 
   const handleDownload = () => {
     window.open(WIN_DOWNLOAD_URL, "_blank");
@@ -153,7 +153,7 @@ export default function LauncherDownloadPage() {
         <title>Descargar Panda Launcher Steam + Activador Oficial | PandaStore PC</title>
         <meta
           name="description"
-          content="Descarga el instalador oficial todo en 1 de Panda Launcher Steam + Activador v2.4.40 para Windows 10/11. Gestiona tu biblioteca, añade DLCs y activa cualquier juego de Steam en 1 click."
+          content="Descarga el instalador oficial todo en 1 de Panda Launcher Steam + Activador v2.4.41 para Windows 10/11. Gestiona tu biblioteca, añade DLCs y activa cualquier juego de Steam en 1 click."
         />
         <meta
           name="keywords"
@@ -188,7 +188,7 @@ export default function LauncherDownloadPage() {
             <h1 className="launcher-title">
               Panda Launcher Steam <br />
               <span className="title-purple">+ Activador</span>{" "}
-              <span className="title-version">v2.4.40</span>
+              <span className="title-version">v2.4.41</span>
             </h1>
           </div>
 
@@ -223,19 +223,37 @@ export default function LauncherDownloadPage() {
                   Descargar Panda Launcher + Activador (112 MB)
                 </span>
                 <span className="btn-download-sub">
-                  Versión v2.4.40 oficial • Todo en 1 (Launcher + Activador) • Windows 10/11
+                  Versión v2.4.41 oficial • Todo en 1 (Launcher + Activador) • Windows 10/11
                 </span>
               </div>
             </button>
           </div>
 
-          {/* Release Notes Banner v2.4.40 */}
+          {/* Release Notes Banner v2.4.41 */}
           <div className="launcher-release-notes-banner">
             <div className="release-notes-header">
-              <span className="release-badge">✨ NOVEDADES DE LA VERSIÓN v2.4.40</span>
+              <span className="release-badge">✨ NOVEDADES DE LA VERSIÓN v2.4.41</span>
               <span className="release-date">Última actualización oficial</span>
             </div>
             <ul className="release-notes-list">
+              <li>
+                <span className="note-icon">🛠️</span>
+                <div>
+                  <strong>Fix automático con +1.600 juegos nuevos (Peron Depot):</strong>
+                  <span>
+                    Aprieta "Fix" y el Launcher descarga el parche y lo copia solo en la carpeta del juego, sin pasos manuales. Ahora incluye fixes para juegos como Dragon Ball Sparking Zero, Forza Horizon 6, Elden Ring Nightreign y muchos más. Solo se aplica cuando Steam terminó de instalar el juego al 100%, para no dañar instalaciones a medias.
+                  </span>
+                </div>
+              </li>
+              <li>
+                <span className="note-icon">🧩</span>
+                <div>
+                  <strong>Componentes instalados automáticamente:</strong>
+                  <span>
+                    El Launcher instala solo Visual C++ y DirectX la primera vez, y por cada juego los componentes que necesita (Unreal Engine, .NET, PhysX, EasyAntiCheat y más). Adiós a errores como el código 54 de Steam: solo acepta el aviso de Windows una vez.
+                  </span>
+                </div>
+              </li>
               <li>
                 <span className="note-icon">🔑</span>
                 <div>

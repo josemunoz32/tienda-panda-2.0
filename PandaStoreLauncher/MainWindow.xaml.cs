@@ -87,7 +87,40 @@ namespace PandaStoreLauncher
             }
         }
 
-        private const string CurrentVersion = "2.4.40"; // Current client executable version
+        private const string CurrentVersion = "2.4.41"; // Current client executable version
+
+        private readonly HashSet<string> _prereqQueued = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Cuando un juego de la biblioteca termina de descargarse, instala en segundo plano los componentes
+        /// que trae (Unreal, Visual C++, DirectX…), así ya está listo cuando el cliente aprieta JUGAR.
+        /// </summary>
+        private void PrepareNewlyInstalledGames()
+        {
+            try
+            {
+                var juegos = _allGames?.Where(g => g != null && g.IsInstalled && !string.IsNullOrEmpty(g.AppId)).ToList();
+                if (juegos == null) return;
+                foreach (var juego in juegos)
+                {
+                    lock (_prereqQueued) { if (!_prereqQueued.Add(juego.AppId)) continue; }
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            string? folder = SteamManager.GetGameDirectoryByAppId(juego.AppId, juego.SteamFolderName)
+                                ?? SteamManager.FindGameCommonFolder(juego.SteamFolderName);
+                            if (!string.IsNullOrEmpty(folder))
+                                await PrerequisitesHelper.InstallGamePrerequisitesAsync(folder);
+                            else
+                                lock (_prereqQueued) _prereqQueued.Remove(juego.AppId);
+                        }
+                        catch { lock (_prereqQueued) _prereqQueued.Remove(juego.AppId); }
+                    });
+                }
+            }
+            catch { }
+        }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
@@ -107,6 +140,20 @@ namespace PandaStoreLauncher
                 _currentHwid = HardwareIdHelper.GetHardwareId();
                 lblHwidValue.Text = _currentHwid;
                 lblSystemSpecs.Text = DiagnosticsHelper.GetQuickSpecsSummary();
+
+                // Componentes que necesitan los juegos (Visual C++ y DirectX): se instalan solos, una vez por PC
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await Task.Delay(6000);
+                        bool ready = await PrerequisitesHelper.EnsureBasePrerequisitesAsync(msg =>
+                            Dispatcher.Invoke(() => lblSystemSpecs.Text = $"🧩 {msg}"));
+                        await Task.Delay(ready ? 4000 : 8000);
+                        Dispatcher.Invoke(() => lblSystemSpecs.Text = DiagnosticsHelper.GetQuickSpecsSummary());
+                    }
+                    catch (Exception ex) { Logger.LogError(ex, "Prerrequisitos base"); }
+                });
 
                 // Synchronize and sanitize depotcache manifests across all Steam paths on startup
                 Task.Run(() =>
@@ -133,6 +180,7 @@ namespace PandaStoreLauncher
                     if (this.IsVisible && this.WindowState != WindowState.Minimized && !string.IsNullOrEmpty(_activeLicense?.Key))
                     {
                         ApplyGameFilter(resetLimit: false);
+                        PrepareNewlyInstalledGames();
                     }
                 };
                 autoDetectTimer.Start();
@@ -1352,6 +1400,20 @@ namespace PandaStoreLauncher
                         return;
                     }
 
+                    // 1b. Solo aplicar el fix si Steam terminó la instalación al 100%
+                    if (SteamManager.IsGameFullyInstalled(juego.AppId) == false)
+                    {
+                        juego.StatusMessage = "Steam aún está descargando el juego";
+                        MessageBox.Show(
+                            $"⏳ '{juego.Name}' todavía no termina de instalarse en Steam.\n\n" +
+                            "Espera a que Steam complete la descarga/actualización al 100% (sin actualizaciones pendientes) " +
+                            "y luego presiona '🛠️ Fix' de nuevo. El parche se descargará y copiará automáticamente en la carpeta del juego.",
+                            "PandaStore - Instalación incompleta",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information);
+                        return;
+                    }
+
                     // 2. Determine fix URLs:
                     // Priority 1 (MANDATORY): Ryuu API fixes — always use official Ryuu source
                     // Priority 2 (Fallback): GoFile link from FixDriveId if Ryuu has no entry for this game
@@ -1382,12 +1444,15 @@ namespace PandaStoreLauncher
                     {
                         string currentFixUrl = fixUrlsToDownload[0];
                         string fixFileName = Path.GetFileName(currentFixUrl);
-                        bool isRyuuFix = currentFixUrl.Contains("ryuu.lol") || !currentFixUrl.Contains("gofile.io");
+                        bool isPeronFix = DriveDownloader.IsPeronFix(currentFixUrl);
+                        bool isRyuuFix = !isPeronFix && (currentFixUrl.Contains("ryuu.lol") || !currentFixUrl.Contains("gofile.io"));
 
                         var progress = new Progress<DownloadProgressReport>(report =>
                         {
                             juego.ProgressValue = report.Percentage;
-                            juego.StatusMessage = isRyuuFix
+                            juego.StatusMessage = isPeronFix
+                                ? $"🛡️ Descargando Fix Peron ({Uri.UnescapeDataString(fixFileName)}): {report.StatusText}"
+                                : isRyuuFix
                                 ? $"🛡️ Descargando Fix Oficial Ryuu ({fixFileName}): {report.StatusText}"
                                 : $"Descargando Parche PandaStore ({fixFileName}): {report.StatusText}";
                         });
@@ -1431,7 +1496,7 @@ namespace PandaStoreLauncher
             }
         }
 
-        private void BtnLanzarJuego_Click(object sender, RoutedEventArgs e)
+        private async void BtnLanzarJuego_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.Tag is GameModel juego)
             {
@@ -1458,7 +1523,11 @@ namespace PandaStoreLauncher
                         // 1. Instalar silenciosamente SDKs y prerrequisitos requeridos (PlayStation PC SDK, EasyAntiCheat, etc.)
                         try
                         {
-                            SteamManager.AutoInstallPrerequisites(gameFolder);
+                            // Visual C++, DirectX, Unreal Engine, .NET, PhysX, EasyAntiCheat, PS SDK… (silencioso, una vez por juego)
+                            string previousStatus = juego.StatusMessage;
+                            await PrerequisitesHelper.InstallGamePrerequisitesAsync(gameFolder, msg =>
+                                Dispatcher.Invoke(() => juego.StatusMessage = msg));
+                            juego.StatusMessage = previousStatus;
                         }
                         catch { }
 
@@ -1918,6 +1987,12 @@ namespace PandaStoreLauncher
                         gameFolder = SteamManager.FindGameCommonFolder(juego.SteamFolderName);
                     }
 
+                    if (SteamManager.IsGameFullyInstalled(juego.AppId) == false)
+                    {
+                        juego.StatusMessage = "⏳ Steam aún descarga el juego, Fix omitido";
+                        continue;
+                    }
+
                     if (!string.IsNullOrEmpty(gameFolder) && Directory.Exists(gameFolder))
                     {
                         List<string> fixUrlsToDownload = new List<string>();
@@ -1943,7 +2018,9 @@ namespace PandaStoreLauncher
                             var progress = new Progress<DownloadProgressReport>(report =>
                             {
                                 juego.ProgressValue = report.Percentage;
-                                juego.StatusMessage = $"Fix Ryuu: {report.StatusText}";
+                                juego.StatusMessage = DriveDownloader.IsPeronFix(currentFixUrl)
+                                    ? $"Fix Peron: {report.StatusText}"
+                                    : $"Fix Ryuu: {report.StatusText}";
                             });
                             await DriveDownloader.DownloadAndExtractFixAsync(currentFixUrl, juego.AppId, gameFolder, progress);
                         }
