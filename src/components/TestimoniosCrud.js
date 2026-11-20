@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { db, auth, storage } from "../firebase";
+import { auth } from "../firebase";
+import { db } from "../firebaseDb";
+import { storage } from "../firebaseServices";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import pandaGamerAvatar from "../assets/logos/miicono.png";

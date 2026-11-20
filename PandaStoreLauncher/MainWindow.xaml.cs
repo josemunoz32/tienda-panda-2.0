@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -93,7 +93,7 @@ namespace PandaStoreLauncher
             set => SetValue(PosterHeightProperty, value);
         }
 
-        private const string CurrentVersion = "2.4.42"; // Current client executable version
+        private const string CurrentVersion = "2.4.43"; // Current client executable version
 
         private readonly HashSet<string> _prereqQueued = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -724,8 +724,8 @@ namespace PandaStoreLauncher
 
                     var manifestStates = SteamManager.GetManifestInstallStates();
 
-                    // Solo juegos REALMENTE instalados (Steam los marca completos, no carpetas vacías/restos)
-                    bool IsGameInstalled(GameModel g) => SteamManager.IsReallyInstalled(g, manifestStates, installedFolders);
+                    // Solo juegos REALMENTE instalados (Steam los marca completos, o instalados via Torrent)
+                    bool IsGameInstalled(GameModel g) => (g.IsTorrentGame && TorrentDownloadService.Instance.IsGameInstalled(g)) || SteamManager.IsReallyInstalled(g, manifestStates, installedFolders);
 
                     IEnumerable<GameModel> baseList;
                     switch (currentMode)
@@ -771,6 +771,7 @@ namespace PandaStoreLauncher
                         results.Add(g);
                     }
 
+                    results = results.OrderByDescending(g => g.IsTorrentGame).ToList();
                     return (results, installed, installedFolders);
                 }, token);
 
@@ -784,8 +785,8 @@ namespace PandaStoreLauncher
                     var states = SteamManager.GetManifestInstallStates();
                     return visibleGames.Select(g =>
                     {
-                        bool inst = SteamManager.IsReallyInstalled(g, states, installedFoldersSet);
-                        bool custom = inst && SteamManager.HasCustomFixLauncher(g.SteamFolderName, g.Name, g.AppId);
+                        bool inst = g.IsTorrentGame ? TorrentDownloadService.Instance.IsGameInstalled(g) : SteamManager.IsReallyInstalled(g, states, installedFoldersSet);
+                        bool custom = g.IsTorrentGame ? inst : (inst && SteamManager.HasCustomFixLauncher(g.SteamFolderName, g.Name, g.AppId));
                         return (inst, custom);
                     }).ToList();
                 });
@@ -800,7 +801,9 @@ namespace PandaStoreLauncher
                     game.HasCustomLauncher = diskStates[i].custom;
                     if (!game.IsInstalled && !game.IsProcessing)
                     {
-                        game.StatusMessage = game.IsAuthorizedForClient ? "Listo para activar / instalar" : "Disponible en catálogo PandaStore";
+                        game.StatusMessage = game.IsTorrentGame
+                            ? "Disponible para descarga directa"
+                            : (game.IsAuthorizedForClient ? "Listo para activar / instalar" : "Disponible en catálogo PandaStore");
                         game.ProgressValue = 0;
                     }
                 }
@@ -1161,6 +1164,21 @@ namespace PandaStoreLauncher
         {
             if (sender is Button btn && btn.Tag is GameModel juego)
             {
+                // Torrent / Repack Native Download Handling
+                if (juego.IsTorrentGame)
+                {
+                    await TorrentDownloadService.Instance.StartDownloadAsync(juego, (msg, prog) =>
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            juego.StatusMessage = msg;
+                            juego.ProgressValue = prog;
+                            RefreshUi();
+                        });
+                    });
+                    RefreshUi();
+                    return;
+                }
 
                 // Check if Steam has injectors installed
                 if (!SteamManager.IsSteamInjected())
@@ -1519,6 +1537,12 @@ namespace PandaStoreLauncher
         {
             if (sender is Button btn && btn.Tag is GameModel juego)
             {
+                if (juego.IsTorrentGame)
+                {
+                    TorrentDownloadService.Instance.LaunchGame(juego);
+                    return;
+                }
+
                 try
                 {
                     // Respaldar partida localmente antes de iniciar (100% privado en la PC del cliente)
@@ -1681,6 +1705,16 @@ namespace PandaStoreLauncher
         {
             if (sender is MenuItem menuItem && menuItem.Tag is GameModel juego)
             {
+                if (juego.IsTorrentGame)
+                {
+                    string? torrentDir = TorrentDownloadService.Instance.GetInstalledDirectory(juego);
+                    if (!string.IsNullOrEmpty(torrentDir) && Directory.Exists(torrentDir))
+                    {
+                        Process.Start(new ProcessStartInfo { FileName = torrentDir, UseShellExecute = true });
+                        return;
+                    }
+                }
+
                 string? dir = SteamManager.GetGameDirectoryByAppId(juego.AppId, juego.SteamFolderName);
                 if (string.IsNullOrEmpty(dir)) dir = SteamManager.FindGameCommonFolder(juego.SteamFolderName);
 
@@ -1691,6 +1725,63 @@ namespace PandaStoreLauncher
                 else
                 {
                     MessageBox.Show($"La carpeta del juego '{juego.Name}' no fue encontrada en las librerías de Steam.", "Carpeta no encontrada", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+        }
+
+        private void MenuItemCreateDesktopShortcut_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem && menuItem.Tag is GameModel juego)
+            {
+                if (juego.IsTorrentGame)
+                {
+                    TorrentDownloadService.Instance.CreateDesktopShortcut(juego);
+                    ShowWindowsToast("Acceso Directo Creado", $"Se ha creado el acceso directo de '{juego.Name}' en tu Escritorio.");
+                    MessageBox.Show($"¡Acceso directo de '{juego.Name}' creado con éxito en tu Escritorio!", "PandaStore", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    // Steam URL shortcut
+                    try
+                    {
+                        string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+                        string urlFile = Path.Combine(desktopPath, $"{juego.Name}.url");
+                        File.WriteAllText(urlFile, $"[InternetShortcut]\nURL=steam://rungameid/{juego.AppId}\n");
+                        ShowWindowsToast("Acceso Directo Creado", $"Se ha creado el acceso directo de '{juego.Name}' en tu Escritorio.");
+                        MessageBox.Show($"¡Acceso directo de '{juego.Name}' creado con éxito en tu Escritorio!", "PandaStore", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error creando acceso directo: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        private async void MenuItemUninstallTorrentGame_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem && menuItem.Tag is GameModel juego)
+            {
+                await DesinstalarJuegoTorrentInternalAsync(juego);
+            }
+        }
+
+        private async void BtnDesinstalarTorrent_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is GameModel juego)
+            {
+                await DesinstalarJuegoTorrentInternalAsync(juego);
+            }
+        }
+
+        private async Task DesinstalarJuegoTorrentInternalAsync(GameModel juego)
+        {
+            if (juego.IsTorrentGame)
+            {
+                bool ok = await TorrentDownloadService.Instance.UninstallGameAsync(juego);
+                if (ok)
+                {
+                    RefreshUi();
                 }
             }
         }

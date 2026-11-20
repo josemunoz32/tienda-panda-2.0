@@ -9,7 +9,7 @@ import {
   deleteDoc,
   getDoc,
 } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../../firebaseDb";
 import "./AdminPreguntas.css";
 
 export default function AdminPreguntas({ user, role }) {

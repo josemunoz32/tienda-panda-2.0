@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { collectionGroup, getDocs, getDoc, doc, collection, query, orderBy, limit } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../../firebaseDb";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminUserActivity({ user, role }) {

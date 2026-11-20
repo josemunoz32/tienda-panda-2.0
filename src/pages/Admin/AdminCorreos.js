@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
-import { db, auth } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
 import { useNavigate } from "react-router-dom";
 import "./AdminCorreos.css";
 const FUNCTIONS_BASE = "https://us-central1-pandastoreupdate.cloudfunctions.net";
@@ -285,7 +286,7 @@ function EmailPreview({ body, asunto, previewName = "Cliente PandaStore" }) {
           <a href="https://wa.me/56974751810" target="_blank" rel="noreferrer" style={{ background: "#1e293b", border: "1px solid #334155", color: "#22c55e", fontSize: 12, fontWeight: "bold", padding: "8px 14px", borderRadius: 8, textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
             <img src="https://img.icons8.com/color/48/whatsapp--v1.png" width="18" height="18" alt="WhatsApp" /> WhatsApp
           </a>
-          <a href="https://t.me/NintendoChile2" target="_blank" rel="noreferrer" style={{ background: "#1e293b", border: "1px solid #334155", color: "#38bdf8", fontSize: 12, fontWeight: "bold", padding: "8px 14px", borderRadius: 8, textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
+          <a href="https://t.me/juegosNintendoSwitchChile2" target="_blank" rel="noreferrer" style={{ background: "#1e293b", border: "1px solid #334155", color: "#38bdf8", fontSize: 12, fontWeight: "bold", padding: "8px 14px", borderRadius: 8, textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
             <img src="https://img.icons8.com/color/48/telegram-app.png" width="18" height="18" alt="Telegram" /> Telegram
           </a>
         </div>

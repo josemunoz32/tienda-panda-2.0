@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { db, auth } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
 import {
   collection,
   getDocs,
@@ -932,7 +933,7 @@ export default function AdminRevendedores({ user, role }) {
                       )}
                     </td>
                     <td>
-                      <span className="adm-rev-tag">{sol.canal || "Instagram / Redes"}</span>
+                      <span className="adm-rev-tag">{sol.canal || "Redes"}</span>
                     </td>
                     <td className="adm-rev-text-cell">
                       {sol.experiencia || "Nuevo emprendedor"}

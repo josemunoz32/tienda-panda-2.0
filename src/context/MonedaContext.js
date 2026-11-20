@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { db, auth } from "../firebase";
-import { doc, onSnapshot, setDoc, getDoc } from "firebase/firestore";
+import { dbLite, auth } from "../firebase";
+// Lecturas públicas vía Firestore Lite (REST): no abren los canales Listen/Write del SDK completo,
+// cuyos long-polls colgados aparecían como errores ERR_TIMED_OUT en consola.
+import { doc as liteDoc, getDoc as liteGetDoc, setDoc as liteSetDoc } from "firebase/firestore/lite";
 import { onAuthStateChanged } from "firebase/auth";
 import { hasResellerBenefits, hasB2BAccess } from "../utils/userRoles";
 
@@ -71,12 +73,7 @@ export function MonedaProvider({ children }) {
           return;
         }
         try {
-          let snap;
-          try {
-            snap = await getDoc(doc(db, "users", currentUser.uid));
-          } catch {
-            snap = await getDoc(doc(db, "users", currentUser.uid), { source: 'cache' });
-          }
+          const snap = await liteGetDoc(liteDoc(dbLite, "users", currentUser.uid));
           if (snap && snap.exists()) {
             const uData = snap.data();
             const isB2B = Boolean(hasB2BAccess(uData) || hasResellerBenefits(uData));
@@ -164,11 +161,12 @@ export function MonedaProvider({ children }) {
       if (match) setPais(match.codigo);
     };
 
-    // Sincronizar configuración general desde Firestore en tiempo real
+    // Cargar configuración general desde Firestore (lectura puntual: los cambios del admin se
+    // aplican en la siguiente carga de página)
     useEffect(() => {
-      let unsub = () => {};
-      try {
-        unsub = onSnapshot(doc(db, "config", "general"), (snap) => {
+      let active = true;
+      liteGetDoc(liteDoc(dbLite, "config", "general")).then((snap) => {
+          if (!active) return;
           if (snap.exists()) {
             const d = snap.data();
             if (d.valorDolar && Number(d.valorDolar) > 0) {
@@ -187,13 +185,10 @@ export function MonedaProvider({ children }) {
               try { localStorage.setItem("margenesMetodosPanda", JSON.stringify(mergedMarg)); } catch {}
             }
           }
-        }, (err) => {
-          console.warn("Firestore config/general listener fallback:", err.message);
-        });
-      } catch (e) {
-        console.warn("Failsafe config listener:", e);
-      }
-      return () => unsub();
+      }).catch((err) => {
+        console.warn("Firestore config/general fallback:", err.message);
+      });
+      return () => { active = false; };
     }, []);
 
     // Actualizar valor del dólar globalmente (Admin)
@@ -203,7 +198,7 @@ export function MonedaProvider({ children }) {
       setValorDolar(num);
       try { localStorage.setItem("dolarFijoPanda", String(num)); } catch {}
       try {
-        await setDoc(doc(db, "config", "general"), { valorDolar: num, updatedAt: new Date().toISOString() }, { merge: true });
+        await liteSetDoc(liteDoc(dbLite, "config", "general"), { valorDolar: num, updatedAt: new Date().toISOString() }, { merge: true });
       } catch (e) {
         console.warn("Error escribiendo en Firestore config/general:", e);
       }
@@ -216,7 +211,7 @@ export function MonedaProvider({ children }) {
       setTasas(merged);
       try { localStorage.setItem("tasasCambioPanda", JSON.stringify(merged)); } catch {}
       try {
-        await setDoc(doc(db, "config", "general"), { tasasMonedas: merged, updatedAt: new Date().toISOString() }, { merge: true });
+        await liteSetDoc(liteDoc(dbLite, "config", "general"), { tasasMonedas: merged, updatedAt: new Date().toISOString() }, { merge: true });
       } catch (e) {
         console.warn("Error guardando tasas en Firestore:", e);
       }
@@ -229,7 +224,7 @@ export function MonedaProvider({ children }) {
       setMargenesMetodos(merged);
       try { localStorage.setItem("margenesMetodosPanda", JSON.stringify(merged)); } catch {}
       try {
-        await setDoc(doc(db, "config", "general"), { margenesMetodos: merged, updatedAt: new Date().toISOString() }, { merge: true });
+        await liteSetDoc(liteDoc(dbLite, "config", "general"), { margenesMetodos: merged, updatedAt: new Date().toISOString() }, { merge: true });
       } catch (e) {
         console.warn("Error guardando márgenes en Firestore:", e);
       }

@@ -13,7 +13,6 @@ from bot import (
     obtener_siguiente_id_pack,
     guardar_pack_firestore,
     enviar_canal_publico,
-    enviar_canal_revendedores,
     construir_mensaje_pack
 )
 

@@ -1,7 +1,7 @@
 // Utilidad para obtener la imagen de un producto por nombre
 // Busca coincidencia exacta o parcial (case-insensitive)
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "../firebaseDb";
 
 export async function getProductImageByName(productName) {
   if (!productName) return null;

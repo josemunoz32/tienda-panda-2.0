@@ -8,8 +8,10 @@
  * 4. Si pasan 15 minutos sin compra → se marca como "abandoned".
  * 5. Al comprar con éxito → markCartConverted() → status: 'converted'.
  */
-import { db } from "../firebase";
-import { doc, setDoc, updateDoc, serverTimestamp, getDoc } from "firebase/firestore";
+// Escrituras puntuales vía Firestore Lite (REST): no abre los canales persistentes del SDK completo
+// y no lo agrega al bundle inicial (también se usa para carritos de invitados).
+import { dbLite as db } from "../firebase";
+import { doc, setDoc, updateDoc, serverTimestamp, getDoc } from "firebase/firestore/lite";
 
 const ABANDON_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutos
 let abandonTimer = null;

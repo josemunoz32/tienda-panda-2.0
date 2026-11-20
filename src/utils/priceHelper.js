@@ -16,8 +16,10 @@
  */
 
 import { hasResellerBenefits } from "./userRoles.js";
-import { db } from "../firebase.js";
-import { doc, onSnapshot } from "firebase/firestore";
+import { dbLite } from "../firebase.js";
+// Lectura puntual vía Firestore Lite (REST): un listener en tiempo real aquí abría el canal Listen
+// de Firestore para todos los visitantes apenas se importaba este módulo.
+import { doc, getDoc } from "firebase/firestore/lite";
 
 export const PANDASTORE_MIN_PROFIT_CLP = 5000;
 
@@ -36,7 +38,7 @@ export const DEFAULT_RESELLER_DISCOUNTS = {
 
 let cachedDiscounts = null;
 
-// Sincronizar en tiempo real desde Firestore con fallback local
+// Cargar desde Firestore con fallback local (los cambios del admin se aplican en la siguiente carga)
 if (typeof window !== "undefined") {
   try {
     const raw = localStorage.getItem("pandaResellerDiscounts");
@@ -44,7 +46,7 @@ if (typeof window !== "undefined") {
   } catch (e) {}
 
   try {
-    onSnapshot(doc(db, "config", "reseller_discounts"), (snap) => {
+    getDoc(doc(dbLite, "config", "reseller_discounts")).then((snap) => {
       if (snap.exists()) {
         const data = snap.data();
         if (data && data.categories) {
@@ -59,8 +61,8 @@ if (typeof window !== "undefined") {
           } catch (e) {}
         }
       }
-    }, (err) => {
-      console.warn("Firestore config/reseller_discounts listener fallback:", err.message);
+    }).catch((err) => {
+      console.warn("Firestore config/reseller_discounts fallback:", err.message);
     });
   } catch (e) {}
 }
@@ -214,6 +216,17 @@ export function calcularPrecioRevendedor(
 /**
  * Obtiene el precio final y desglose de ahorro para cualquier producto
  */
+/**
+ * Productos con precio fijo: nunca reciben descuento de revendedor.
+ * Los directorios de proveedores ("provedores-*") cuestan lo mismo para todos.
+ */
+export function isFixedPriceProduct(product) {
+    if (!product) return false;
+    if (product.isFixedPrice === true) return true;
+    return [product.id, product.productId, product.cartLineId]
+        .some((id) => String(id || "").toLowerCase().startsWith("provedores-"));
+}
+
 export function getProductPricing(product, userRole, purchaseCount = 0) {
     if (!product) {
         return {
@@ -259,6 +272,13 @@ export function getProductPricing(product, userRole, purchaseCount = 0) {
         ? hasResellerBenefits(userRole)
         : ["revendedor", "reseller", "reseller_active", "mayorista"].includes(String(userRole || "").trim().toLowerCase());
 
+    // Promoción Steam (-20%) es solo para el público: el precio de revendedor se calcula sobre el
+    // precio de LISTA (steamListPriceCLP), para no acumular descuentos.
+    const steamListPrice = parseNumberCLP(product.steamListPriceCLP);
+    if (esRevendedor && steamListPrice > 0 && !product.isPromo) {
+        precioOriginal = steamListPrice;
+    }
+
     // Los precios B2B usan una única tarifa mayorista. Los niveles Gamer y
     // descuentos de fidelidad pertenecen exclusivamente a clientes normales.
     const tierInfo = {
@@ -268,7 +288,7 @@ export function getProductPricing(product, userRole, purchaseCount = 0) {
         badge: "💎 Precio Revendedor"
     };
 
-    if (!esRevendedor || precioOriginal <= 0) {
+    if (!esRevendedor || precioOriginal <= 0 || isFixedPriceProduct(product)) {
         return {
             precioOriginal,
             precioFinal: precioOriginal,

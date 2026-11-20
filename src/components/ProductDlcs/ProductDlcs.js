@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { db, auth } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
 import { doc, setDoc, deleteDoc, onSnapshot, collection, getDocs } from "firebase/firestore";
 import {
   fetchRyuuCatalog,

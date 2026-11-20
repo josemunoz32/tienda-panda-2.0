@@ -187,7 +187,7 @@ namespace PandaStoreLauncher.Models
         }
 
         [JsonIgnore]
-        public Visibility DlcButtonVisibility => (IsAuthorizedForClient && HasDlcs) ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility DlcButtonVisibility => (!IsTorrentGame && IsAuthorizedForClient && HasDlcs) ? Visibility.Visible : Visibility.Collapsed;
 
         public void RefreshDlcOwnership(List<string>? allowedDlcs, bool isFullAccess = false)
         {
@@ -221,20 +221,88 @@ namespace PandaStoreLauncher.Models
             OnPropertyChanged(nameof(DlcButtonText));
         }
 
-        // Cover Image URL from Steam CDN (header.jpg is available for 100% of Steam AppIDs)
+        // Cover Image URL from Steam CDN (or custom image for torrent games)
         [JsonIgnore]
-        public string CoverImageUrl => !string.IsNullOrEmpty(AppId)
-            ? $"https://cdn.cloudflare.steamstatic.com/steam/apps/{AppId}/header.jpg"
-            : "pack://application:,,,/Assets/miicono.png";
+        public string CoverImageUrl => !string.IsNullOrEmpty(CustomImageUrl)
+            ? CustomImageUrl
+            : (!string.IsNullOrEmpty(AppId)
+                ? $"https://cdn.cloudflare.steamstatic.com/steam/apps/{AppId}/header.jpg"
+                : "pack://application:,,,/Assets/miicono.png");
 
         // Carátula vertical (600x900) para la grilla tipo póster; si no existe, se ve el header.jpg debajo
         [JsonIgnore]
-        public string PosterImageUrl => !string.IsNullOrEmpty(AppId)
-            ? $"https://cdn.cloudflare.steamstatic.com/steam/apps/{AppId}/library_600x900.jpg"
-            : "pack://application:,,,/Assets/miicono.png";
+        public string PosterImageUrl => !string.IsNullOrEmpty(CustomImageUrl)
+            ? CustomImageUrl
+            : (!string.IsNullOrEmpty(AppId)
+                ? $"https://cdn.cloudflare.steamstatic.com/steam/apps/{AppId}/library_600x900.jpg"
+                : "pack://application:,,,/Assets/miicono.png");
 
         [JsonIgnore]
-        public Visibility CoverFallbackVisibility => string.IsNullOrEmpty(AppId) ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility CoverFallbackVisibility => (string.IsNullOrEmpty(AppId) && string.IsNullOrEmpty(CustomImageUrl)) ? Visibility.Visible : Visibility.Collapsed;
+
+        // Torrent Integration Properties
+        private bool _isTorrentGame = false;
+        [JsonPropertyName("is_torrent")]
+        public bool IsTorrentGame
+        {
+            get => _isTorrentGame;
+            set
+            {
+                if (_isTorrentGame != value)
+                {
+                    _isTorrentGame = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(ActivateButtonText));
+                    OnPropertyChanged(nameof(ActivateButtonIcon));
+                    OnPropertyChanged(nameof(ActivateButtonVisibility));
+                    OnPropertyChanged(nameof(InstallBadgeText));
+                    OnPropertyChanged(nameof(InstallBadgeColor));
+                }
+            }
+        }
+
+        [JsonPropertyName("torrent_file_path")]
+        public string? TorrentFilePath { get; set; }
+
+        [JsonPropertyName("magnet_link")]
+        public string? MagnetLink { get; set; }
+
+        [JsonPropertyName("custom_image_url")]
+        public string? CustomImageUrl { get; set; }
+
+        [JsonPropertyName("target_executable")]
+        public string? TargetExecutable { get; set; }
+
+        [JsonPropertyName("installed_path")]
+        public string? InstalledPath { get; set; }
+
+        [JsonIgnore]
+        public string ActivateButtonText
+        {
+            get
+            {
+                if (IsTorrentGame)
+                {
+                    if (IsProcessing) return "Pausar";
+                    return "Descargar";
+                }
+                return "Agregar";
+            }
+        }
+
+        [JsonIgnore]
+        public string ActivateButtonIcon
+        {
+            get
+            {
+                if (IsTorrentGame)
+                {
+                    if (IsProcessing) return "\uE769"; // Pause icon
+                    return "\uE896"; // Download icon
+                }
+                return "\uE710"; // Plus icon
+            }
+        }
 
         // UI Helpers
         private bool _isSelected = false;
@@ -297,6 +365,8 @@ namespace PandaStoreLauncher.Models
                     OnPropertyChanged(nameof(VipButtonToolTip));
                     OnPropertyChanged(nameof(CanLaunchGame));
                     OnPropertyChanged(nameof(PlayButtonVisibility));
+                    OnPropertyChanged(nameof(ActivateButtonVisibility));
+                    OnPropertyChanged(nameof(UninstallButtonVisibility));
                     OnPropertyChanged(nameof(SyncDlcsButtonVisibility));
                 }
             }
@@ -337,8 +407,8 @@ namespace PandaStoreLauncher.Models
                 if (!IsAuthorizedForClient)
                     return "🔒 No Incluido en tu Licencia Actual";
                 if (IsInstalled)
-                    return HasCustomLauncher ? "✔ Instalado con Launcher / Fix" : "✔ Instalado 100% en Steam";
-                return "⚠️ Debes instalar el juego en Steam primero";
+                    return IsTorrentGame ? "✔ Instalado 100% (Directo)" : (HasCustomLauncher ? "✔ Instalado con Launcher / Fix" : "✔ Instalado 100% en Steam");
+                return IsTorrentGame ? "⚡ Disponible para Descarga Directa" : "⚠️ Debes instalar el juego en Steam primero";
             }
         }
 
@@ -351,7 +421,7 @@ namespace PandaStoreLauncher.Models
                     return "#6B7280"; // Gray
                 if (IsInstalled)
                     return "#10B981"; // Emerald Green
-                return "#F59E0B"; // Amber Warning
+                return IsTorrentGame ? "#38BDF8" : "#F59E0B"; // Cyan for Torrent, Amber for Steam
             }
         }
 
@@ -434,27 +504,31 @@ namespace PandaStoreLauncher.Models
             }
         }
 
-        // Fix button is ONLY for non-VIP games that actually have an active fix in Ryuu
+        // Fix button is ONLY for non-VIP games that actually have an active fix in Ryuu (never for torrent)
         [JsonIgnore]
-        public Visibility FixButtonVisibility => (IsAuthorizedForClient && !IsVip && HasFix) ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility FixButtonVisibility => (!IsTorrentGame && IsAuthorizedForClient && !IsVip && HasFix) ? Visibility.Visible : Visibility.Collapsed;
 
         // VIP button "🔑 Activar" is for VIP games (Denuvo, Ubisoft, EA)
         [JsonIgnore]
-        public Visibility VipButtonVisibility => (IsAuthorizedForClient && IsVip) ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility VipButtonVisibility => (!IsTorrentGame && IsAuthorizedForClient && IsVip) ? Visibility.Visible : Visibility.Collapsed;
 
-        // Primary library injection button "📥 Agregar a la biblioteca"
+        // Primary library injection button "📥 Agregar a la biblioteca" or "⬇ Descargar"
         [JsonIgnore]
-        public Visibility ActivateButtonVisibility => IsAuthorizedForClient ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility ActivateButtonVisibility => (IsTorrentGame && IsInstalled) ? Visibility.Collapsed : (IsAuthorizedForClient ? Visibility.Visible : Visibility.Collapsed);
 
         // Repair stuck/corrupted download button "🧹 Reparar Descarga"
         [JsonIgnore]
-        public Visibility RepairButtonVisibility => IsAuthorizedForClient ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility RepairButtonVisibility => (!IsTorrentGame && IsAuthorizedForClient) ? Visibility.Visible : Visibility.Collapsed;
 
         // Button "⚡ Activar DLCs" to inject DLCs into already installed games
         [JsonIgnore]
-        public Visibility SyncDlcsButtonVisibility => (IsAuthorizedForClient && IsInstalled && HasDlcs) ? Visibility.Visible : Visibility.Collapsed;
+        public Visibility SyncDlcsButtonVisibility => (!IsTorrentGame && IsAuthorizedForClient && IsInstalled && HasDlcs) ? Visibility.Visible : Visibility.Collapsed;
 
         [JsonIgnore]
         public Visibility RequestButtonVisibility => !IsAuthorizedForClient ? Visibility.Visible : Visibility.Collapsed;
+
+        // Button "🗑️ Desinstalar" for installed torrent games to free space
+        [JsonIgnore]
+        public Visibility UninstallButtonVisibility => (IsTorrentGame && IsInstalled && !IsProcessing) ? Visibility.Visible : Visibility.Collapsed;
     }
 }

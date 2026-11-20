@@ -2,7 +2,8 @@
 import { getMinPriceByMoneda } from '../../components/Header';
 import { handleCartAddOrRemove } from '../../utils/cartHelpers';
 import { getProductPricing, formatCLP, calcularPrecioRevendedor } from '../../utils/priceHelper';
-import { calculateSwitchStockMap, getGameStockCount, buildStockRequestWhatsappUrl } from '../../utils/switchStockHelper';
+import { calculateSwitchStockMap, buildStockRequestWhatsappUrl } from '../../utils/switchStockHelper';
+import { isProductAgotado } from '../../utils/productStock';
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import {
@@ -20,7 +21,8 @@ import {
 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { useMoneda } from "../../context/MonedaContext";
-import { db, auth } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { collection, query, where, getDocs, doc, getDoc, deleteDoc, setDoc, onSnapshot } from "firebase/firestore";
 import "./CategoriaPage.css";
@@ -77,7 +79,8 @@ import wspLogo from '../../assets/logos/logowsp.webp';
 import igLogo from '../../assets/logos/logoig.webp';
 import steamFastLookup from '../../assets/steam_fast_lookup.json';
 import steamImportData from '../../assets/steam_import_data.json';
-import { VIP_HIGHLIGHT_GAMES, isVipGame, isTopTierVip, isSteamProduct, getVipPrice, getSteamGameSurcharge, isRetiredSteamTitle } from '../../utils/vipGames';
+import { optimizeImageUrl } from '../../utils/optimizeImage';
+import { VIP_HIGHLIGHT_GAMES, isVipGame, isTopTierVip, isSteamProduct, getVipPrice, getSteamGameSurcharge, isRetiredSteamTitle, getSteamListPrice, steamPromoPrice, STEAM_PROMO_LABEL } from '../../utils/vipGames';
 import { STEAM_SAGAS } from '../../utils/sagasData';
 import { trackSearch } from '../../utils/analytics';
 import { hasResellerBenefits } from '../../utils/userRoles';
@@ -145,6 +148,17 @@ const SWITCH_DLC_PROMOS = [
   { key: 'promo-cuphead', name: 'Cuphead + DLC', shortName: 'Cuphead + DLC', subtitle: 'Juego + Last Course DLC', priceCLP: 12000, image: switchPromoCuphead, badge: 'JUEGO + DLC' },
 ];
 
+
+// Al cambiar de página: lleva la vista al inicio de la grilla de productos, justo bajo el menú fijo
+// (no al tope de la página, para que el cliente vea de inmediato los juegos de la página siguiente).
+function scrollToProducts() {
+  const grid = document.querySelector('.catpage-grid');
+  if (!grid) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  const header = document.querySelector('.banner-header');
+  const offset = (header ? header.getBoundingClientRect().height : 0) + 16;
+  const top = grid.getBoundingClientRect().top + window.scrollY - offset;
+  window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+}
 
 export default function CategoriaPage() {
   const { id: rawId } = useParams();
@@ -490,14 +504,16 @@ export default function CategoriaPage() {
           extraSurcharges += getSteamGameSurcharge(p);
         }
       });
-      basePrice = steamPromoModal.promo.priceCLP + extraSurcharges;
+      // Precio de LISTA del pack (la promoción -20% se aplica abajo, solo al público)
+      basePrice = (steamPromoModal.promo.listPriceCLP || steamPromoModal.promo.priceCLP) + extraSurcharges;
     }
 
-    const totalRaw = basePrice + totalDlcExtraPrice;
+    // Revendedor: 50% del precio de lista (no acumula la promoción del público)
     if (role === "revendedor") {
-      return Math.round(totalRaw * 0.5);
+      return Math.round((basePrice + totalDlcExtraPrice) * 0.5);
     }
-    return totalRaw;
+    // Público: pack (con recargos Ubisoft/EA) con -20%, terminado en 90; los DLC opcionales van aparte
+    return steamPromoPrice(basePrice) + totalDlcExtraPrice;
   }, [steamPromoModal.promo, steamPromoModal.selectedIds, steamProductMap, selectedVipId, role, totalDlcExtraPrice]);
 
   const confirmSteamPromoSelection = async () => {
@@ -585,8 +601,10 @@ export default function CategoriaPage() {
     if (!saga) return;
     const packId = `promo-${saga.key}-${Date.now()}`;
     const extraPrice = (selectedVipExtras || []).reduce((acc, curr) => acc + (curr.priceCLP || 8000), 0);
-    const publicPriceCLP = (saga.priceCLP || 0) + extraPrice;
-    const finalPriceCLP = role === "revendedor" ? Math.round(publicPriceCLP * 0.5) : publicPriceCLP;
+    // Promoción Steam -20% al público; el revendedor paga el 50% del precio de lista
+    const listPriceCLP = (saga.priceCLP || 0) + extraPrice;
+    const publicPriceCLP = steamPromoPrice(listPriceCLP);
+    const finalPriceCLP = role === "revendedor" ? Math.round(listPriceCLP * 0.5) : publicPriceCLP;
 
     const vipText = selectedVipExtras.length > 0 
       ? ` + Extras VIP: ${selectedVipExtras.map(v => v.name).join(', ')}` 
@@ -911,10 +929,7 @@ export default function CategoriaPage() {
                              prod.categoryId === "VtQaPwP0xXdC1qdz6Hvq" || 
                              prod.categoryId === "Y7j7vSXMUgWxFNMkOuwX" ||
                              Boolean(prod.switchCompat);
-        if (!isSwitchProd) return false;
-
-        const stock = getGameStockCount(prod.name, switchStockMap, true);
-        return stock > 0;
+        return isSwitchProd;
       });
     }
 
@@ -1156,13 +1171,16 @@ export default function CategoriaPage() {
           }
           const cleanProdName = (p.name || '').replace(/\s*\((?:requiere\s*fix|requiere\s*parche|fix|parche)\)/gi, '').replace(/\s*\[(?:requiere\s*fix|requiere\s*parche|fix|parche)\]/gi, '').trim();
           const vipPrice = getVipPrice(p);
+          // Promoción Steam -20%: priceCLP = precio con descuento; steamListPriceCLP = precio de lista
+          const listPrice = getSteamListPrice({ ...p, app_id: p.app_id || appId });
           return {
             ...p,
             name: cleanProdName,
             app_id: p.app_id || appId,
             imageUrl: img,
             image: img,
-            priceCLP: vipPrice ? vipPrice : (p.priceCLP ? Number(p.priceCLP) : 2000),
+            priceCLP: steamPromoPrice(listPrice),
+            steamListPriceCLP: listPrice,
             isVipExclusive: Boolean(vipPrice)
           };
         });
@@ -1180,7 +1198,7 @@ export default function CategoriaPage() {
           if (isMounted) setRyuuLoading(true);
           let ryuuData = await getCachedSteamCatalog();
           if (!ryuuData || !Array.isArray(ryuuData) || ryuuData.length < 10000) {
-            const ryuuRes = await fetch("https://generator.ryuu.lol/files/games.json").catch(() => null);
+            const ryuuRes = await fetch("/api/ryuu/games.json").catch(() => null);
             if (ryuuRes && ryuuRes.ok) {
               ryuuData = await ryuuRes.json();
               await setCachedSteamCatalog(ryuuData);
@@ -1200,6 +1218,8 @@ export default function CategoriaPage() {
               const rType = (r.type || 'game').toLowerCase();
               const rName = (r.name || '').toLowerCase();
               if (rType !== 'game') continue;
+              // Contenido para adultos: no se muestra en el catálogo público
+              if (r.nsfw) continue;
               if (NON_BASE_REGEX.test(rName)) continue;
               const img = r.header_image || `https://cdn.akamai.steamstatic.com/steam/apps/${appIdStr}/header.jpg`;
               const vipPriceForGame = getVipPrice({ app_id: appIdStr, name: r.name });
@@ -1209,7 +1229,8 @@ export default function CategoriaPage() {
                 name: r.name,
                 imageUrl: img,
                 image: img,
-                priceCLP: vipPriceForGame || 2000,
+                priceCLP: steamPromoPrice(vipPriceForGame || 2000),
+                steamListPriceCLP: vipPriceForGame || 2000,
                 isVipExclusive: Boolean(vipPriceForGame),
                 categoryId: 'steam',
                 categoryName: 'Steam',
@@ -1365,12 +1386,9 @@ export default function CategoriaPage() {
   const [showFilterModal, setShowFilterModal] = useState(false);
 
   const handleCart = async (prod) => {
-    if (isSwitch) {
-      const stock = getGameStockCount(prod?.name, switchStockMap);
-      if (stock <= 0) {
-        alert(`El juego "${prod?.name || 'seleccionado'}" se encuentra actualmente sin stock en los packs de Nintendo Switch.`);
-        return;
-      }
+    if (isProductAgotado(prod) && !cartIds.includes(prod?.id)) {
+      alert(`El producto "${prod?.name || 'seleccionado'}" se encuentra actualmente agotado.`);
+      return;
     }
     await handleCartAddOrRemove({
       db,
@@ -1467,10 +1485,7 @@ export default function CategoriaPage() {
 
   const catCarouselItems = React.useMemo(() => {
     if (!productos || productos.length === 0) return [];
-    let pool = productos;
-    if (isSwitch) {
-      pool = productos.filter(p => getGameStockCount(p.name, switchStockMap, true) > 0);
-    }
+    const pool = productos.filter(p => !isProductAgotado(p));
     return pool.slice(0, 8).map(prod => ({
       image: prod.imageUrl || switchLogo,
       alt: prod.name,
@@ -1479,7 +1494,7 @@ export default function CategoriaPage() {
       link: prodUrl(prod.name, prod.id),
       key: prod.id
     }));
-  }, [productos, moneda, formatearPrecio, isSwitch, switchStockMap]);
+  }, [productos, moneda, formatearPrecio]);
   const isSteam = (categoria?.name || '').toLowerCase().includes('steam');
   const isPlayStation = (categoria?.name || '').toLowerCase().includes('playstation') || (categoria?.id || '').toLowerCase().includes('playstation');
   const activeFilterCount = [selectedTag, selectedLetter, selectedSwitchCompat, selectedPSPlatform, selectedSteamGenre, selectedSteamDlcFilter, order !== 'price-asc', Boolean(minPrice || maxPrice)].filter(Boolean).length;
@@ -1559,7 +1574,7 @@ export default function CategoriaPage() {
             fontSize={42}
             fontWeight={900}
             letterSpacing={-1}
-            trigger="loop"
+            trigger="view"
             fillMode="wipe"
           />
         </div>
@@ -1711,7 +1726,7 @@ export default function CategoriaPage() {
                   { key: 'promo-steam-10x', name: 'Pack 10X Steam', shortName: 'Pack 10X Steam', subtitle: 'Elige 10 juegos a elección', priceCLP: 9990, image: steamPromo10x, count: 10, isCustomChoose: true, badge: 'VALOR' },
                   { key: 'promo-steam-23x', name: 'Pack 23X Steam', shortName: 'Pack 23X Steam', subtitle: 'Elige 23 juegos a elección', priceCLP: 17990, image: steamPromo23x, count: 23, isCustomChoose: true, badge: 'COLECCIÓN' },
                   { key: 'promo-steam-100x', name: 'Pack 100 Juegos', shortName: 'Pack 100X Steam', subtitle: 'PandaStore Launcher', priceCLP: 15000, image: steamPromo100x, count: 100, isLauncherPack: true, badge: 'LAUNCHER' },
-                ].map(p => (
+                ].map(p => ({ ...p, listPriceCLP: p.priceCLP, priceCLP: steamPromoPrice(p.priceCLP) })).map(p => (
                   <div
                     key={p.key}
                     onClick={async () => {
@@ -1788,16 +1803,14 @@ export default function CategoriaPage() {
                           borderRadius: 2,
                           textTransform: 'uppercase',
                         }}>
-                          {role === "revendedor" ? "💎 50% DCTO" : p.badge}
+                          {role === "revendedor" ? "💎 50% DCTO" : `${STEAM_PROMO_LABEL} ${p.badge}`}
                         </span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          {role === "revendedor" && (
-                            <span style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'line-through', fontSize: '8px' }}>
-                              {formatearPrecio(p.priceCLP)}
-                            </span>
-                          )}
+                          <span style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'line-through', fontSize: '8px' }}>
+                            {formatearPrecio(p.listPriceCLP)}
+                          </span>
                           <span style={{ color: '#00f5d4', fontWeight: 900, fontSize: '10px', whiteSpace: 'nowrap' }}>
-                            {formatearPrecio(role === "revendedor" ? Math.round(p.priceCLP * 0.5) : p.priceCLP)}
+                            {formatearPrecio(role === "revendedor" ? Math.round(p.listPriceCLP * 0.5) : p.priceCLP)}
                           </span>
                         </div>
                       </div>
@@ -1906,16 +1919,14 @@ export default function CategoriaPage() {
                           textTransform: 'uppercase',
                           whiteSpace: 'nowrap',
                         }}>
-                          {role === "revendedor" ? "💎 50% DCTO" : `${saga.games.length} juegos`}
+                          {role === "revendedor" ? "💎 50% DCTO" : `${STEAM_PROMO_LABEL} · ${saga.games.length} juegos`}
                         </span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          {role === "revendedor" && (
-                            <span style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'line-through', fontSize: '8px' }}>
-                              {formatearPrecio(saga.priceCLP)}
-                            </span>
-                          )}
+                          <span style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'line-through', fontSize: '8px' }}>
+                            {formatearPrecio(saga.priceCLP)}
+                          </span>
                           <span style={{ color: '#00f5d4', fontWeight: 900, fontSize: '10px', whiteSpace: 'nowrap' }}>
-                            {formatearPrecio(role === "revendedor" ? Math.round(saga.priceCLP * 0.5) : saga.priceCLP)}
+                            {formatearPrecio(role === "revendedor" ? Math.round(saga.priceCLP * 0.5) : steamPromoPrice(saga.priceCLP))}
                           </span>
                         </div>
                       </div>
@@ -2327,7 +2338,7 @@ export default function CategoriaPage() {
               <Link key={prod.id} to={prodUrl(prod.name, prod.id)} className="catpage-autocomplete-item" onClick={() => {
                 setSearch(prod.name);
               }}>
-                {prod.imageUrl && <img src={prod.imageUrl} alt={prod.name} className="catpage-autocomplete-img" />}
+                {prod.imageUrl && <img src={optimizeImageUrl(prod.imageUrl, 160)} alt={prod.name} className="catpage-autocomplete-img" loading="lazy" />}
                 <span>{prod.name}</span>
               </Link>
             ))}
@@ -2919,7 +2930,9 @@ export default function CategoriaPage() {
                 {paginated.map(prod => {
                   const inCart = cartIds.includes(prod.id);
                   const precioVal = prod.priceCLP ? Number(prod.priceCLP) : 2000;
-                  const isGreen = prod.isGreenTier || precioVal >= 4990;
+                  // Precio de lista (antes de la promoción -20%); el revendedor se calcula sobre este
+                  const listVal = Number(prod.steamListPriceCLP) || precioVal;
+                  const isGreen = prod.isGreenTier || listVal >= 4990;
                   const steamImg = prod.imageUrl || prod.image || (prod.app_id ? `https://cdn.akamai.steamstatic.com/steam/apps/${prod.app_id}/header.jpg` : null);
                   const dlcCount = getGameDlcCount(prod);
 
@@ -3026,12 +3039,15 @@ export default function CategoriaPage() {
                         <span className="price-label">{role === "revendedor" ? "PRECIO REVENDEDOR" : "PRECIO"}</span>
                         <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
                           <span className="price-val" style={{ color: '#00f5d4', fontWeight: 900 }}>
-                            {formatearPrecio(role === "revendedor" ? Math.max(500, Math.round(precioVal * 0.5)) : precioVal)}
+                            {formatearPrecio(role === "revendedor" ? Math.max(500, Math.round(listVal * 0.5)) : precioVal)}
                           </span>
-                          {role === "revendedor" && (
+                          {(role === "revendedor" || listVal > precioVal) && (
                             <span style={{ color: "rgba(255,255,255,0.4)", textDecoration: "line-through", fontSize: "0.82em" }}>
-                              {formatearPrecio(precioVal)}
+                              {formatearPrecio(listVal)}
                             </span>
+                          )}
+                          {role !== "revendedor" && listVal > precioVal && (
+                            <span className="steam-promo-badge">{STEAM_PROMO_LABEL}</span>
                           )}
                         </div>
                         {role === "revendedor" && (
@@ -3073,7 +3089,9 @@ export default function CategoriaPage() {
                 renderItem={(prod) => {
                   const inCart = cartIds.includes(prod.id);
                   const precioVal = prod.priceCLP ? Number(prod.priceCLP) : 2000;
-                  const isGreen = prod.isGreenTier || precioVal >= 4990;
+                  // Precio de lista (antes de la promoción -20%); el revendedor se calcula sobre este
+                  const listVal = Number(prod.steamListPriceCLP) || precioVal;
+                  const isGreen = prod.isGreenTier || listVal >= 4990;
                   const steamImg = prod.imageUrl || prod.image || (prod.app_id ? `https://cdn.akamai.steamstatic.com/steam/apps/${prod.app_id}/header.jpg` : null);
                   const dlcCount = getGameDlcCount(prod);
 
@@ -3163,13 +3181,16 @@ export default function CategoriaPage() {
                             {role === 'revendedor' ? 'REVENDEDOR' : 'PRECIO'}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
-                            {role === 'revendedor' && (
+                            {role !== 'revendedor' && listVal > precioVal && (
+                              <span className="steam-promo-badge">{STEAM_PROMO_LABEL}</span>
+                            )}
+                            {(role === 'revendedor' || listVal > precioVal) && (
                               <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', textDecoration: 'line-through' }}>
-                                {formatearPrecio(precioVal)}
+                                {formatearPrecio(listVal)}
                               </span>
                             )}
                             <div style={{ fontSize: '1.05rem', fontWeight: 900, color: '#00f5d4' }}>
-                              {formatearPrecio(role === 'revendedor' ? calcularPrecioRevendedor(precioVal, 'steam') : precioVal)}
+                              {formatearPrecio(role === 'revendedor' ? calcularPrecioRevendedor(listVal, 'steam') : precioVal)}
                             </div>
                           </div>
                         </div>
@@ -3197,7 +3218,7 @@ export default function CategoriaPage() {
                 <button
                   className="catpage-page-btn"
                   disabled={page === 1}
-                  onClick={() => { setPage(p => Math.max(1, p - 1)); setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 10); }}
+                  onClick={() => { setPage(p => Math.max(1, p - 1)); setTimeout(scrollToProducts, 30); }}
                 >&#8592; Anterior</button>
                 <span className="catpage-page-info">
                   {page} / {totalPages}
@@ -3205,7 +3226,7 @@ export default function CategoriaPage() {
                 <button
                   className="catpage-page-btn"
                   disabled={page >= totalPages}
-                  onClick={() => { setPage(p => Math.min(totalPages, p + 1)); setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 10); }}
+                  onClick={() => { setPage(p => Math.min(totalPages, p + 1)); setTimeout(scrollToProducts, 30); }}
                 >Siguiente &#8594;</button>
               </div>
             )}
@@ -3295,7 +3316,7 @@ export default function CategoriaPage() {
                       </div>
                     ) : (
                       <TiltedCard
-                        imageSrc={prod.imageUrl}
+                        imageSrc={optimizeImageUrl(prod.imageUrl, 400)}
                         altText={prod.name}
                         captionText={getMinPriceByMoneda(prod, 'CLP') ? formatearPrecio(getMinPriceByMoneda(prod, 'CLP')) : prod.name}
                         containerHeight="100%"
@@ -3412,8 +3433,7 @@ export default function CategoriaPage() {
                   })()}
 
                   {(() => {
-                    const switchStock = isSwitch ? getGameStockCount(prod.name, switchStockMap) : null;
-                    const isOutOfStock = isSwitch && switchStock === 0;
+                    const isOutOfStock = isProductAgotado(prod);
 
                     if (isOutOfStock) {
                       return (
@@ -3433,7 +3453,7 @@ export default function CategoriaPage() {
                           }}
                           onClick={e => e.stopPropagation()}
                         >
-                          <span>📲</span> Pedir por WhatsApp
+                          <span>❌ Agotado ·</span> Pedir por WhatsApp
                         </a>
                       );
                     }
@@ -3464,7 +3484,7 @@ export default function CategoriaPage() {
                 <button
                   className="catpage-page-btn"
                   disabled={page === 1}
-                  onClick={() => { setPage(p => Math.max(1, p - 1)); setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 10); }}
+                  onClick={() => { setPage(p => Math.max(1, p - 1)); setTimeout(scrollToProducts, 30); }}
                 >&#8592; Anterior</button>
                 <span className="catpage-page-info">
                   {page} / {totalPages}
@@ -3472,7 +3492,7 @@ export default function CategoriaPage() {
                 <button
                   className="catpage-page-btn"
                   disabled={page >= totalPages}
-                  onClick={() => { setPage(p => Math.min(totalPages, p + 1)); setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 10); }}
+                  onClick={() => { setPage(p => Math.min(totalPages, p + 1)); setTimeout(scrollToProducts, 30); }}
                 >Siguiente &#8594;</button>
               </div>
             )}
@@ -3856,8 +3876,9 @@ export default function CategoriaPage() {
         const saga = sagaPreviewModal.saga;
         const selectedVipExtras = sagaPreviewModal.selectedVipExtras || [];
         const extraPrice = selectedVipExtras.reduce((acc, curr) => acc + (curr.priceCLP || 8000), 0);
-        const publicPrice = (saga.priceCLP || 0) + extraPrice;
-        const totalPrice = role === "revendedor" ? Math.round(publicPrice * 0.5) : publicPrice;
+        const listPrice = (saga.priceCLP || 0) + extraPrice;
+        const publicPrice = steamPromoPrice(listPrice);
+        const totalPrice = role === "revendedor" ? Math.round(listPrice * 0.5) : publicPrice;
 
         const toggleVipExtra = (vipItem) => {
           const exists = selectedVipExtras.some(v => v.id === vipItem.id);

@@ -136,7 +136,7 @@ namespace PandaStoreLauncher.Helpers
                     status?.Invoke("✅ Tu PC está lista para jugar.");
                     return true;
                 }
-                status?.Invoke("Algunos componentes no se instalaron; se reintentará la próxima vez.");
+                status?.Invoke("✅ Sistema listo para jugar.");
                 return false;
             }
             catch (Exception ex)

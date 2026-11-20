@@ -169,7 +169,9 @@ body {
   color: var(--text-light);
   line-height: 1.6;
   min-height: 100vh;
-  overflow-x: hidden;
+  /* clip (no hidden): hidden convierte al body en contenedor de scroll y rompe el menú fijo (sticky)
+     en toda la web, porque este CSS queda cargado al salir de la ficha */
+  overflow-x: clip;
 }
 
 h1, h2, h3 {

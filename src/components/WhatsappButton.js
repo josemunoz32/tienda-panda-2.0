@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { trackClickWhatsapp } from "../utils/analytics";
-import wspLogo from "../assets/logos/logowsp.webp";
+import wspLogo from "../assets/optimizadas/logowsp-64.webp";
 
 export default function WhatsappButton() {
   const phone = "56974751810";

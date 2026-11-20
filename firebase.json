@@ -10,6 +10,7 @@
   },
   "hosting": {
     "public": "build",
+    "cleanUrls": true,
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -20,6 +21,14 @@
     "headers": [
       {
         "source": "/",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+          { "key": "Pragma", "value": "no-cache" },
+          { "key": "Expires", "value": "0" }
+        ]
+      },
+      {
+        "source": "/app.html",
         "headers": [
           { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
           { "key": "Pragma", "value": "no-cache" },
@@ -113,12 +122,24 @@
         "function": "dynamicSEO"
       },
       {
+        "source": "/img",
+        "function": "img"
+      },
+      {
         "source": "/api/steam/catalog",
         "function": "apiSteamCatalog"
       },
       {
-        "source": "**",
+        "source": "/api/ryuu/**",
+        "function": "apiRyuuCatalog"
+      },
+      {
+        "source": "/home",
         "destination": "/index.html"
+      },
+      {
+        "source": "**",
+        "destination": "/app.html"
       }
     ]
   },

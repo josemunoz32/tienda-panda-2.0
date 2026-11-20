@@ -87,12 +87,12 @@ function SobreNosotros() {
           <li>
             {icons.instagram} <span>Instagram Oficial:</span>{" "}
             <a
-              href="https://www.instagram.com/pandastoregaming.cl/"
+              href="https://www.instagram.com/panda_storegamingcl/"
               target="_blank"
               rel="noopener noreferrer"
               style={{ color: "#ff70a6", fontWeight: "bold", textDecoration: "none" }}
             >
-              @pandastoregaming.cl
+              @panda_storegamingcl
             </a>
           </li>
         </ul>

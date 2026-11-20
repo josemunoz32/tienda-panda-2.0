@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import pendienteImg from "../../assets/estadopedido/pendiente.png";
-import { auth, db } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import {

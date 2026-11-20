@@ -2225,3 +2225,81 @@ body {
   .home-prod-card-img-wrap { height: 160px; }
 }
 
+
+/* Altura reservada por DeferredSection (Home.js) antes de montar el contenido; medida del render real */
+.home-section--pending { min-height: 656px; }
+.home-section-testi.home-section--pending { min-height: 715px; }
+@media (max-width: 991px) {
+  .home-section--pending { min-height: 616px; }
+}
+@media (max-width: 768px) {
+  .home-section--pending { min-height: 536px; }
+  .home-section-testi.home-section--pending { min-height: 574px; }
+}
+.home-sec-title-container .stroke-text__svg {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  filter: drop-shadow(0 2px 0 #881c2c) drop-shadow(0 3px 4px #231021);
+}
+
+.home-sec-title-container .stroke-text__digit {
+  font-family: 'Times New Roman', 'Liberation Serif', serif;
+  font-variant-numeric: lining-nums;
+}
+
+/* Carga de carruseles: tarjetas vacías animadas (nunca la imagen de la categoría en lugar de un juego) */
+.home-carousel-skeleton {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+.home-carousel-skeleton-card {
+  width: 220px;
+  max-width: 28%;
+  aspect-ratio: 3 / 4;
+  border-radius: 18px;
+  background: linear-gradient(110deg, rgba(255,255,255,.05) 8%, rgba(255,255,255,.13) 18%, rgba(255,255,255,.05) 33%);
+  background-size: 200% 100%;
+  animation: home-skeleton-shine 1.3s linear infinite;
+}
+.home-carousel-skeleton-card:nth-child(2) { width: 260px; max-width: 34%; }
+@keyframes home-skeleton-shine { to { background-position-x: -200%; } }
+@media (prefers-reduced-motion: reduce) { .home-carousel-skeleton-card { animation: none; } }
+
+/* ── Carruseles del home: la tarjeta ocupa el área sobre los puntos (el precio nunca queda tapado) ── */
+.home-depth-carousel-wrapper .depth-carousel__stage {
+  bottom: 52px;
+}
+.home-depth-carousel-wrapper .depth-carousel__caption {
+  padding: 14px 14px 16px;
+}
+.home-depth-carousel-wrapper .depth-carousel__caption-sub {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #4ade80;
+}
+/* Puntos compactos: caben siempre en el ancho del carrusel */
+.home-depth-carousel-wrapper .depth-carousel__dots {
+  bottom: 12px;
+  max-width: calc(100% - 32px);
+  padding: 2px 8px;
+  gap: 0;
+}
+.home-depth-carousel-wrapper .depth-carousel__dot {
+  width: 22px;
+  height: 28px;
+  min-width: 22px;
+  min-height: 28px;
+}
+.home-depth-carousel-wrapper .depth-carousel__dot::before {
+  width: 7px;
+  height: 7px;
+}
+@media (max-width: 480px) {
+  .home-depth-carousel-wrapper .depth-carousel__dot { width: 18px; min-width: 18px; }
+  .home-depth-carousel-wrapper .depth-carousel__dot::before { width: 6px; height: 6px; }
+}

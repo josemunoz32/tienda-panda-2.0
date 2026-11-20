@@ -7,11 +7,10 @@ const fetch = (...args) => import("node-fetch").then(({default: f}) => f(...args
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN || "";
 const TELEGRAM_BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || "ninte2Bot";
 const CANAL_PUBLICO_ID = process.env.CANAL_PUBLICO_ID || "-1002444204789";
-const CANAL_REVENDEDORES_ID = process.env.CANAL_REVENDEDORES_ID || "-1004390385564";
 const ADMIN_ID = process.env.ADMIN_ID || "5158777962";
 const TELEGRAM_CONTACT = process.env.TELEGRAM_CONTACT || "NintendoChile2";
-const WEBSITE_URL = process.env.WEBSITE_URL || "https://pandastoreupdate.web.app";
-const INSTAGRAM_URL = "https://instagram.com/pandastoregaming";
+const WEBSITE_URL = process.env.WEBSITE_URL || "https://pandastoregaming.cl";
+const INSTAGRAM_URL = "https://www.instagram.com/panda_storegamingcl/";
 const TESTIMONIOS_URL = `${WEBSITE_URL}/testimonios`;
 const PROMOS_URL = `${WEBSITE_URL}/promos`;
 const GUIA_NINTENDO_URL = `${WEBSITE_URL}/instalacion-nintendo`;
@@ -19,9 +18,9 @@ const GUIA_PSN_URL = `${WEBSITE_URL}/instalacion-playstation`;
 const GUIA_STEAM_URL = `${WEBSITE_URL}/descargar-launcher`;
 
 // Márgenes de ganancia solicitados:
-// Canal Normal: 15.000 CLP (Ganas de 12 a 15 mil)
-// Canal Proveedores / Revendedores: 5.000 CLP (Ganas 5 mil por pack)
-const MARGEN_PUBLICO = 15000;
+// Canal Público: 10.000 CLP (ganancia fija)
+// Canal Proveedores / Revendedores: 5.000 CLP (referencia interna)
+const MARGEN_PUBLICO = 10000;
 const MARGEN_REVENDEDOR = 5000;
 const crypto = require("crypto");
 
@@ -48,13 +47,96 @@ function calcularHuellaPack(pack) {
   return crypto.createHash("sha256").update(firma).digest("hex");
 }
 
+const FREE_GAMES_AND_APPS = new Set([
+  "youtube", "twitch", "hulu", "crunchyroll", "funimation", "nintendo switch online",
+  "pokemon home", "pokémon home", "jump rope challenge",
+  "fortnite", "fall guys", "rocket league", "apex legends", "overwatch 2",
+  "warframe", "paladins", "smite", "brawlhalla", "yu-gi-oh! master duel",
+  "pokemon unite", "pokémon unite", "pokemon cafe", "pokémon café",
+  "pokemon cafe remix", "pokémon café remix", "pokemon quest", "pokémon quest",
+  "super kirby clash", "tetris 99", "f-zero 99", "pac-man 99",
+  "super animal royale", "asphalt 9", "asphalt 9: legends", "asphalt legends unite",
+  "dauntless", "sky: children of the light", "palia", "disney speedstorm",
+  "my hero ultra rumble", "star wars: hunters", "the elder scrolls: blades",
+  "trove", "dc universe online", "realm royale", "rogue company",
+  "world of tanks blitz", "super mario bros. 35", "deltarune chapter 1",
+  "capcom arcade stadium", "capcom arcade 2nd stadium",
+]);
+
+function limpiarNombreJuego(rawName) {
+  let name = String(rawName || "").trim();
+  // Quitar tamaños tipo [19.8 GB], (500 MB), [0.2 GB] o "- 12.5 GB" al final
+  name = name
+      .replace(/\[\s*\d+(?:[.,]\d+)?\s*(?:GB|MB|TB|KB)\s*\]/gi, "")
+      .replace(/\(\s*\d+(?:[.,]\d+)?\s*(?:GB|MB|TB|KB)\s*\)/gi, "")
+      .replace(/\s*[-–|]?\s*\b\d+(?:[.,]\d+)?\s*(?:GB|MB|TB)\b\s*$/gi, "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  return name;
+}
+
+function esJuegoNoDeseado(rawOrCleanedName) {
+  const txt = String(rawOrCleanedName || "").trim();
+  if (txt.length < 2) return true;
+
+  // Excluir líneas marcadas solo como DLC sin juego base
+  if (/\[\s*DLC\s+Only\s*\]|\(\s*DLC\s+Only\s*\)/i.test(txt)) return true;
+
+  // Excluir betas, demos, pruebas, playtests y versiones free/starter
+  if (
+    /\b(?:open|closed)?\s*beta(?:\s+(?:test|ver\.?|version))?\b/i.test(txt) ||
+    /\bnetwork\s+test(?:\s+ver\.?)?\b/i.test(txt) ||
+    /\bplaytest(?:\s+program)?\b/i.test(txt) ||
+    /\b(?:server|stress|technical)\s+test\b/i.test(txt) ||
+    /\b(?:open\s+|closed\s+)?alpha(?:\s+test)?\b/i.test(txt) ||
+    /\bdemo(?:\s+(?:version|ver\.?|edition))?\b/i.test(txt) ||
+    /\bfriend(?:'s)?\s+pass\b/i.test(txt) ||
+    /\b(?:free\s+trial|game\s+trial)\b/i.test(txt) ||
+    /[-–(\[]\s*trial\b/i.test(txt) ||
+    /\btrial\s+(?:version|ver\.?|pass|&)/i.test(txt) ||
+    /\b(?:versi[oó]n|edici[oó]n)\s+de\s+prueba\b/i.test(txt) ||
+    /\bprueba\s+gratuita\b/i.test(txt) ||
+    /\b(?:free[\s-]to[\s-]play|free\s+version|starter\s+pack|starter\s+edition|lite\s+version)\b/i.test(txt) ||
+    /\bgratis\b/i.test(txt)
+  ) {
+    return true;
+  }
+
+  const normalizedBase = txt
+      .toLowerCase()
+      .replace(/\s*\+\s*dlc\b.*$/i, "")
+      .replace(/\s*(?:™|®)/g, "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+
+  if (FREE_GAMES_AND_APPS.has(normalizedBase)) return true;
+  if (/nintendo switch online:\s*playtest/i.test(txt)) return true;
+
+  return false;
+}
+
+function limpiarYFiltrarJuegos(lista) {
+  const seen = new Set();
+  const resultado = [];
+  for (const item of (lista || [])) {
+    if (esJuegoNoDeseado(item)) continue;
+    const limpio = limpiarNombreJuego(item);
+    if (!limpio || esJuegoNoDeseado(limpio)) continue;
+    const key = limpio.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    resultado.push(limpio);
+  }
+  return resultado;
+}
+
 function parsearTipo1(texto) {
   if (!texto || !texto.includes("---- List Game ----")) return null;
   const lineas = texto.trim().split("\n");
   const codigo = lineas[0].trim();
   const matchJuegos = texto.match(/---- List Game ----([\s\S]*?)----End Game List ----/);
   if (!matchJuegos) return null;
-  const juegos = matchJuegos[1].split("\n").map((j) => j.trim()).filter(Boolean);
+  const juegos = limpiarYFiltrarJuegos(matchJuegos[1].split("\n").map((j) => j.trim()).filter(Boolean));
   if (juegos.length < 1) return null;
   const matchPrecio = texto.match(/Price\s*:\s*(\d+)\$/);
   if (!matchPrecio) return null;
@@ -81,7 +163,7 @@ function parsearTipo2(texto) {
   if (!matchPrecio) return null;
   const precioUsd = parseInt(matchPrecio[1], 10);
   const {precioClp, precioUsdt} = calcularPrecios(precioUsd);
-  const juegos = [];
+  const juegosRaw = [];
   let enLista = false;
   for (const linea of texto.split("\n")) {
     if (linea.includes("==============Transaction")) {
@@ -92,10 +174,11 @@ function parsearTipo2(texto) {
     if (enLista) {
       const limpia = linea.trim();
       if (limpia && !limpia.toLowerCase().includes("no games found")) {
-        juegos.push(limpia);
+        juegosRaw.push(limpia);
       }
     }
   }
+  const juegos = limpiarYFiltrarJuegos(juegosRaw);
   if (juegos.length < 1) return null;
   return {
     titulo: `Nickname: ${nickname}`,
@@ -129,10 +212,11 @@ function parsearTipo3(texto) {
   else if (matchId) titulo = `ID: #${matchId[1].trim()}`;
   else return null;
 
-  const juegos = secciones[2].split("\n")
+  const juegosRaw = secciones[2].split("\n")
       .map((l) => l.trim())
       .filter((l) => l && !l.startsWith("ID:") && !l.startsWith("Child:") && !l.startsWith("Balance:") && !l.startsWith("Gold points:") && !l.startsWith("CC:") && !l.startsWith("Orders:") && !l.startsWith("Devices:") && !l.startsWith("Country:") && !l.startsWith("Active Plan:") && !l.startsWith("Game Voucher:"));
 
+  const juegos = limpiarYFiltrarJuegos(juegosRaw);
   if (!juegos.length) return null;
   const matchPrecio = secciones[3].match(/💰\s*PRECIO:\s*([\d.]+)\s*USDT/i);
   if (!matchPrecio) return null;
@@ -155,8 +239,8 @@ function parsearTipo4(texto) {
   if (!texto.includes("Country:US") && !texto.includes("Country: US")) return null;
   const matchJuegos = texto.match(/---- List Game ----([\s\S]*?)----End Game List ----/);
   if (!matchJuegos) return null;
-  const juegos = matchJuegos[1].split("\n").map((j) => j.trim()).filter(Boolean);
-  if (juegos.length < 3) return null;
+  const juegos = limpiarYFiltrarJuegos(matchJuegos[1].split("\n").map((j) => j.trim()).filter(Boolean));
+  if (juegos.length < 2) return null;
   const matchPrecio = texto.match(/Price\s*:\s*(\d+)\$/);
   if (!matchPrecio) return null;
   const precioUsd = parseInt(matchPrecio[1], 10);
@@ -178,9 +262,10 @@ function parsearTipo5(texto) {
   const nickname = matchNick[1].trim();
   const matchGames = texto.match(/country:\s*us\s*[\n\r]+([\s\S]*?)(?=\n(?:precio:|💰 precio:)|\n[━]+)/i);
   if (!matchGames) return null;
-  const juegos = matchGames[1].split("\n")
+  const juegosRaw = matchGames[1].split("\n")
       .map((l) => l.trim())
       .filter((l) => l && !/^(Child:|Devices:|CC:|Active Plan:|Game Voucher:)/i.test(l));
+  const juegos = limpiarYFiltrarJuegos(juegosRaw);
   if (!juegos.length) return null;
   const matchPrecio = texto.match(/(?:Precio:|💰 PRECIO:)\s*([\d.]+)\s*USDT/i);
   if (!matchPrecio) return null;
@@ -219,70 +304,51 @@ async function obtenerSiguienteIdPackFirestore() {
   });
 }
 
-// ── Enviar pack formateado al canal de Telegram (Público o Revendedores) ──
-async function publicarPackAlCanal(pack, esRevendedor = false) {
+function escapeHtmlTelegram(str) {
+  return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+}
+
+// ── Enviar pack formateado al canal público de Telegram ──
+async function publicarPackAlCanal(pack) {
   const idStr = pack.id_pack;
   const idParam = idStr.replace("#", "").replace(/-/g, "_");
   const horario = pack.horario_limitado ? "De 12:00 a 20:00 hrs" : "Las 24 horas";
-  const juegos = pack.juegos || [];
+  const juegos = limpiarYFiltrarJuegos(pack.juegos || []);
+  if (!juegos.length) return null;
   const topJuegos = juegos.slice(0, 25);
 
-  let msg = "";
-  let targetChatId = CANAL_PUBLICO_ID;
+  const targetChatId = CANAL_PUBLICO_ID;
+  const precioClpStr = `$${Number(pack.precio_clp).toLocaleString("es-CL")} CLP`;
+  const precioUsdtStr = `${pack.precio_usdt} USDT`;
 
-  if (esRevendedor) {
-    targetChatId = CANAL_REVENDEDORES_ID;
-    const {precioClp: clpRev, precioUsdt: usdtRev} = calcularPreciosRevendedor(pack.precio_usd);
-    const precioClpStr = `$${Number(clpRev).toLocaleString("es-CL")} CLP`;
-    const precioUsdtStr = `${usdtRev} USDT`;
+  let msg = `🐼 <b>PANDA STORE · PACK NINTENDO SWITCH</b>\n` +
+        `<code>${escapeHtmlTelegram(idStr)}</code>  |  Cuenta Primaria\n` +
+        `<i>Juega desde tu propio usuario</i>\n\n` +
+        `🎮 <b>Juegos incluidos (${juegos.length}):</b>\n`;
 
-    msg = `🐼 <b>PANDA STORE | PROVEEDOR DIRECTO 👑</b>\n` +
-          `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-          `ID: ${idStr}  |  Cuenta Primaria (Juega desde tu propio usuario)\n\n` +
-          `🔥 <b>JUEGOS INCLUIDOS:</b>\n`;
-
-    for (const j of topJuegos) {
-      msg += `• ${j}\n`;
-    }
-    if (juegos.length > 25) {
-      msg += `• ... y ${juegos.length - 25} títulos más incluidos\n`;
-    }
-
-    msg += `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-           `💰 <b>PRECIO MAYORISTA:</b> ${precioClpStr} | ${precioUsdtStr}\n` +
-           `⏰ <b>DISPONIBILIDAD:</b> ${horario}\n` +
-           `💳 <b>PAGO:</b> BancoEstado • Mercado Pago • USDT • PayPal\n`;
-  } else {
-    targetChatId = CANAL_PUBLICO_ID;
-    const precioClpStr = `$${Number(pack.precio_clp).toLocaleString("es-CL")} CLP`;
-    const precioUsdtStr = `${pack.precio_usdt} USDT`;
-
-    msg = `🎮 <b>PANDA STORE • PACK NINTENDO SWITCH</b>\n` +
-          `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-          `ID: ${idStr}  |  Cuenta Primaria (Juega desde tu propio usuario)\n\n` +
-          `🔥 <b>JUEGOS INCLUIDOS:</b>\n`;
-
-    for (const j of topJuegos) {
-      msg += `• ${j}\n`;
-    }
-    if (juegos.length > 25) {
-      msg += `• ... y ${juegos.length - 25} títulos más incluidos\n`;
-    }
-
-    msg += `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-           `💰 <b>PRECIO:</b> ${precioClpStr} / ${precioUsdtStr}\n` +
-           `⏰ <b>DISPONIBILIDAD:</b> ${horario}\n` +
-           `💳 <b>PAGO:</b> BancoEstado • Mercado Pago • USDT • PayPal\n`;
+  for (const j of topJuegos) {
+    msg += `• ${escapeHtmlTelegram(j)}\n`;
   }
+  if (juegos.length > 25) {
+    msg += `• <i>... y ${juegos.length - 25} títulos más incluidos</i>\n`;
+  }
+
+  msg += `\n───────────────\n` +
+         `💰 <b>Precio:</b> ${precioClpStr} · ${precioUsdtStr}\n` +
+         `⚡ <b>Disponibilidad:</b> ${horario}\n` +
+         `💳 <b>Pago:</b> BancoEstado · Mercado Pago · USDT · PayPal`;
 
   const teclado = {
     inline_keyboard: [
       [
-        {text: "🛒 COMPRAR PACK", url: `https://t.me/${TELEGRAM_BOT_USERNAME}?start=buy_${idParam}`},
-        {text: "📸 VENTAS ANTERIORES", url: TESTIMONIOS_URL},
+        {text: "Comprar Pack", url: `https://t.me/${TELEGRAM_BOT_USERNAME}?start=buy_${idParam}`},
+        {text: "Testimonios", url: TESTIMONIOS_URL},
       ],
       [
-        {text: "📩 CONTACTO DIRECTO", url: `https://t.me/${TELEGRAM_CONTACT}?text=Hola!%20Deseo%20comprar%20el%20${encodeURIComponent(idStr)}`},
+        {text: "Contacto Directo", url: `https://t.me/${TELEGRAM_CONTACT}?text=Hola!%20Deseo%20comprar%20el%20${encodeURIComponent(idStr)}`},
       ],
     ],
   };
@@ -429,7 +495,14 @@ async function procesarArchivoJsonSubido(chatId, fileId, fileName) {
       ],
     };
 
-    const textoRespuesta = `🐼 <b>¡ARCHIVO JSON PROCESADO CON ÉXITO!</b>\n━━━━━━━━━━━━━━━━━━━━━━━━\n📁 <b>Archivo:</b> <code>${fileName}</code>\n📦 <b>Packs detectados:</b> ${packsEncontrados.length}\n✨ <b>Packs NUEVOS sin duplicados:</b> <b>${packsNuevos.length}</b>\n━━━━━━━━━━━━━━━━━━━━━━━━\n👉 <b>¿Cuántos packs deseas publicar en el canal oficial ahora?</b>`;
+    const preciosNuevos = packsNuevos.map((p) => Number(p.precio_clp || 0)).filter((n) => n > 0);
+    const minPrecio = preciosNuevos.length ? Math.min(...preciosNuevos) : 0;
+    const maxPrecio = preciosNuevos.length ? Math.max(...preciosNuevos) : 0;
+    const rangoPreciosTexto = preciosNuevos.length
+      ? `\n💰 <b>Precios de venta (+$10.000 CLP fijos):</b> $${minPrecio.toLocaleString("es-CL")} a $${maxPrecio.toLocaleString("es-CL")} CLP`
+      : "";
+
+    const textoRespuesta = `🐼 <b>¡ARCHIVO JSON PROCESADO CON ÉXITO!</b>\n━━━━━━━━━━━━━━━━━━━━━━━━\n📁 <b>Archivo:</b> <code>${fileName}</code>\n📦 <b>Packs detectados:</b> ${packsEncontrados.length}\n✨ <b>Packs NUEVOS sin duplicados:</b> <b>${packsNuevos.length}</b>${rangoPreciosTexto}\n━━━━━━━━━━━━━━━━━━━━━━━━\n👉 <b>¿Cuántos packs deseas publicar en el canal oficial ahora?</b>`;
 
     await callTelegram("sendMessage", {
       chat_id: chatId,
@@ -493,7 +566,7 @@ async function ejecutarImportacionDesdeCloud(chatId, messageId, opcion, req) {
   await callTelegram("editMessageText", {
     chat_id: chatId,
     message_id: messageId,
-    text: `🚀 <b>Publicando ${packsASubir.length} packs en simultáneo...</b>\n\n📢 <b>Canal Público:</b> Ganancia 15.000 CLP\n👑 <b>Canal Proveedores:</b> Ganancia 5.000 CLP\n\n⏳ <i>Progreso: 0 de ${packsASubir.length} subidos (Faltan: ${packsASubir.length})...</i>`,
+    text: `🚀 <b>Publicando ${packsASubir.length} packs en el Canal Público...</b>\n\n📢 <b>Canal Público:</b> Ganancia fija $10.000 CLP\n\n⏳ <i>Progreso: 0 de ${packsASubir.length} subidos (Faltan: ${packsASubir.length})...</i>`,
     reply_markup: tecladoProgreso,
     parse_mode: "HTML",
   });
@@ -529,21 +602,14 @@ async function ejecutarImportacionDesdeCloud(chatId, messageId, opcion, req) {
       const idPack = await obtenerSiguienteIdPackFirestore();
       pack.id_pack = idPack;
 
-      // 1. Publicar en Canal Público (Margen 15.000)
-      const msgIdPublico = await publicarPackAlCanal(pack, false);
+      // 1. Publicar en Canal Público (Margen fijo 10.000)
+      const msgIdPublico = await publicarPackAlCanal(pack);
       pack.telegram_msg_id = msgIdPublico;
-
-      // 2. Publicar en Canal Proveedores / Revendedores (Margen 5.000)
-      let msgIdRevendedor = null;
-      if (CANAL_REVENDEDORES_ID && CANAL_REVENDEDORES_ID !== "0") {
-        msgIdRevendedor = await publicarPackAlCanal(pack, true);
-        pack.telegram_msg_id_revendedor = msgIdRevendedor;
-      }
 
       // Precios de revendedor calculados para registro
       const {precioClp: clpRev, precioUsdt: usdtRev} = calcularPreciosRevendedor(pack.precio_usd);
 
-      // 3. Guardar en Firestore
+      // 2. Guardar en Firestore
       await admin.firestore().collection("packs_nintendo").add({
         id_pack: idPack,
         titulo: pack.titulo,
@@ -557,7 +623,6 @@ async function ejecutarImportacionDesdeCloud(chatId, messageId, opcion, req) {
         disponible: true,
         huella: pack.huella,
         telegram_msg_id: msgIdPublico,
-        telegram_msg_id_revendedor: msgIdRevendedor,
         fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
       });
 
@@ -570,7 +635,7 @@ async function ejecutarImportacionDesdeCloud(chatId, messageId, opcion, req) {
           await callTelegram("editMessageText", {
             chat_id: chatId,
             message_id: messageId,
-            text: `🚀 <b>Publicando en Canal Público y Proveedores...</b>\n\n✅ <b>Subidos:</b> ${subidos} de ${packsASubir.length}\n⏳ <b>Faltan de este lote:</b> ${faltanEsteLote}\n📦 <b>Total pendientes en archivo:</b> ${packsRestantes.length + faltanEsteLote}`,
+            text: `🚀 <b>Publicando en Canal Público...</b>\n\n✅ <b>Subidos:</b> ${subidos} de ${packsASubir.length}\n⏳ <b>Faltan de este lote:</b> ${faltanEsteLote}\n📦 <b>Total pendientes en archivo:</b> ${packsRestantes.length + faltanEsteLote}`,
             reply_markup: tecladoProgreso,
             parse_mode: "HTML",
           });
@@ -640,7 +705,7 @@ async function ejecutarImportacionDesdeCloud(chatId, messageId, opcion, req) {
   } else if (tiempoAgotado) {
     textoFinal = `⏳ <b>LOTE COMPLETADO (${subidos} PACKS)</b>\n━━━━━━━━━━━━━━━━━━━━━━━━\n✅ <b>Packs publicados recién:</b> ${subidos}\n📦 <b>Packs restantes esperando:</b> <b>${packsRestantes.length}</b>\n\n👉 <i>Presiona el botón de abajo para continuar con el siguiente lote de inmediato:</i>`;
   } else {
-    textoFinal = `🎉 <b>¡PUBLICACIÓN EXITOSA EN AMBOS CANALES!</b>\n━━━━━━━━━━━━━━━━━━━━━━━━\n📢 <b>Canal Público:</b> ${subidos} packs (+15.000 CLP)\n👑 <b>Canal Proveedores:</b> ${subidos} packs (+5.000 CLP)\n`;
+    textoFinal = `🎉 <b>¡PUBLICACIÓN EXITOSA EN EL CANAL PÚBLICO!</b>\n━━━━━━━━━━━━━━━━━━━━━━━━\n📢 <b>Canal Público:</b> ${subidos} packs (+$10.000 CLP ganancia fija)\n`;
     if (packsRestantes.length > 0) {
       textoFinal += `📦 <b>Faltan por subir del archivo:</b> <b>${packsRestantes.length} packs</b>.`;
     } else {
@@ -1080,7 +1145,7 @@ async function handleCallbackQuery(cb, req) {
       ],
     };
 
-    const textoConfirm = `⚠️ <b>¿CONFIRMAS BORRAR SOLO LOS PACKS?</b>\n━━━━━━━━━━━━━━━━━━━━━━━━\nEsta acción:\n• Eliminará <b>TODOS</b> los mensajes de los packs publicados en tus canales de Telegram (Público y Proveedores).\n• Eliminará los registros en la colección <code>packs_nintendo</code> de Firestore.\n• Limpiará cualquier cola de importación pendiente.\n• Reiniciará el contador correlativo de packs.\n\n🛡️ <b>Tus usuarios, pedidos, juegos de Steam y configuraciones NO serán afectados.</b>\n\n¿Estás completamente seguro de continuar?`;
+    const textoConfirm = `⚠️ <b>¿CONFIRMAS BORRAR SOLO LOS PACKS?</b>\n━━━━━━━━━━━━━━━━━━━━━━━━\nEsta acción:\n• Eliminará <b>TODOS</b> los mensajes de los packs publicados en tu canal público de Telegram.\n• Eliminará los registros en la colección <code>packs_nintendo</code> de Firestore.\n• Limpiará cualquier cola de importación pendiente.\n• Reiniciará el contador correlativo de packs.\n\n🛡️ <b>Tus usuarios, pedidos, juegos de Steam y configuraciones NO serán afectados.</b>\n\n¿Estás completamente seguro de continuar?`;
 
     await callTelegram("editMessageText", {
       chat_id: chatId,
@@ -1137,19 +1202,6 @@ async function handleCallbackQuery(cb, req) {
               totalMensajesBorrados++;
             } catch (eMsg) {
               // Puede que ya haya sido borrado manualmente
-            }
-          }
-
-          // Borrar mensaje del Canal de Revendedores / Proveedores
-          if (packData.telegram_msg_id_revendedor && CANAL_REVENDEDORES_ID && CANAL_REVENDEDORES_ID !== "0") {
-            try {
-              await callTelegram("deleteMessage", {
-                chat_id: CANAL_REVENDEDORES_ID,
-                message_id: Number(packData.telegram_msg_id_revendedor),
-              });
-              totalMensajesBorrados++;
-            } catch (eRev) {
-              console.warn("No se pudo borrar el mensaje de revendedores:", eRev.message);
             }
           }
 
@@ -1304,7 +1356,7 @@ async function marcarVendidoAction(chatId, messageId, idPack) {
   const pack = await obtenerPackDeFirestore(idPack);
   let borrado = false;
 
-  // 1. Borrar de Canal Público y Canal de Proveedores
+  // 1. Borrar de Canal Público
   if (pack) {
     if (pack.telegram_msg_id && CANAL_PUBLICO_ID) {
       try {
@@ -1317,24 +1369,12 @@ async function marcarVendidoAction(chatId, messageId, idPack) {
         console.error("No se pudo borrar del canal público:", e);
       }
     }
-
-    if (pack.telegram_msg_id_revendedor && CANAL_REVENDEDORES_ID && CANAL_REVENDEDORES_ID !== "0") {
-      try {
-        await callTelegram("deleteMessage", {
-          chat_id: CANAL_REVENDEDORES_ID,
-          message_id: Number(pack.telegram_msg_id_revendedor),
-        });
-        borrado = true;
-      } catch (e) {
-        console.error("No se pudo borrar del canal de revendedores:", e);
-      }
-    }
   }
 
   // 2. Desmarcar en Firestore
   await desmarcarPackFirestore(idPack);
 
-  const respuesta = `✅ <b>Pack ${idPack} marcado como VENDIDO</b>\n${borrado ? "• Mensaje eliminado de ambos canales (Público y Proveedores)\n" : "• (Los mensajes ya no existían en los canales)\n"}• Estado actualizado a 'No disponible' en la Tienda / Firestore.`;
+  const respuesta = `✅ <b>Pack ${idPack} marcado como VENDIDO</b>\n${borrado ? "• Mensaje eliminado del canal público\n" : "• (El mensaje ya no existía en el canal público)\n"}• Estado actualizado a 'No disponible' en la Tienda / Firestore.`;
 
   if (messageId) {
     await callTelegram("editMessageCaption", {
@@ -1372,28 +1412,38 @@ async function publicarCatalogosDiarios() {
     }
   }
 
-  const texto = `🐼 <b>PANDA STORE • ACCESOS DIRECTOS Y CATÁLOGOS</b> 🎮\n━━━━━━━━━━━━━━━━━━━━━━━━\n¡Encuentra tus videojuegos favoritos al mejor precio, con entrega rápida y garantía oficial!\n\n👇 <b>Selecciona la categoría que deseas explorar:</b>`;
+  const texto =
+    `🐼 <b>PANDA STORE · CATÁLOGO OFICIAL</b> 🎮\n` +
+    `───────────────\n` +
+    `Encuentra tus videojuegos y plataformas digitales con entrega rápida y atención directa.\n\n` +
+    `🎮 <b>Nintendo Switch:</b> Packs digitales y cuentas primarias\n` +
+    `💻 <b>Steam PC:</b> Catálogo completo + PandaStore Launcher\n` +
+    `🕹 <b>PlayStation (PS4 / PS5):</b> Juegos digitales primarios y secundarios\n` +
+    `🎬 <b>Streaming:</b> Suscripciones y cuentas al mejor precio\n` +
+    `🔥 <b>Promociones:</b> Ofertas 2x1, 3x1 y sagas completas\n\n` +
+    `👇 <i>Elige una categoría para explorar la tienda:</i>`;
 
   const teclado = {
     inline_keyboard: [
       [
-        {text: "🎁 Ver Promociones (2x1, 3x1)", url: PROMOS_URL},
-        {text: "📸 Ventas Anteriores", url: TESTIMONIOS_URL},
+        {text: "Nintendo Switch", url: `${WEBSITE_URL}/categoria/nintendo-switch`},
+        {text: "Steam PC", url: `${WEBSITE_URL}/categoria/steam`},
       ],
       [
-        {text: "🔴 Catálogo Nintendo Switch", url: `${WEBSITE_URL}/categoria/nintendo-switch`},
+        {text: "PlayStation", url: `${WEBSITE_URL}/categoria/playstation`},
+        {text: "Streaming", url: `${WEBSITE_URL}/categoria/streaming`},
       ],
       [
-        {text: "🔵 Catálogo PlayStation (PS4 / PS5)", url: `${WEBSITE_URL}/categoria/playstation`},
+        {text: "Packs Nintendo", url: `${WEBSITE_URL}/packs-nintendo`},
+        {text: "Launcher PC", url: GUIA_STEAM_URL},
       ],
       [
-        {text: "🟣 Catálogo Steam PC", url: `${WEBSITE_URL}/categoria/steam`},
+        {text: "Promociones", url: PROMOS_URL},
+        {text: "Sagas PC", url: `${WEBSITE_URL}/sagas`},
       ],
       [
-        {text: "🎬 Streaming y Suscripciones", url: `${WEBSITE_URL}/categoria/streaming`},
-      ],
-      [
-        {text: "👤 Dudas / Soporte Directo", url: `https://t.me/${TELEGRAM_CONTACT}`},
+        {text: "Testimonios", url: TESTIMONIOS_URL},
+        {text: "Soporte Directo", url: `https://t.me/${TELEGRAM_CONTACT}`},
       ],
     ],
   };
@@ -1435,8 +1485,326 @@ async function borrarCatalogosDiarios() {
   }
 }
 
+const POSTS_COLLECTION = "telegram_scheduled_posts";
+const WEEKDAY_MAP = {Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6};
+
+function getChileTimeInfo(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Santiago",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    weekday: "short",
+    hour12: false,
+  }).formatToParts(date);
+  const map = {};
+  for (const p of parts) {
+    if (p.type !== "literal") map[p.type] = p.value;
+  }
+  const hour = Number(map.hour === "24" ? 0 : map.hour || 0);
+  const minute = Number(map.minute || 0);
+  return {
+    dateStr: `${map.year}-${map.month}-${map.day}`,
+    hour,
+    minute,
+    totalMinutes: hour * 60 + minute,
+    weekday: WEEKDAY_MAP[map.weekday] ?? 0,
+  };
+}
+
+function buildCustomPostPayload(post) {
+  const title = String(post.title || "").trim();
+  const description = String(post.description || "").trim();
+  const parts = [];
+  if (title) parts.push(`<b>${escapeHtmlTelegram(title)}</b>`);
+  if (description) parts.push(escapeHtmlTelegram(description));
+  const formattedText = parts.join("\n\n");
+
+  const buttonText = String(post.buttonText || "").trim();
+  const buttonUrl = String(post.buttonUrl || "").trim();
+  const replyMarkup =
+    buttonText && /^https?:\/\//i.test(buttonUrl) ?
+      {inline_keyboard: [[{text: buttonText.slice(0, 64), url: buttonUrl}]]} :
+      undefined;
+
+  return {
+    imageUrl: String(post.imageUrl || "").trim(),
+    formattedText,
+    replyMarkup,
+  };
+}
+
+async function sendCustomPostToChannel(post) {
+  if (!CANAL_PUBLICO_ID) {
+    return {ok: false, description: "CANAL_PUBLICO_ID no configurado"};
+  }
+
+  if (post.deletePrevious && post.last_message_id) {
+    try {
+      await callTelegram("deleteMessage", {
+        chat_id: CANAL_PUBLICO_ID,
+        message_id: Number(post.last_message_id),
+      });
+    } catch (e) {
+      console.log("No se pudo borrar el post previo del canal:", e.message);
+    }
+  }
+
+  const {imageUrl, formattedText, replyMarkup} = buildCustomPostPayload(post);
+  if (!imageUrl && !formattedText) {
+    return {ok: false, description: "El post debe incluir una imagen o descripción"};
+  }
+
+  if (imageUrl) {
+    return await callTelegram("sendPhoto", {
+      chat_id: CANAL_PUBLICO_ID,
+      photo: imageUrl,
+      ...(formattedText ? {caption: formattedText.slice(0, 1024), parse_mode: "HTML"} : {}),
+      ...(replyMarkup ? {reply_markup: replyMarkup} : {}),
+    });
+  }
+
+  return await callTelegram("sendMessage", {
+    chat_id: CANAL_PUBLICO_ID,
+    text: formattedText.slice(0, 4096),
+    parse_mode: "HTML",
+    ...(replyMarkup ? {reply_markup: replyMarkup} : {}),
+  });
+}
+
+function normalizePostInput(body = {}) {
+  const scheduleDays = Array.isArray(body.scheduleDays) ?
+    body.scheduleDays.map(Number).filter((d) => Number.isInteger(d) && d >= 0 && d <= 6) :
+    [0, 1, 2, 3, 4, 5, 6];
+  const rawHour = Number(body.scheduleHour);
+  const rawMinute = Number(body.scheduleMinute);
+  return {
+    title: String(body.title || "").trim().slice(0, 160),
+    description: String(body.description || "").trim().slice(0, 3800),
+    imageUrl: String(body.imageUrl || "").trim(),
+    buttonText: String(body.buttonText || "").trim().slice(0, 64),
+    buttonUrl: String(body.buttonUrl || "").trim(),
+    recurringEnabled: Boolean(body.recurringEnabled),
+    scheduleHour: Number.isInteger(rawHour) && rawHour >= 0 && rawHour <= 23 ? rawHour : 10,
+    scheduleMinute: Number.isInteger(rawMinute) && rawMinute >= 0 && rawMinute <= 59 ? rawMinute : 0,
+    scheduleDays: scheduleDays.length > 0 ? scheduleDays : [0, 1, 2, 3, 4, 5, 6],
+    deletePrevious: Boolean(body.deletePrevious),
+  };
+}
+
+async function handleAdminTelegramPostAction(body, adminUser) {
+  const db = admin.firestore();
+  const action = String(body?.action || "list");
+
+  if (action === "list") {
+    const snap = await db.collection(POSTS_COLLECTION).orderBy("created_at", "desc").limit(50).get();
+    const posts = snap.docs.map((d) => ({id: d.id, ...d.data()}));
+    return {status: 200, data: {ok: true, channelId: CANAL_PUBLICO_ID, posts}};
+  }
+
+  if (action === "create") {
+    const payload = normalizePostInput(body);
+    if (!payload.imageUrl && !payload.description && !payload.title) {
+      return {status: 400, data: {ok: false, error: "Agrega una imagen o descripción antes de continuar."}};
+    }
+    const sendNow = body.sendNow !== false;
+    const chile = getChileTimeInfo();
+    const docData = {
+      ...payload,
+      last_message_id: null,
+      last_sent_date: null,
+      last_sent_at: null,
+      send_count: 0,
+      created_by: adminUser?.email || adminUser?.uid || "admin",
+      created_at: admin.firestore.FieldValue.serverTimestamp(),
+      updated_at: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    // Si es recurrente pero NO se envía ahora y la hora de hoy ya pasó, marcar hoy como saltado para iniciar mañana.
+    const targetMinutes = payload.scheduleHour * 60 + payload.scheduleMinute;
+    if (!sendNow && payload.recurringEnabled && chile.totalMinutes >= targetMinutes + 15) {
+      docData.last_sent_date = chile.dateStr;
+    }
+
+    let telegramRes = null;
+    if (sendNow) {
+      telegramRes = await sendCustomPostToChannel(docData);
+      if (!telegramRes || !telegramRes.ok) {
+        return {
+          status: 400,
+          data: {
+            ok: false,
+            error: (telegramRes && telegramRes.description) || "Telegram rechazó el envío al canal.",
+          },
+        };
+      }
+      docData.last_message_id = telegramRes.result?.message_id || null;
+      docData.last_sent_date = chile.dateStr;
+      docData.last_sent_at = admin.firestore.FieldValue.serverTimestamp();
+      docData.send_count = 1;
+    }
+
+    const ref = await db.collection(POSTS_COLLECTION).add(docData);
+    return {
+      status: 200,
+      data: {
+        ok: true,
+        id: ref.id,
+        publishedNow: sendNow,
+        messageId: docData.last_message_id,
+      },
+    };
+  }
+
+  if (action === "run_now") {
+    const postId = String(body.postId || "");
+    if (!postId) return {status: 400, data: {ok: false, error: "postId requerido"}};
+    const ref = db.collection(POSTS_COLLECTION).doc(postId);
+    const snap = await ref.get();
+    if (!snap.exists) return {status: 404, data: {ok: false, error: "Post no encontrado"}};
+    const postData = snap.data();
+    const resTg = await sendCustomPostToChannel(postData);
+    if (!resTg || !resTg.ok) {
+      return {
+        status: 400,
+        data: {ok: false, error: (resTg && resTg.description) || "Error enviando al canal"},
+      };
+    }
+    const chile = getChileTimeInfo();
+    await ref.update({
+      last_message_id: resTg.result?.message_id || postData.last_message_id || null,
+      last_sent_date: chile.dateStr,
+      last_sent_at: admin.firestore.FieldValue.serverTimestamp(),
+      send_count: admin.firestore.FieldValue.increment(1),
+      updated_at: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    return {status: 200, data: {ok: true, messageId: resTg.result?.message_id || null}};
+  }
+
+  if (action === "update") {
+    const postId = String(body.postId || "");
+    if (!postId) return {status: 400, data: {ok: false, error: "postId requerido"}};
+    const ref = db.collection(POSTS_COLLECTION).doc(postId);
+    const snap = await ref.get();
+    if (!snap.exists) return {status: 404, data: {ok: false, error: "Post no encontrado"}};
+    const payload = normalizePostInput(body);
+    await ref.update({
+      ...payload,
+      updated_at: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    return {status: 200, data: {ok: true}};
+  }
+
+  if (action === "toggle") {
+    const postId = String(body.postId || "");
+    if (!postId) return {status: 400, data: {ok: false, error: "postId requerido"}};
+    const ref = db.collection(POSTS_COLLECTION).doc(postId);
+    const snap = await ref.get();
+    if (!snap.exists) return {status: 404, data: {ok: false, error: "Post no encontrado"}};
+    const nextVal = body.recurringEnabled !== undefined ? Boolean(body.recurringEnabled) : !snap.data().recurringEnabled;
+    await ref.update({
+      recurringEnabled: nextVal,
+      updated_at: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    return {status: 200, data: {ok: true, recurringEnabled: nextVal}};
+  }
+
+  if (action === "delete") {
+    const postId = String(body.postId || "");
+    if (!postId) return {status: 400, data: {ok: false, error: "postId requerido"}};
+    const ref = db.collection(POSTS_COLLECTION).doc(postId);
+    const snap = await ref.get();
+    if (snap.exists && body.deleteTelegramMessage && snap.data().last_message_id && CANAL_PUBLICO_ID) {
+      try {
+        await callTelegram("deleteMessage", {
+          chat_id: CANAL_PUBLICO_ID,
+          message_id: Number(snap.data().last_message_id),
+        });
+      } catch (e) {
+        console.log("No se pudo borrar mensaje de Telegram al eliminar post:", e.message);
+      }
+    }
+    await ref.delete();
+    return {status: 200, data: {ok: true}};
+  }
+
+  if (action === "update_channel_meta") {
+    const chatTitle = String(body.chatTitle || "").trim();
+    const chatDescription = String(body.chatDescription || "").trim();
+    const results = {};
+    if (chatTitle) {
+      results.titleRes = await callTelegram("setChatTitle", {
+        chat_id: CANAL_PUBLICO_ID,
+        title: chatTitle.slice(0, 128),
+      });
+    }
+    if (chatDescription !== undefined && chatDescription !== "") {
+      results.descRes = await callTelegram("setChatDescription", {
+        chat_id: CANAL_PUBLICO_ID,
+        description: chatDescription.slice(0, 255),
+      });
+    }
+    const titleOk = !results.titleRes || results.titleRes.ok;
+    const descOk = !results.descRes || results.descRes.ok;
+    if (!titleOk || !descOk) {
+      const errMsg = results.titleRes?.description || results.descRes?.description || "Telegram no permitió actualizar el canal";
+      return {status: 400, data: {ok: false, error: errMsg, results}};
+    }
+    return {status: 200, data: {ok: true, results}};
+  }
+
+  return {status: 400, data: {ok: false, error: `Acción no soportada: ${action}`}};
+}
+
+async function ejecutarPostsProgramadosTelegram() {
+  if (!CANAL_PUBLICO_ID || !TELEGRAM_TOKEN) return;
+  const chile = getChileTimeInfo();
+  const snap = await admin.firestore().collection(POSTS_COLLECTION)
+      .where("recurringEnabled", "==", true)
+      .get();
+
+  if (snap.empty) return;
+
+  for (const docSnap of snap.docs) {
+    const data = docSnap.data();
+    if (data.last_sent_date === chile.dateStr) continue;
+
+    const days = Array.isArray(data.scheduleDays) && data.scheduleDays.length > 0 ?
+      data.scheduleDays :
+      [0, 1, 2, 3, 4, 5, 6];
+    if (!days.includes(chile.weekday)) continue;
+
+    const targetMinutes = Number(data.scheduleHour ?? 10) * 60 + Number(data.scheduleMinute ?? 0);
+    if (chile.totalMinutes < targetMinutes || chile.totalMinutes >= targetMinutes + 60) {
+      continue;
+    }
+
+    try {
+      const resTg = await sendCustomPostToChannel(data);
+      if (resTg && resTg.ok) {
+        await docSnap.ref.update({
+          last_message_id: resTg.result?.message_id || data.last_message_id || null,
+          last_sent_date: chile.dateStr,
+          last_sent_at: admin.firestore.FieldValue.serverTimestamp(),
+          send_count: admin.firestore.FieldValue.increment(1),
+          updated_at: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        console.log(`✅ Post programado ${docSnap.id} enviado a las ${chile.hour}:${String(chile.minute).padStart(2, "0")}`);
+      } else {
+        console.warn(`⚠️ Falló envío programado ${docSnap.id}:`, resTg && resTg.description);
+      }
+    } catch (e) {
+      console.error(`❌ Error en post programado ${docSnap.id}:`, e);
+    }
+  }
+}
+
 module.exports = {
   handleTelegramWebhook,
   publicarCatalogosDiarios,
   borrarCatalogosDiarios,
+  handleAdminTelegramPostAction,
+  ejecutarPostsProgramadosTelegram,
 };

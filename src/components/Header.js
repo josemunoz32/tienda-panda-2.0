@@ -2,9 +2,14 @@ import React, { useEffect, useState, useRef, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { catUrl } from '../utils/slugify';
 import { useMoneda } from "../context/MonedaContext";
-import { auth, db } from "../firebase";
+import { auth, dbLite } from "../firebase";
+// SDK completo de Firestore bajo demanda: solo para usuarios con sesión (perfil, carrito y favoritos
+// en tiempo real). Los visitantes sin cuenta nunca lo descargan.
+import { loadFirestore } from "../firestoreLazy";
 import { signOut } from "firebase/auth";
-import { doc, collection, getDocs, deleteDoc, onSnapshot, getDoc, updateDoc, setDoc } from "firebase/firestore";
+// Lecturas públicas vía Firestore Lite (REST): no abren los canales Listen/Write del SDK completo,
+// cuyos long-polls colgados aparecían como errores ERR_TIMED_OUT en consola.
+import { doc as liteDoc, collection as liteCollection, getDocs as liteGetDocs, getDoc as liteGetDoc } from "firebase/firestore/lite";
 import BannerHeader from "./BannerHeader";
 import { handleCartAddOrRemove } from "../utils/cartHelpers";
 import { markCartActive } from "../utils/abandonedCart";
@@ -107,6 +112,7 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
       window.dispatchEvent(new Event('localFavUpdated'));
       return;
     }
+    const { deleteDoc, doc, db } = await loadFirestore();
     await deleteDoc(doc(db, `users/${user.uid}/favorites`, prodId));
     setFavorites(f => f.filter(p => p.id !== prodId));
   };
@@ -123,7 +129,6 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
   // Lógica global para agregar/quitar productos al carrito
   const handleCart = async (prod, setModalOverride = null) => {
     await handleCartAddOrRemove({
-      db,
       user,
       prod,
       moneda,
@@ -162,16 +167,24 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
       setUserData(null);
       return;
     }
-    const unsub = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setUserData(data);
-        const userRole = data.role || "user";
-        setRole(userRole);
-        if (typeof onRoleChange === "function") onRoleChange(userRole);
-      }
+    let active = true;
+    let unsub = () => {};
+    loadFirestore().then(({ onSnapshot, doc, db }) => {
+      if (!active) return;
+      unsub = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setUserData(data);
+          const userRole = data.role || "user";
+          setRole(userRole);
+          if (typeof onRoleChange === "function") onRoleChange(userRole);
+        }
+      });
     });
-    return () => unsub();
+    return () => {
+      active = false;
+      unsub();
+    };
   }, [user, onRoleChange]);
 
   const isDistributor = hasActiveSteamDistributorAccess(userData);
@@ -284,12 +297,17 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
     }
   }, [selectedCat, minPrice, maxPrice]);
 
-  // Lógica de búsqueda
+  // Lógica de búsqueda: el catálogo completo se descarga recién cuando se busca o filtra,
+  // no en cada carga de página (Home ya trae sus propios productos).
+  const searchActive = search.trim().length > 0 || !!selectedCat || !!minPrice || !!maxPrice;
+  const productsRequestedRef = useRef(false);
   useEffect(() => {
-    getDocs(collection(db, "products")).then(snapshot => {
+    if (!searchActive || productsRequestedRef.current) return;
+    productsRequestedRef.current = true;
+    liteGetDocs(liteCollection(dbLite, "products")).then(snapshot => {
       setAllProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
-  }, []);
+  }, [searchActive]);
 
   useEffect(() => {
     let results = allProducts;
@@ -355,7 +373,7 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
   useEffect(() => {
     const fetchRole = async () => {
       if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const userDoc = await liteGetDoc(liteDoc(dbLite, "users", user.uid));
         const r = userDoc.exists() ? userDoc.data().role : null;
         setRole(r);
         if (onRoleChange) onRoleChange(r);
@@ -369,7 +387,7 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
 
   useEffect(() => {
     const fetchCategorias = async () => {
-      const snapshot = await getDocs(collection(db, "categories"));
+      const snapshot = await liteGetDocs(liteCollection(dbLite, "categories"));
       setCategorias(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     };
     fetchCategorias();
@@ -390,7 +408,7 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
         const cProds = {};
         for (const item of lCart) {
           const baseId = item.productId || String(item.id || item.cartLineId || '').split('__')[0];
-          const snap = await getDoc(doc(db, "products", baseId));
+          const snap = await liteGetDoc(liteDoc(dbLite, "products", baseId));
           if (snap.exists()) {
             const data = snap.data();
             cProds[baseId] = data;
@@ -405,7 +423,7 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
         const fProds = {};
         for (const item of lFav) {
           const baseId = item.productId || String(item.id || '').split('__')[0];
-          const snap = await getDoc(doc(db, "products", baseId));
+          const snap = await liteGetDoc(liteDoc(dbLite, "products", baseId));
           if (snap.exists()) {
             const data = snap.data();
             fProds[baseId] = data;
@@ -426,65 +444,72 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
       };
     }
     
-    // Migrar datos de invitado al iniciar sesión
-    const migrateLocal = async () => {
-      try {
-        const c = localStorage.getItem('guestCart');
-        const f = localStorage.getItem('guestFavs');
-        if (c) {
-          const lCart = JSON.parse(c);
-          for (const item of lCart) {
-            await setDoc(doc(db, `users/${user.uid}/cart`, item.cartLineId || item.productId || item.id), item);
+    let active = true;
+    let cartUnsub = () => {};
+    let favUnsub = () => {};
+    loadFirestore().then(({ setDoc, doc, onSnapshot, collection, getDoc, db }) => {
+      if (!active) return;
+      // Migrar datos de invitado al iniciar sesión
+      const migrateLocal = async () => {
+        try {
+          const c = localStorage.getItem('guestCart');
+          const f = localStorage.getItem('guestFavs');
+          if (c) {
+            const lCart = JSON.parse(c);
+            for (const item of lCart) {
+              await setDoc(doc(db, `users/${user.uid}/cart`, item.cartLineId || item.productId || item.id), item);
+            }
+            localStorage.removeItem('guestCart');
           }
-          localStorage.removeItem('guestCart');
-        }
-        if (f) {
-          const lFav = JSON.parse(f);
-          for (const item of lFav) {
-            await setDoc(doc(db, `users/${user.uid}/favorites`, item.productId || item.id), item);
+          if (f) {
+            const lFav = JSON.parse(f);
+            for (const item of lFav) {
+              await setDoc(doc(db, `users/${user.uid}/favorites`, item.productId || item.id), item);
+            }
+            localStorage.removeItem('guestFavs');
           }
-          localStorage.removeItem('guestFavs');
+        } catch(e) {}
+      };
+      migrateLocal();
+      cartUnsub = onSnapshot(collection(db, `users/${user.uid}/cart`), async snap => {
+        const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setCart(items);
+        const prods = {};
+        let totalCLP = 0;
+        for (const item of items) {
+          const baseId = item.productId || String(item.id || item.cartLineId || '').split('__')[0];
+          const prodSnap = await getDoc(doc(db, "products", baseId));
+          if (prodSnap.exists()) {
+            const data = prodSnap.data();
+            prods[baseId] = data;
+            if (item.id) prods[item.id] = data;
+            if (item.cartLineId) prods[item.cartLineId] = data;
+            if (item.productId) prods[item.productId] = data;
+            totalCLP += Number(item.priceCLP || data.priceCLP || 0);
+          }
         }
-      } catch(e) {}
-    };
-    migrateLocal();
-    const cartUnsub = onSnapshot(collection(db, `users/${user.uid}/cart`), async snap => {
-      const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setCart(items);
-      const prods = {};
-      let totalCLP = 0;
-      for (const item of items) {
-        const baseId = item.productId || String(item.id || item.cartLineId || '').split('__')[0];
-        const prodSnap = await getDoc(doc(db, "products", baseId));
-        if (prodSnap.exists()) {
-          const data = prodSnap.data();
-          prods[baseId] = data;
-          if (item.id) prods[item.id] = data;
-          if (item.cartLineId) prods[item.cartLineId] = data;
-          if (item.productId) prods[item.productId] = data;
-          totalCLP += Number(item.priceCLP || data.priceCLP || 0);
-        }
-      }
-      setCartProducts(prods);
+        setCartProducts(prods);
       
-      // Registrar carrito para carritos abandonados
-      if (items.length > 0) {
-        markCartActive(user.uid, items, totalCLP);
-      }
-    });
-    const favUnsub = onSnapshot(collection(db, `users/${user.uid}/favorites`), async snap => {
-      const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setFavorites(items);
-      const prods = {};
-      for (const item of items) {
-        const prodSnap = await getDoc(doc(db, "products", item.productId || item.id));
-        if (prodSnap.exists()) {
-          prods[item.id] = prodSnap.data();
+        // Registrar carrito para carritos abandonados
+        if (items.length > 0) {
+          markCartActive(user.uid, items, totalCLP);
         }
-      }
-      setFavProducts(prods);
+      });
+      favUnsub = onSnapshot(collection(db, `users/${user.uid}/favorites`), async snap => {
+        const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setFavorites(items);
+        const prods = {};
+        for (const item of items) {
+          const prodSnap = await getDoc(doc(db, "products", item.productId || item.id));
+          if (prodSnap.exists()) {
+            prods[item.id] = prodSnap.data();
+          }
+        }
+        setFavProducts(prods);
+      });
     });
     return () => {
+      active = false;
       cartUnsub();
       favUnsub();
     };
@@ -519,6 +544,7 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
       window.dispatchEvent(new Event('localCartUpdated'));
       return;
     }
+    const { deleteDoc, doc, db } = await loadFirestore();
     await deleteDoc(doc(db, `users/${user.uid}/cart`, prodId));
     setCart(c => c.filter(p => (p.cartLineId || p.id) !== prodId));
   };

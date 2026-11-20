@@ -1,0 +1,672 @@
+.adm-tg-wrap {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 20px 18px 64px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  color: #f8fafc;
+}
+
+.adm-tg-wrap *,
+.adm-tg-wrap *::before,
+.adm-tg-wrap *::after {
+  box-sizing: border-box;
+}
+
+/* ── Header Hero ── */
+.adm-tg-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  padding: 20px 22px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(24, 16, 48, 0.92), rgba(13, 18, 38, 0.92));
+  border: 1px solid rgba(168, 85, 247, 0.28);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(12px);
+}
+
+.adm-tg-header-copy {
+  min-width: 0;
+  flex: 1 1 320px;
+}
+
+.adm-tg-title {
+  margin: 0 0 6px;
+  font-size: clamp(1.2rem, 2.2vw, 1.65rem);
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.25;
+}
+
+.adm-tg-title-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(168, 85, 247, 0.22));
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+}
+
+.adm-tg-subtitle {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  max-width: 720px;
+}
+
+.adm-tg-stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.adm-tg-channel-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #6ee7b7;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.adm-tg-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 13px;
+  border-radius: 12px;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  color: #e9d5ff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ── Main Responsive Grid ── */
+.adm-tg-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 20px;
+  margin-bottom: 24px;
+  align-items: start;
+}
+
+.adm-tg-side-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .adm-tg-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.adm-tg-card {
+  min-width: 0;
+  background: rgba(15, 12, 30, 0.9);
+  border: 1px solid rgba(168, 85, 247, 0.24);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(10px);
+}
+
+.adm-tg-card-title {
+  margin: 0 0 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  font-size: 1.04rem;
+  font-weight: 800;
+  color: #f3e8ff;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.adm-tg-card-title-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adm-tg-field {
+  margin-bottom: 16px;
+  min-width: 0;
+}
+
+.adm-tg-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  margin-bottom: 7px;
+}
+
+.adm-tg-counter {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  font-weight: 700;
+  background: rgba(15, 23, 42, 0.7);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.adm-tg-counter.over {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.25);
+}
+
+.adm-tg-input,
+.adm-tg-textarea,
+.adm-tg-select {
+  width: 100%;
+  min-width: 0;
+  background: rgba(8, 6, 18, 0.88);
+  border: 1px solid rgba(148, 163, 184, 0.26);
+  border-radius: 11px;
+  padding: 11px 14px;
+  color: #f8fafc;
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.adm-tg-input:focus,
+.adm-tg-textarea:focus,
+.adm-tg-select:focus {
+  outline: none;
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.22);
+}
+
+.adm-tg-textarea {
+  min-height: 128px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* ── Dropzone & Upload Preview ── */
+.adm-tg-upload-box {
+  display: block;
+  border: 2px dashed rgba(168, 85, 247, 0.45);
+  border-radius: 14px;
+  padding: 22px 16px;
+  text-align: center;
+  background: rgba(168, 85, 247, 0.06);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.adm-tg-upload-box:hover {
+  background: rgba(168, 85, 247, 0.13);
+  border-color: #c084fc;
+  transform: translateY(-1px);
+}
+
+.adm-tg-upload-preview {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  margin-bottom: 10px;
+  background: radial-gradient(circle at center, #141126, #06050d);
+}
+
+.adm-tg-upload-preview img {
+  display: block;
+  width: 100%;
+  max-height: 250px;
+  object-fit: contain;
+}
+
+.adm-tg-remove-img {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(15, 23, 42, 0.9);
+  color: #fca5a5;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  border-radius: 9px;
+  padding: 6px 11px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.adm-tg-row-2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .adm-tg-wrap {
+    padding: 12px 10px 52px;
+  }
+
+  .adm-tg-header,
+  .adm-tg-card {
+    padding: 16px 14px;
+    border-radius: 15px;
+  }
+
+  .adm-tg-row-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .adm-tg-actions {
+    flex-direction: column;
+  }
+
+  .adm-tg-btn {
+    width: 100%;
+  }
+}
+
+.adm-tg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.adm-tg-chip {
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  color: #e2e8f0;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.77rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.adm-tg-chip:hover {
+  border-color: #a855f7;
+  color: #ffffff;
+}
+
+.adm-tg-chip.active {
+  background: rgba(168, 85, 247, 0.3);
+  border-color: #c084fc;
+  color: #ffffff;
+}
+
+/* ── Schedule Box ── */
+.adm-tg-schedule-box {
+  background: rgba(16, 185, 129, 0.07);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 18px;
+}
+
+.adm-tg-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #ecfdf5;
+}
+
+.adm-tg-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.adm-tg-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.adm-tg-slider {
+  position: absolute;
+  inset: 0;
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 999px;
+  transition: background 0.2s ease;
+}
+
+.adm-tg-slider::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  top: 3px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+}
+
+.adm-tg-switch input:checked + .adm-tg-slider {
+  background: #10b981;
+}
+
+.adm-tg-switch input:checked + .adm-tg-slider::before {
+  transform: translateX(20px);
+}
+
+.adm-tg-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+
+@media (max-width: 480px) {
+  .adm-tg-days-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.adm-tg-day-btn {
+  padding: 8px 4px;
+  border-radius: 9px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(15, 23, 42, 0.72);
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+
+.adm-tg-day-btn.active {
+  background: rgba(16, 185, 129, 0.26);
+  border-color: #34d399;
+  color: #ecfdf5;
+}
+
+/* ── Action Buttons ── */
+.adm-tg-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.adm-tg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  border-radius: 12px;
+  padding: 11px 18px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+}
+
+.adm-tg-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.adm-tg-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.adm-tg-btn-primary {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  flex: 1 1 210px;
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.25);
+}
+
+.adm-tg-btn-secondary {
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.48);
+  color: #f3e8ff;
+}
+
+.adm-tg-btn-ghost {
+  background: rgba(30, 41, 59, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  color: #cbd5e1;
+}
+
+.adm-tg-btn-danger {
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.42);
+  color: #fca5a5;
+}
+
+/* ── Telegram Realistic Preview ── */
+.adm-tg-preview-stage {
+  background: radial-gradient(circle at top right, rgba(34, 61, 88, 0.42), #0b141e 72%);
+  border-radius: 16px;
+  padding: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.adm-tg-preview-topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.adm-tg-preview-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed, #2563eb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.adm-tg-bubble {
+  background: #182533;
+  border-radius: 14px;
+  overflow: hidden;
+  max-width: 400px;
+  margin: 0 auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
+}
+
+.adm-tg-bubble-author {
+  padding: 9px 13px 6px;
+  color: #64b5f6;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.adm-tg-bubble-img-wrap {
+  background: #0a1017;
+  display: flex;
+  justify-content: center;
+}
+
+.adm-tg-bubble-img {
+  width: 100%;
+  max-height: 290px;
+  object-fit: contain;
+  display: block;
+}
+
+.adm-tg-bubble-body {
+  padding: 10px 13px 6px;
+  color: #f1f5f9;
+  font-size: 0.88rem;
+  line-height: 1.48;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.adm-tg-bubble-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 2px 13px 9px;
+  font-size: 0.72rem;
+  color: #7d96ad;
+}
+
+.adm-tg-bubble-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 6px auto 0;
+  max-width: 400px;
+  min-height: 38px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(52, 92, 134, 0.85);
+  color: #ffffff;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.adm-tg-bubble-btn:hover {
+  background: rgba(65, 114, 165, 0.95);
+}
+
+/* ── Saved Posts Grid ── */
+.adm-tg-posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.adm-tg-post-item {
+  min-width: 0;
+  background: rgba(10, 8, 22, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+
+.adm-tg-post-item:hover {
+  border-color: rgba(168, 85, 247, 0.45);
+  transform: translateY(-2px);
+}
+
+.adm-tg-post-thumb {
+  width: 100%;
+  height: 165px;
+  object-fit: cover;
+  background: #06050d;
+}
+
+.adm-tg-post-content {
+  padding: 15px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.adm-tg-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.adm-tg-status-pill.active {
+  background: rgba(16, 185, 129, 0.18);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.adm-tg-status-pill.manual {
+  background: rgba(148, 163, 184, 0.16);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+}
+
+.adm-tg-post-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.adm-tg-post-actions button {
+  padding: 8px 10px;
+  border-radius: 9px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.adm-tg-alert {
+  padding: 13px 16px;
+  border-radius: 13px;
+  margin-bottom: 18px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.adm-tg-alert.ok {
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.42);
+  color: #6ee7b7;
+}
+
+.adm-tg-alert.err {
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.42);
+  color: #fca5a5;
+}

@@ -20,18 +20,18 @@ export default function InstagramFloatingBadge() {
         </button>
 
         <a
-          href="https://www.instagram.com/pandastoregaming.cl/"
+          href="https://www.instagram.com/panda_storegamingcl/"
           target="_blank"
           rel="noopener noreferrer"
           className="panda-ig-fab-trigger"
-          title="Visítanos en Instagram @pandastoregaming.cl"
+          title="Visítanos en Instagram @panda_storegamingcl"
         >
           <div className="panda-ig-fab-shell-wrap">
             <div className="panda-ig-fab-ring" />
             <div className="panda-ig-fab-shell">
               <img
                 src={logoIg}
-                alt="Instagram @pandastoregaming.cl"
+                alt="Instagram @panda_storegamingcl"
                 className="panda-ig-fab-icon"
                 width="48"
                 height="48"
@@ -42,7 +42,7 @@ export default function InstagramFloatingBadge() {
 
           <div className="panda-ig-fab-copy">
             <span className="panda-ig-fab-label-title">¡Síguenos en Instagram!</span>
-            <span className="panda-ig-fab-label-subtitle">@pandastoregaming.cl</span>
+            <span className="panda-ig-fab-label-subtitle">@panda_storegamingcl</span>
           </div>
         </a>
       </div>

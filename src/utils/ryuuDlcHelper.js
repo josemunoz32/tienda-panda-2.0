@@ -19,7 +19,7 @@ export async function fetchRyuuCatalog() {
       _memCatalog = cached;
       return cached;
     }
-    const res = await fetch("https://generator.ryuu.lol/files/games.json");
+    const res = await fetch("/api/ryuu/games.json");
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data)) {

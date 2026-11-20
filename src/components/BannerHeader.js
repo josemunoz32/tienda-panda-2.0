@@ -8,7 +8,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./BannerHeader.css";
 import { useMoneda } from "../context/MonedaContext";
-import bannerHalloween from "../assets/halloween/banner-halloween-panoramico.webp";
 import { Menu, Heart, ShoppingBag, User as UserIcon, Key } from "lucide-react";
 
 export default function BannerHeader({
@@ -29,9 +28,27 @@ export default function BannerHeader({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // El banner se mantiene fijo y visible permanentemente sin ocultarse en scroll
+  // En computador el banner se compacta a la mitad al bajar (imagen completa, sin recorte).
+  // Histéresis (140px para compactar, 40px para expandir) para que el cambio de alto no parpadee.
+  const [compact, setCompact] = useState(false);
   useEffect(() => {
-    // Mantener visible permanentemente
+    const desktop = window.matchMedia("(min-width: 701px)");
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      if (!desktop.matches) { setCompact(false); return; }
+      const y = window.scrollY;
+      setCompact((prev) => (prev ? y > 40 : y > 140));
+    };
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(update); };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    desktop.addEventListener("change", update);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      desktop.removeEventListener("change", update);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, []);
 
   // Cerrar dropdown de moneda al hacer click afuera
@@ -48,22 +65,27 @@ export default function BannerHeader({
   const isProfileOpen = !!profileOpen;
 
   return (
-    <header className="banner-header">
+    <header className={`banner-header${compact ? " banner-header--compact" : ""}`}>
       {/* Contenedor del Banner - Escala generosa y presencia completa */}
       <div className="banner-header-media">
         {/* Banner principal nítido */}
-        <img
-          src={bannerHalloween}
-          alt="Panda Store: especial de Halloween"
-          className="banner-header-img"
-          fetchPriority="high"
-          decoding="async"
-          width="1920"
-          height="289"
-        />
+        {/* Servido desde /public; index.html lo precarga y pinta una copia estática idéntica (.app-shell-banner) antes de React (LCP) */}
+        <picture>
+          <source media="(max-width: 700px)" srcSet="/banner-menu-navidad-v2-movil.webp" />
+          <img
+            src="/banner-menu-navidad-v2-pc.webp"
+            alt="Panda Store Gaming, edición de Navidad"
+            className="banner-header-img"
+            fetchPriority="high"
+            decoding="async"
+            width="1920"
+            height="296"
+          />
+        </picture>
         {/* Gradiente sutil arriba para legibilidad perfecta de los controles */}
         <div className="banner-header-top-vignette" />
       </div>
+
 
       {/* Barra de controles sobre el banner (menú, moneda, acciones) */}
       <div className="banner-header-inner">

@@ -28,6 +28,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "postbuild": "node scripts/prerender-home.js && node scripts/generate-seo-pages.js",
+    "seo:enrich-steam": "node scripts/seo/enrich-steam.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "sitemap": "node scripts/generate-sitemap.js"
@@ -49,5 +51,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "puppeteer-core": "^24.43.1"
   }
 }

@@ -1,6 +1,6 @@
 [Setup]
 AppName=PandaStore Launcher
-AppVersion=2.4.42
+AppVersion=2.4.43
 AppPublisher=PandaStore Official
 AppPublisherURL=https://pandastoreupdate.web.app
 DefaultDirName={autopf}\PandaStore

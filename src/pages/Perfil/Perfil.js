@@ -2,7 +2,9 @@ import { notifyNewResellerApplication, notifyNewWalletRecharge } from "../../uti
 import React, { useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { auth, db, storage } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
+import { storage } from "../../firebaseServices";
 import { doc, getDoc, setDoc, collection, getDocs, orderBy, query, addDoc, where, onSnapshot } from "firebase/firestore";
 import { updateProfile, sendPasswordResetEmail, signOut } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";

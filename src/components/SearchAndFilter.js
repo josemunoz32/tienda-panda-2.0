@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { prodUrl } from '../utils/slugify';
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "../firebaseDb";
 import { useMoneda } from "../context/MonedaContext";
 
 export default function SearchAndFilter() {

@@ -26,6 +26,36 @@
   position: relative;
   z-index: 1;
 }
+
+/* Capa visual navideña: no intercepta clics ni desplazamiento. */
+.christmas-snowfall {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.christmas-snowflake {
+  position: absolute;
+  top: -12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 7px rgba(217, 241, 255, 0.72);
+  animation-name: christmasSnowfall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes christmasSnowfall {
+  from { transform: translate3d(0, -14px, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.88; }
+  to { transform: translate3d(var(--snow-drift), 110vh, 0) rotate(220deg); opacity: 0.18; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .christmas-snowfall { display: none; }
+}
 /* Main background container for Christmas background */
 .main-bg-container {
   min-height: 100vh;

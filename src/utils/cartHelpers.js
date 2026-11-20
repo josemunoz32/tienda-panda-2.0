@@ -1,5 +1,5 @@
 // cartHelpers.js
-import { doc, setDoc, deleteDoc } from "firebase/firestore";
+import { loadFirestore } from "../firestoreLazy";
 import { trackAddToCart } from "./analytics";
 import { markCartActive } from "./abandonedCart";
 import { parseNumberCLP, getProductPricing } from "./priceHelper";
@@ -225,8 +225,12 @@ export async function handleCartAddOrRemove({
     };
   } else if (isSteam) {
     const baseSteam = parseNumberCLP(prod.priceCLP || prod.pricePrimariaCLP || 2000);
-    extra.priceCLP = isReseller ? Math.max(500, Math.round(baseSteam * 0.5)) : baseSteam;
+    // Promoción Steam -20%: el público paga priceCLP (con descuento); el revendedor paga el 50% del
+    // precio de LISTA (steamListPriceCLP), sin acumular la promoción.
+    const listSteam = parseNumberCLP(prod.steamListPriceCLP) || baseSteam;
+    extra.priceCLP = isReseller ? Math.max(500, Math.round(listSteam * 0.5)) : baseSteam;
     extra.precioPublicoCLP = baseSteam;
+    extra.steamListPriceCLP = listSteam;
     if (isReseller) {
       extra.isResellerPrice = true;
     }
@@ -293,13 +297,15 @@ export async function handleCartAddOrRemove({
     return;
   }
 
-  // Carrito de Usuarios Autenticados (Firestore)
-  const cartRef = doc(db, `users/${user.uid}/cart`, cartLineId);
+  // Carrito de Usuarios Autenticados (Firestore): SDK completo bajo demanda; `db` del llamador si lo pasa
+  const { doc, setDoc, deleteDoc, db: lazyDb } = await loadFirestore();
+  const firestoreDb = db || lazyDb;
+  const cartRef = doc(firestoreDb, `users/${user.uid}/cart`, cartLineId);
   if (isInCart) {
     await deleteDoc(cartRef);
     if (!hasExplicitVariant && cartLineId !== prod.id) {
       try {
-        await deleteDoc(doc(db, `users/${user.uid}/cart`, prod.id));
+        await deleteDoc(doc(firestoreDb, `users/${user.uid}/cart`, prod.id));
       } catch(e) {}
     }
   } else {

@@ -4,19 +4,12 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Helmet } from 'react-helmet-async';
 import { catUrl, prodUrl } from '../../utils/slugify';
 import { useMoneda, PAISES_CONFIG } from "../../context/MonedaContext";
-import { db, auth } from "../../firebase";
-import {
-  collection,
-  getDocs,
-  doc,
-  getDoc,
-  query,
-  where,
-  limit,
-  onSnapshot,
-  setDoc,
-  deleteDoc
-} from "firebase/firestore";
+import { dbLite, auth } from "../../firebase";
+// SDK completo de Firestore bajo demanda (solo usuarios con sesión: carrito/favoritos en tiempo real)
+import { loadFirestore } from "../../firestoreLazy";
+// Lecturas públicas vía Firestore Lite (REST): no abren los canales Listen/Write del SDK completo,
+// cuyos long-polls colgados aparecían como errores ERR_TIMED_OUT en consola.
+import { collection as liteCollection, getDocs as liteGetDocs, doc as liteDoc, getDoc as liteGetDoc } from "firebase/firestore/lite";
 import { handleCartAddOrRemove } from "../../utils/cartHelpers";
 import defaultBanner from "../../assets/default-banner.webp";
 // mobileBanner removed for performance
@@ -27,6 +20,8 @@ import streamingLogo from '../../assets/logos/streaming.png';
 import suscripcionesLogo from '../../assets/logos/suscripciones.png';
 import ventasHeader from '../../assets/home/ventas.webp';
 import letreroPromos from '../../assets/letreros/promociones.webp';
+import { optimizeImageUrl } from '../../utils/optimizeImage';
+import { getSteamListPrice, steamPromoPrice } from '../../utils/vipGames';
 import letreroNintendo from '../../assets/letreros/nintendo switch.webp';
 import letreroPS4 from '../../assets/letreros/play 4.webp';
 import letreroPS5 from '../../assets/letreros/play 5.webp';
@@ -34,8 +29,6 @@ import letreroStreaming from '../../assets/letreros/streaming.webp';
 import letreroSuscripciones from '../../assets/letreros/suscripciones.webp';
 import steamLogo from '../../assets/logos/logosteam.webp';
 import wspLogo from '../../assets/logos/logowsp.webp';
-import steamFastLookup from '../../assets/steam_fast_lookup.json';
-import pandaLoader from '../../assets/logos/miicono.webp';
 import DepthCarousel from "../../components/DepthCarousel/DepthCarousel";
 import StrokeText from "../../components/StrokeText/StrokeText";
 import SpecularButton from "../../components/SpecularButton/SpecularButton";
@@ -47,6 +40,29 @@ import "./Home.css";
 
 
 // (All misplaced CSS removed. Use Home.css for styles.)
+
+// Monta el contenido de una sección solo cuando se acerca al viewport; mientras tanto
+// reserva su altura (.home-section--pending en Home.css) para no provocar saltos de layout.
+// Evita renderizar de golpe todos los carruseles en la carga inicial (TBT/LCP en móvil).
+function DeferredSection({ eager = false, className = '', children, ...rest }) {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(eager || typeof IntersectionObserver === 'undefined');
+  useEffect(() => {
+    if (visible || !ref.current) return undefined;
+    const io = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      io.disconnect();
+      setVisible(true);
+    }, { rootMargin: '800px 0px' });
+    io.observe(ref.current);
+    return () => io.disconnect();
+  }, [visible]);
+  return (
+    <section ref={ref} className={visible ? className : `${className} home-section--pending`} {...rest}>
+      {visible ? children : null}
+    </section>
+  );
+}
 
 // Formatea el precio según la moneda
 function formatPrecio(precio, moneda) {
@@ -162,6 +178,18 @@ function DestacadosCarrusel({ productos, moneda, handleFav, favIds, openAuthModa
   );
 }
 
+// Caché local del catálogo del home: solo los campos que usan los carruseles y el buscador
+const HOME_PRODS_CACHE_KEY = 'panda_home_prods_v2';
+const HOME_PRODS_CACHE_TTL = 24 * 60 * 60 * 1000;
+const HOME_PROD_FIELDS = ['name', 'imageUrl', 'image', 'categoryId', 'categoryIds', 'priceCLP', 'pricePrimariaCLP', 'priceSecundariaCLP', 'priceUSD', 'preciosPorMes', 'tags', 'stock', 'agotado', 'app_id', 'appId', 'plataforma', 'switchCompat', 'isVipExclusive'];
+function compactHomeProduct(p) {
+  const out = { id: p.id };
+  HOME_PROD_FIELDS.forEach((k) => { if (p[k] !== undefined && p[k] !== null && p[k] !== '') out[k] = p[k]; });
+  const c = p.createdAt;
+  if (c) out.createdAt = c.toDate ? c.toDate().getTime() : c.seconds ? c.seconds * 1000 : c;
+  return out;
+}
+
 export default function Home() {
   // Modal de bienvenida con categorías oficiales que sale al entrar a la web
   const [showModal, setShowModal] = useState(() => {
@@ -219,7 +247,7 @@ export default function Home() {
     const nombreBuscado = nombreMap[opcion.toLowerCase()];
     if (!nombreBuscado) return;
     try {
-      const snapshot = await getDocs(collection(db, "categories"));
+      const snapshot = await liteGetDocs(liteCollection(dbLite, "categories"));
       const normalize = (s) => (s || "").toString().trim().toLowerCase();
       const cat = snapshot.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
@@ -247,16 +275,18 @@ export default function Home() {
   const enableGalaxy = false;
 
   // Preview de Promociones (4 imágenes)
+  // imgSm: copia de 320px para pantallas de densidad normal; img (600px) se mantiene para pantallas densas
   const promosPreview = useMemo(() => ([
-    { key: 'promo-basica-2x', title: 'Arma tu pack 2X Básica', img: require('../../assets/promos/2 x 25.000 basica.webp') },
-    { key: 'promo-basica-3x', title: 'Arma tu pack 3X Básica', img: require('../../assets/promos/3x1 $35.000 basica.webp') },
-    { key: 'promo-deluxe-2x', title: 'Arma tu pack Deluxe 2X', img: require('../../assets/promos/deluxe 2 x 30.000.webp') },
-    { key: 'promo-deluxe-3x', title: 'Arma tu pack Deluxe 3X', img: require('../../assets/promos/deluxe 3 x40.000.webp') },
+    { key: 'promo-basica-2x', title: 'Arma tu pack 2X Básica', img: require('../../assets/promos/2 x 25.000 basica.webp'), imgSm: require('../../assets/optimizadas/promo-basica-2x-320.webp') },
+    { key: 'promo-basica-3x', title: 'Arma tu pack 3X Básica', img: require('../../assets/promos/3x1 $35.000 basica.webp'), imgSm: require('../../assets/optimizadas/promo-basica-3x-320.webp') },
+    { key: 'promo-deluxe-2x', title: 'Arma tu pack Deluxe 2X', img: require('../../assets/promos/deluxe 2 x 30.000.webp'), imgSm: require('../../assets/optimizadas/promo-deluxe-2x-320.webp') },
+    { key: 'promo-deluxe-3x', title: 'Arma tu pack Deluxe 3X', img: require('../../assets/promos/deluxe 3 x40.000.webp'), imgSm: require('../../assets/optimizadas/promo-deluxe-3x-320.webp') },
   ]), []);
 
   const promoCarouselItems = useMemo(() => (
     promosPreview.map(p => ({
-      image: p.img,
+      image: p.imgSm,
+      srcSet: `${p.imgSm} 320w, ${p.img} 600w`,
       alt: p.title,
       title: p.title,
       subtitle: '🔥 Oferta Especial',
@@ -265,13 +295,12 @@ export default function Home() {
   ), [promosPreview]);
 
   // Estados necesarios antes de cualquier uso
+  // Catálogo guardado en el navegador (24 h): desde la segunda visita el home se arma al instante
+  // y se actualiza en segundo plano con Firestore.
   const [productos, setProductos] = useState(() => {
     try {
-      const cached = sessionStorage.getItem('panda_home_prods');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
+      const cached = JSON.parse(localStorage.getItem(HOME_PRODS_CACHE_KEY) || 'null');
+      if (cached && Array.isArray(cached.items) && cached.items.length > 0 && Date.now() - cached.t < HOME_PRODS_CACHE_TTL) return cached.items;
     } catch (_) {}
     return [];
   });
@@ -521,14 +550,14 @@ export default function Home() {
     }));
   }, [testimonios]);
   useEffect(() => {
-    getDocs(collection(db, "testimonios")).then(snapshot => {
+    liteGetDocs(liteCollection(dbLite, "testimonios")).then(snapshot => {
       setTestimonios(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
   }, []);
   const [categorias, setCategorias] = useState([]);
   // Obtener categorías de Firestore
   useEffect(() => {
-    getDocs(collection(db, "categories")).then(snapshot => {
+    liteGetDocs(liteCollection(dbLite, "categories")).then(snapshot => {
       setCategorias(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
   }, []);
@@ -579,6 +608,32 @@ export default function Home() {
     };
   }, [categoryIds, categorias]);
 
+  // Portadas Steam de respaldo (~90 KB de JSON): se cargan aparte para no inflar el bundle inicial.
+  const [steamFastLookup, setSteamFastLookup] = useState(null);
+  useEffect(() => {
+    let active = true;
+    import('../../assets/steam_fast_lookup.json')
+      .then((m) => { if (active) setSteamFastLookup(m.default); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  // Tendencias reales: ranking de ventas (publicStats/topSellers, lo actualiza la función
+  // actualizarTopVentas) y estrenos de Steam por fecha de lanzamiento (generado en el build).
+  const [topSellers, setTopSellers] = useState(null);
+  const [steamTrending, setSteamTrending] = useState([]);
+  useEffect(() => {
+    let active = true;
+    liteGetDoc(liteDoc(dbLite, "publicStats", "topSellers"))
+      .then((snap) => { if (active && snap.exists()) setTopSellers(snap.data()); })
+      .catch(() => {});
+    fetch("/seo-data/home-trending.json")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (active && Array.isArray(d?.steam)) setSteamTrending(d.steam); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
+
   const resolveSteamCover = (prod) => {
     if (prod?.imageUrl && prod.imageUrl.trim() !== "") return prod.imageUrl;
     const appId = prod?.app_id || (prod?.id && !isNaN(prod.id) ? prod.id : null);
@@ -596,6 +651,67 @@ export default function Home() {
     }
     return null;
   };
+
+  // Carruseles del home: intercala lo MÁS COMPRADO (ventas reales) con lo MÁS NUEVO
+  // (Steam: fecha de lanzamiento; consolas: últimos juegos agregados o marcados "Nuevo").
+  const createdTime = (p) => {
+    const raw = p?.createdAt;
+    const t = raw?.toDate ? raw.toDate().getTime() : raw?.seconds ? raw.seconds * 1000 : new Date(raw || 0).getTime();
+    return Number.isFinite(t) ? t : 0;
+  };
+  const isNewTagged = (p) => (Array.isArray(p?.tags) ? p.tags : []).some((t) => /nuevo|estreno|lanzamiento/i.test(String(t)));
+  const cleanKey = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
+  const interleave = (a, b, max) => {
+    const out = [];
+    const seen = new Set();
+    for (let i = 0; out.length < max && (i < a.length || i < b.length); i++) {
+      [a[i], b[i]].forEach((p) => {
+        if (!p || out.length >= max) return;
+        const k = cleanKey(p.name) || p.id;
+        if (seen.has(k)) return;
+        seen.add(k);
+        out.push(p);
+      });
+    }
+    return out;
+  };
+
+  const trendingByCategory = useMemo(() => {
+    const ranking = topSellers?.byPlatform || {};
+    const sellersFor = (key, pool) => {
+      const byId = new Map(pool.map((p) => [String(p.id), p]));
+      const byName = new Map(pool.map((p) => [cleanKey(p.name), p]));
+      return (ranking[key] || []).map((r) => byId.get(String(r.id)) || byName.get(cleanKey(r.name))).filter(Boolean);
+    };
+    const consoleList = (catId, key) => {
+      if (!catId) return [];
+      // Todo está siempre en stock; solo se ocultan los que el admin marcó como agotados
+      const pool = productos.filter((p) => p?.categoryId === catId && p.agotado !== true);
+      const newest = [...pool].sort((a, b) => (isNewTagged(b) - isNewTagged(a)) || (createdTime(b) - createdTime(a)));
+      return interleave(sellersFor(key, pool), newest, 20);
+    };
+    // Steam: los vendidos pueden venir del catálogo curado (no están en Firestore); se arman con su app_id
+    const steamSold = (ranking.steam || []).map((r) => {
+      const appId = r.appId || (String(r.id || "").match(/(\d+)$/) || [])[1];
+      if (!appId) return null;
+      const known = steamTrending.find((s) => String(s.app_id) === String(appId));
+      return known || { id: r.id || `steam_${appId}`, app_id: appId, name: r.name, imageUrl: `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/header.jpg`, priceCLP: 2000 };
+    }).filter(Boolean);
+    return {
+      steam: interleave(steamSold, steamTrending, 20).map((p) => {
+        const appId = p.app_id || (String(p.id || "").match(/(\d+)$/) || [])[1];
+        // Mismo precio que la categoría Steam y la ficha: precio de lista con la promoción -20%
+        const listPrice = getSteamListPrice({ ...p, app_id: appId });
+        const priced = { ...p, priceCLP: steamPromoPrice(listPrice), steamListPriceCLP: listPrice };
+        if (!appId) return priced;
+        return { ...priced, imageUrl: `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`, fallbackImage: p.imageUrl || `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/header.jpg` };
+      }),
+      nintendo: consoleList(categoryIds.nintendo, "nintendo"),
+      ps4: consoleList(categoryIds.ps4, "ps4"),
+      ps5: consoleList(categoryIds.ps5, "ps5"),
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productos, categoryIds, topSellers, steamTrending]);
 
   const previewByCategory = useMemo(() => {
     const takeProds = (catId, isSteam = false) => {
@@ -625,15 +741,60 @@ export default function Home() {
       return list.slice(0, 8);
     };
 
+    // Portadas livianas (las "hero" de Nintendo pesan 1–2 MB; optimizadas ~90 KB)
+    // Si la versión liviana no carga, se usa la original (fallbackImage); las de Steam ya traen la suya
+    const light = (list) => list.map((p) => {
+      if (!p?.imageUrl) return p;
+      const small = optimizeImageUrl(p.imageUrl, 600);
+      return small === p.imageUrl ? p : { ...p, imageUrl: small, fallbackImage: p.fallbackImage || p.imageUrl };
+    });
+    const pick = (trending, fallback) => light(trending.length >= 4 ? trending : fallback);
     return {
-      steam: takeProds(categoryIds.steam, true),
-      nintendo: takeProds(categoryIds.nintendo),
-      ps4: takeProds(categoryIds.ps4),
-      ps5: takeProds(categoryIds.ps5),
-      streaming: takeProds(categoryIds.streaming),
-      suscripciones: takeProds(categoryIds.suscripciones),
+      steam: pick(trendingByCategory.steam, takeProds(categoryIds.steam, true)),
+      nintendo: pick(trendingByCategory.nintendo, takeProds(categoryIds.nintendo)),
+      ps4: pick(trendingByCategory.ps4, takeProds(categoryIds.ps4)),
+      ps5: pick(trendingByCategory.ps5, takeProds(categoryIds.ps5)),
+      streaming: light(takeProds(categoryIds.streaming)),
+      suscripciones: light(takeProds(categoryIds.suscripciones)),
     };
-  }, [productos, categoryIds]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productos, categoryIds, steamFastLookup, trendingByCategory]);
+
+  // Solo se muestran juegos cuya portada carga de verdad: cada imagen se prueba antes de
+  // entrar al carrusel y las que fallan (portadas inexistentes en Steam, enlaces rotos) se omiten.
+  const [imageStatus, setImageStatus] = useState({});
+  const requestedImagesRef = useRef(new Set());
+  useEffect(() => {
+    // Sin cancelación: cada imagen se prueba una sola vez y su resultado siempre se guarda
+    const probe = (url) => {
+      if (!url || requestedImagesRef.current.has(url)) return;
+      requestedImagesRef.current.add(url);
+      const img = new Image();
+      const done = (ok) => setImageStatus((s) => (s[url] === undefined ? { ...s, [url]: ok } : s));
+      img.onload = () => done(img.naturalWidth > 1);
+      img.onerror = () => done(false);
+      img.src = url;
+    };
+    Object.values(previewByCategory).forEach((list) => (list || []).forEach((p) => {
+      probe(p?.imageUrl);
+      // La de respaldo (original, pesada) solo se descarga si la principal falló
+      if (p?.fallbackImage && imageStatus[p.imageUrl] === false) probe(p.fallbackImage);
+    }));
+  }, [previewByCategory, imageStatus]);
+
+  const visibleByCategory = useMemo(() => {
+    const out = {};
+    Object.entries(previewByCategory).forEach(([key, list]) => {
+      out[key] = (list || []).map((p) => {
+        if (!p?.imageUrl) return null;
+        if (imageStatus[p.imageUrl] !== false) return p;
+        // La portada principal falló: usar la de respaldo si existe y carga
+        if (p.fallbackImage && imageStatus[p.fallbackImage] !== false) return { ...p, imageUrl: p.fallbackImage };
+        return null;
+      }).filter(Boolean).slice(0, 10);
+    });
+    return out;
+  }, [previewByCategory, imageStatus]);
 
   useEffect(() => {
     let isMounted = true;
@@ -643,12 +804,12 @@ export default function Home() {
 
     const fetchProductos = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "products"));
+        const snapshot = await liteGetDocs(liteCollection(dbLite, "products"));
         if (!isMounted) return;
         const prods = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setProductos(prods);
         try {
-          sessionStorage.setItem('panda_home_prods', JSON.stringify(prods.slice(0, 100)));
+          localStorage.setItem(HOME_PRODS_CACHE_KEY, JSON.stringify({ t: Date.now(), items: prods.map(compactHomeProduct) }));
         } catch (_) {}
         // Generar destacados aleatorios solo una vez
         setDestacados(prods.length > 0 ? [...prods].sort(() => 0.5 - Math.random()).slice(0, 10) : []);
@@ -670,15 +831,22 @@ export default function Home() {
 
   useEffect(() => {
     if (!user) return;
-    const cartUnsub = onSnapshot(collection(db, `users/${user.uid}/cart`), snap => {
-      const cartMap = {};
-      snap.docs.forEach(d => { cartMap[d.id] = true; });
-      setInCart(cartMap);
-    });
-    const favUnsub = onSnapshot(collection(db, `users/${user.uid}/favorites`), snap => {
-      setFavIds(snap.docs.map(d => d.id));
+    let active = true;
+    let cartUnsub = () => {};
+    let favUnsub = () => {};
+    loadFirestore().then(({ onSnapshot, collection, db }) => {
+      if (!active) return;
+      cartUnsub = onSnapshot(collection(db, `users/${user.uid}/cart`), snap => {
+        const cartMap = {};
+        snap.docs.forEach(d => { cartMap[d.id] = true; });
+        setInCart(cartMap);
+      });
+      favUnsub = onSnapshot(collection(db, `users/${user.uid}/favorites`), snap => {
+        setFavIds(snap.docs.map(d => d.id));
+      });
     });
     return () => {
+      active = false;
       cartUnsub();
       favUnsub();
     };
@@ -687,7 +855,6 @@ export default function Home() {
 
   const handleCart = async (prod) => {
     await handleCartAddOrRemove({
-      db,
       user,
       prod,
       moneda,
@@ -715,7 +882,6 @@ export default function Home() {
       if (opcion.isResellerPrice) customProd.isResellerPrice = true;
     }
     await handleCartAddOrRemove({
-      db,
       user,
       prod: customProd,
       moneda,
@@ -748,6 +914,7 @@ export default function Home() {
       window.dispatchEvent(new Event('localFavUpdated'));
       return;
     }
+    const { doc, setDoc, deleteDoc, db } = await loadFirestore();
     const favRef = doc(db, `users/${user.uid}/favorites`, prod.id);
     if (favIds.includes(prod.id)) {
       await deleteDoc(favRef);
@@ -866,7 +1033,7 @@ export default function Home() {
           <p>Para brindar la mayor comodidad y tranquilidad al comprar en Chile y el extranjero, PandaStore admite una amplia variedad de métodos de pago seguros. En territorio chileno puedes pagar en pesos mediante WebPay Plus, tarjetas de crédito Visa y Mastercard, tarjetas de débito bancarias y Redcompra. También recibimos transferencias electrónicas a través de BancoEstado y CuentaRUT, además de la billetera digital Mercado Pago. Para nuestros clientes internacionales en América Latina y el resto del mundo, aceptamos pagos en dólares mediante PayPal y transferencias protegidas en criptomonedas USDT.</p>
 
           <h2>Atención al Cliente y Garantía Total 24/7</h2>
-          <p>En PandaStore el servicio al cliente no concluye tras concretar el pago. Nuestro equipo humano de soporte técnico trabaja activamente todos los días del año, incluyendo fines de semana y festivos. Atendemos tus consultas y te asistimos ante cualquier eventualidad con la activación de tus juegos digitales. Puedes comunicarte directamente con nuestros operadores a través de nuestro canal oficial de WhatsApp. También puedes seguirnos en nuestras redes sociales en Instagram para enterarte de nuevos lanzamientos, sorteos comunitarios y promociones por tiempo limitado.</p>
+          <p>En PandaStore el servicio al cliente no concluye tras concretar el pago. Nuestro equipo humano de soporte técnico trabaja activamente todos los días del año, incluyendo fines de semana y festivos. Atendemos tus consultas y te asistimos ante cualquier eventualidad con la activación de tus juegos digitales. Puedes comunicarte directamente con nuestros operadores a través de nuestro canal oficial de WhatsApp.</p>
 
           <h2>Soluciones de Desarrollo Web y Creación de Tiendas Online</h2>
           <p>Además de liderar el mercado gamer en Chile, PandaStore expande sus servicios ofreciendo soluciones profesionales de desarrollo web y creación de tiendas online e-commerce para pymes y emprendedores. Desarrollamos páginas web modernas tipo Landing Page One Page optimizadas para captar clientes por WhatsApp. También creamos tiendas virtuales completas integradas con pasarelas de pago chilenas como WebPay Plus y Transbank. Si buscas profesionalizar la presencia digital de tu negocio en Chile, nuestro equipo de desarrollo web te entrega asesoría integral y resultados de alto impacto.</p>
@@ -982,13 +1149,13 @@ export default function Home() {
             <div className="home-sec-title-container">
               <StrokeText
                 text="Promociones"
-                strokeColor="#a259ff"
-                fillColor="#ffffff"
+                festive
+                strokeColor="#ffcf83"
                 strokeWidth={1.6}
                 fontSize={42}
                 fontWeight={900}
                 letterSpacing={-1}
-                trigger="loop"
+                trigger="view"
                 fillMode="wipe"
               />
             </div>
@@ -1011,6 +1178,7 @@ export default function Home() {
             <div className="home-depth-carousel-wrapper" style={{ height: '460px', position: 'relative', margin: '0' }}>
               <DepthCarousel
                 items={promoCarouselItems}
+                priority
                 depth={220}
                 spread={90}
                 tilt={22}
@@ -1033,7 +1201,7 @@ export default function Home() {
             <div className="home-desktop-side-grid">
               {promosPreview.slice(0, 4).map((promo) => (
                 <Link key={promo.key} to="/promos" className="home-desktop-mini-card">
-                  <img src={promo.img} alt={promo.title} className="home-desktop-mini-img" loading="lazy" decoding="async" width="50" height="50" />
+                  <img src={promo.imgSm} alt={promo.title} className="home-desktop-mini-img" loading="lazy" decoding="async" width="50" height="50" />
                   <span className="home-desktop-mini-title">{promo.title}</span>
                   <span className="home-desktop-mini-price">🔥 Oferta Pack</span>
                 </Link>
@@ -1063,25 +1231,23 @@ export default function Home() {
             SECCIONES POR CATEGORÍA (DepthCarousel + PC Grid)
         ══════════════════════════════════ */}
         {([
-          { key: 'steam',         title: 'Steam',           strokeColor: '#a259ff', catId: categoryIds.steam,         catName: categoryNames.steam,         items: previewByCategory.steam,         fallbackImg: steamLogo,            badge: '🔥 Catálogo PC' },
-          { key: 'nintendo',      title: 'Nintendo Switch', strokeColor: '#ff2a6d', catId: categoryIds.nintendo,      catName: categoryNames.nintendo,      items: previewByCategory.nintendo,      fallbackImg: letreroNintendo,      badge: '🎮 Switch 1 & 2' },
-          { key: 'ps4',           title: 'Juegos PS4',      strokeColor: '#0072ce', catId: categoryIds.ps4,           catName: categoryNames.ps4,           items: previewByCategory.ps4,           fallbackImg: letreroPS4,           badge: '⚡ PS4 Digital' },
-          { key: 'ps5',           title: 'Juegos PS5',      strokeColor: '#00d4ff', catId: categoryIds.ps5,           catName: categoryNames.ps5,           items: previewByCategory.ps5,           fallbackImg: letreroPS5,           badge: '🚀 PS5 Next-Gen' },
-          { key: 'streaming',     title: 'Streaming',       strokeColor: '#00f5d4', catId: categoryIds.streaming,     catName: categoryNames.streaming,     items: previewByCategory.streaming,     fallbackImg: letreroStreaming,     badge: '📺 Cuentas & Pases' },
-          { key: 'suscripciones', title: 'Suscripciones',   strokeColor: '#ffb703', catId: categoryIds.suscripciones, catName: categoryNames.suscripciones, items: previewByCategory.suscripciones, fallbackImg: letreroSuscripciones, badge: '⭐ Membresías VIP' },
+          { key: 'steam',         title: 'Steam',           strokeColor: '#a259ff', catId: categoryIds.steam,         catName: categoryNames.steam,         items: visibleByCategory.steam,         fallbackImg: steamLogo,            badge: '🔥 Catálogo PC' },
+          { key: 'nintendo',      title: 'Nintendo Switch', strokeColor: '#ff2a6d', catId: categoryIds.nintendo,      catName: categoryNames.nintendo,      items: visibleByCategory.nintendo,      fallbackImg: letreroNintendo,      badge: '🎮 Switch 1 & 2' },
+          { key: 'ps4',           title: 'Juegos PS4',      strokeColor: '#0072ce', catId: categoryIds.ps4,           catName: categoryNames.ps4,           items: visibleByCategory.ps4,           fallbackImg: letreroPS4,           badge: '⚡ PS4 Digital' },
+          { key: 'ps5',           title: 'Juegos PS5',      strokeColor: '#00d4ff', catId: categoryIds.ps5,           catName: categoryNames.ps5,           items: visibleByCategory.ps5,           fallbackImg: letreroPS5,           badge: '🚀 PS5 Next-Gen' },
+          { key: 'streaming',     title: 'Streaming',       strokeColor: '#00f5d4', catId: categoryIds.streaming,     catName: categoryNames.streaming,     items: visibleByCategory.streaming,     fallbackImg: letreroStreaming,     badge: '📺 Cuentas & Pases' },
+          { key: 'suscripciones', title: 'Suscripciones',   strokeColor: '#ffb703', catId: categoryIds.suscripciones, catName: categoryNames.suscripciones, items: visibleByCategory.suscripciones, fallbackImg: letreroSuscripciones, badge: '⭐ Membresías VIP' },
         ]).map((sec, secIdx) => {
           let carouselData = (Array.isArray(sec.items) && sec.items.length > 0)
             ? sec.items.map(prod => ({
-                image: prod.imageUrl || sec.fallbackImg || pandaLoader,
+                image: prod.imageUrl,
                 alt: prod.name,
                 title: prod.name,
                 subtitle: getMinPriceForHome(prod) ? formatearPrecio(getMinPriceForHome(prod)) : sec.badge,
                 link: prodUrl(prod.name, prod.id),
                 key: prod.id
               }))
-            : [
-                { image: sec.fallbackImg || pandaLoader, alt: sec.title, title: sec.title, subtitle: sec.badge, link: sec.catId ? catUrl(sec.catName, sec.catId) : '/productos' }
-              ];
+            : [];
 
           // Si hay menos de 4 tarjetas, duplicar para mantener la experiencia 3D de DepthCarousel
           if (carouselData.length > 1 && carouselData.length < 4) {
@@ -1099,38 +1265,30 @@ export default function Home() {
           const targetUrl = sec.catId ? catUrl(sec.catName, sec.catId) : '/productos';
 
           return (
-            <section key={sec.key} className="home-section" id={sec.key === 'nintendo' ? 'home-catalogo' : undefined}>
+            <DeferredSection key={sec.key} eager={secIdx === 0} className="home-section" id={sec.key === 'nintendo' ? 'home-catalogo' : undefined}>
               <div className="home-sec-hdr">
                 <div className="home-sec-title-container">
                   <StrokeText
                     text={sec.title}
-                    strokeColor={sec.strokeColor}
-                    fillColor="#ffffff"
+                    festive
+                    strokeColor="#ffcf83"
                     strokeWidth={1.6}
                     fontSize={40}
                     fontWeight={900}
                     letterSpacing={-1}
-                    trigger="loop"
+                    trigger="view"
                     fillMode="wipe"
                   />
                 </div>
-                <SpecularButton
-                  size="sm"
-                  radius={20}
-                  tint={sec.strokeColor}
-                  tintOpacity={0.15}
-                  lineColor={sec.strokeColor}
-                  baseColor="#1e2030"
-                  intensity={1.2}
-                  autoAnimate
-                  onClick={() => navigate(targetUrl)}
-                >
-                  Ver todo <span className="material-icons" style={{fontSize:16,verticalAlign:'middle',marginLeft:2}}>arrow_forward</span>
-                </SpecularButton>
               </div>
 
               <div className="home-section-dual-content">
                 <div className="home-depth-carousel-wrapper" style={{ height: '460px', position: 'relative', margin: '0' }}>
+                  {carouselData.length === 0 ? (
+                    <div className="home-carousel-skeleton" aria-busy="true" aria-label={`Cargando juegos de ${sec.title}`}>
+                      {[0, 1, 2].map((i) => <div key={i} className="home-carousel-skeleton-card" />)}
+                    </div>
+                  ) : (
                   <DepthCarousel
                     items={carouselData}
                     depth={210}
@@ -1150,13 +1308,14 @@ export default function Home() {
                       if (item.link) navigate(item.link);
                     }}
                   />
+                  )}
                 </div>
 
                 {Array.isArray(sec.items) && sec.items.length > 0 && (
                   <div className="home-desktop-side-grid">
                     {sec.items.slice(0, 4).map((prod) => (
                       <Link key={prod.id} to={prodUrl(prod.name, prod.id)} className="home-desktop-mini-card">
-                        <img src={prod.imageUrl || sec.fallbackImg || pandaLoader} alt={prod.name} className="home-desktop-mini-img" loading="lazy" decoding="async" width="50" height="50" />
+                        <img src={prod.imageUrl} alt={prod.name} className="home-desktop-mini-img" onError={(e) => { const url = prod.imageUrl; setImageStatus((st) => ({ ...st, [url]: false })); e.currentTarget.style.visibility = 'hidden'; }} loading="lazy" decoding="async" width="50" height="50" />
                         <span className="home-desktop-mini-title">{prod.name}</span>
                         <span className="home-desktop-mini-price">
                           {getMinPriceForHome(prod) ? formatearPrecio(getMinPriceForHome(prod)) : 'Ver precio'}
@@ -1180,10 +1339,10 @@ export default function Home() {
                   onClick={() => navigate(targetUrl)}
                 >
                   <span className="material-icons" style={{fontSize:18}}>explore</span>
-                  Ver todo {sec.title}
+                  Ver categoría
                 </SpecularButton>
               </div>
-            </section>
+            </DeferredSection>
           );
         })}
 
@@ -1191,7 +1350,7 @@ export default function Home() {
             SECCIÓN: VENTAS / TESTIMONIOS (DriftWall)
         ══════════════════════════════════ */}
         {testimonios.length > 0 && (
-          <section className="home-section home-section-testi">
+          <DeferredSection className="home-section home-section-testi">
             <div style={{ textAlign: 'center', marginBottom: 20 }}>
               <img src={ventasHeader} alt="Ventas anteriores" width="520" height="130" loading="lazy" decoding="async" style={{ maxWidth: 520, width: '92%', height: 'auto' }} />
             </div>
@@ -1231,45 +1390,9 @@ export default function Home() {
                 Ver más ventas
               </SpecularButton>
             </div>
-          </section>
+          </DeferredSection>
         )}
 
-        {/* ══════════════════════════════════
-            FOOTER CTA FINAL
-        ══════════════════════════════════ */}
-        <div className="home-footer-cta">
-          <div className="home-footer-cta-orb" />
-          <h2 className="home-footer-cta-title">Tu próximo juego favorito te espera</h2>
-          <p className="home-footer-cta-sub">Compra en segundos, recibe al instante. Miles de títulos para PS4, PS5, Nintendo Switch y más.</p>
-          <div style={{display:'flex',gap:16,justifyContent:'center',flexWrap:'wrap',alignItems:'center'}}>
-            <SpecularButton
-              size="lg"
-              radius={26}
-              tint="#00f5d4"
-              tintOpacity={0.25}
-              lineColor="#00f5d4"
-              baseColor="#0e3d36"
-              intensity={1.5}
-              autoAnimate
-              onClick={() => navigate('/promos')}
-            >
-              Ver Ofertas
-            </SpecularButton>
-            <SpecularButton
-              size="lg"
-              radius={26}
-              tint="#a259ff"
-              tintOpacity={0.25}
-              lineColor="#a259ff"
-              baseColor="#321b54"
-              intensity={1.5}
-              autoAnimate
-              onClick={() => navigate(categoryIds.nintendo ? catUrl(categoryNames.nintendo, categoryIds.nintendo) : '/productos')}
-            >
-              Ver Catálogo
-            </SpecularButton>
-          </div>
-        </div>
 
       </div>
     </div>

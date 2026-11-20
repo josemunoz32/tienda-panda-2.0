@@ -22,8 +22,7 @@ from bot import (
     obtener_siguiente_id_pack,
     calcular_huella_pack,
     TOKEN,
-    CANAL_PUBLICO_ID,
-    CANAL_REVENDEDORES_ID
+    CANAL_PUBLICO_ID
 )
 
 JSON_PATH = os.path.join(os.path.dirname(__file__), "result.json")
@@ -64,8 +63,6 @@ async def main():
     bot_info = await bot.get_me()
     print(f"✅ Bot conectado: @{bot_info.username} (ID: {bot_info.id})")
     print(f"📢 Canal Público Destino: {CANAL_PUBLICO_ID}")
-    if CANAL_REVENDEDORES_ID and CANAL_REVENDEDORES_ID != 0:
-        print(f"👑 Canal Revendedores Destino: {CANAL_REVENDEDORES_ID}")
     
     target_json = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--") else JSON_PATH
     print(f"\n📄 Cargando packs desde {target_json}...")
@@ -106,11 +103,11 @@ async def main():
         pack["id_pack"] = id_pack
         huella = pack["huella"]
         
-        # Construir mensajes con el ID asignado
-        msg_pub, markup_pub = construir_mensaje_pack(pack, es_revendedor=False, bot_username=bot_info.username)
-        msg_rev, markup_rev = None, None
-        if CANAL_REVENDEDORES_ID and CANAL_REVENDEDORES_ID != 0:
-            msg_rev, markup_rev = construir_mensaje_pack(pack, es_revendedor=True, bot_username=bot_info.username)
+        # Construir mensaje con el ID asignado
+        msg_pub, markup_pub = construir_mensaje_pack(pack, bot_username=bot_info.username)
+        if not msg_pub:
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] ⏭️ {id_pack} omitido (sin juegos válidos tras filtro).", flush=True)
+            continue
         
         exito = False
         for intento in range(5):
@@ -119,24 +116,12 @@ async def main():
                 sent_pub = await bot.send_message(
                     chat_id=CANAL_PUBLICO_ID,
                     text=msg_pub,
-                    reply_markup=markup_pub
+                    reply_markup=markup_pub,
+                    parse_mode="HTML"
                 )
                 msg_id_pub = sent_pub.message_id
-                
-                # 2. Enviar a Canal Revendedores (si está configurado)
-                msg_id_rev = None
-                if msg_rev and CANAL_REVENDEDORES_ID and CANAL_REVENDEDORES_ID != 0:
-                    try:
-                        sent_rev = await bot.send_message(
-                            chat_id=CANAL_REVENDEDORES_ID,
-                            text=msg_rev,
-                            reply_markup=markup_rev
-                        )
-                        msg_id_rev = sent_rev.message_id
-                    except Exception as e_rev:
-                        print(f"⚠️ Error enviando a revendedores: {e_rev}")
 
-                # 3. Guardar en Firestore
+                # 2. Guardar en Firestore
                 await asyncio.to_thread(guardar_pack_firestore, pack, msg_id_pub)
 
                 # 4. Registrar huella procesada
@@ -160,8 +145,23 @@ async def main():
             fallidos += 1
             print(f"❌ No se pudo publicar {id_pack} tras 5 intentos.", flush=True)
 
-        # Pausa anti rate-limit entre packs
-        await asyncio.sleep(1.3)
+        # Pausa anti rate-limit entre packs (~20 msgs/min limite canal Telegram)
+        await asyncio.sleep(3.1)
+
+    # Sincronizar contador correlativo en Firestore con contador_pack.txt
+    try:
+        import bot as _bot_mod
+        if _bot_mod._db is not None and os.path.exists(_bot_mod.COUNTER_FILE):
+            with open(_bot_mod.COUNTER_FILE, "r", encoding="utf-8") as cf:
+                val = cf.read().strip()
+                if val.isdigit():
+                    _bot_mod._db.collection("configuraciones").document("contador_packs").set({
+                        "numero": int(val),
+                        "ultimo_numero": int(val) - 1,
+                    }, merge=True)
+                    print(f"🔄 Contador Firestore sincronizado en {val}")
+    except Exception as e_sync:
+        print(f"⚠️ No se pudo sincronizar contador Firestore: {e_sync}")
 
     print("\n" + "=" * 65)
     print(f"🎉 PROCESO MASIVO COMPLETADO:")

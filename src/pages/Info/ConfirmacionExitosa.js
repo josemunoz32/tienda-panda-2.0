@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import confirmadoImg from "../../assets/estadopedido/confimado.png";
-import { auth, db } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import {
@@ -496,7 +497,7 @@ function ConfirmacionExitosa() {
                 WhatsApp Oficial
               </a>
               <a
-                href="https://t.me/NintendoChile2"
+                href="https://t.me/juegosNintendoSwitchChile2"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ce-pill-link ce-pill-tg"

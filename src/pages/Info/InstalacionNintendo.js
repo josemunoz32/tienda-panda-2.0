@@ -88,7 +88,7 @@ export default function InstalacionNintendo() {
             WhatsApp
           </a>
           <a
-            href="https://www.instagram.com/pandastoregaming.cl/"
+            href="https://www.instagram.com/panda_storegamingcl/"
             className="install-btn install-btn--instagram"
             target="_blank"
             rel="noopener noreferrer"
@@ -97,7 +97,7 @@ export default function InstalacionNintendo() {
             Instagram
           </a>
           <a
-            href="https://t.me/NintendoChile2"
+            href="https://t.me/juegosNintendoSwitchChile2"
             className="install-btn install-btn--telegram"
             target="_blank"
             rel="noopener noreferrer"
@@ -193,7 +193,7 @@ export default function InstalacionNintendo() {
             <span>WhatsApp (+56 9 7475 1810)</span>
           </a>
           <a
-            href="https://www.instagram.com/pandastoregaming.cl/"
+            href="https://www.instagram.com/panda_storegamingcl/"
             target="_blank"
             rel="noopener noreferrer"
             style={{
@@ -211,7 +211,7 @@ export default function InstalacionNintendo() {
             }}
           >
             <img src={igLogo} alt="Instagram" style={{ width: 26, height: 26, objectFit: "contain", borderRadius: 6 }} />
-            <span>Instagram (@pandastoregaming.cl)</span>
+            <span>Instagram (@panda_storegamingcl)</span>
           </a>
         </div>
       </footer>

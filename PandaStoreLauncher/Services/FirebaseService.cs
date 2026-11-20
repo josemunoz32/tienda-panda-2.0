@@ -626,6 +626,7 @@ namespace PandaStoreLauncher.Services
 
                             if (!hasMissingAuthorized)
                             {
+                                MergeTorrentGames(rawCached);
                                 return rawCached;
                             }
                         }
@@ -841,7 +842,70 @@ namespace PandaStoreLauncher.Services
                 }
             });
 
+            MergeTorrentGames(gamesList);
             return gamesList;
+        }
+
+        private static void MergeTorrentGames(List<GameModel> list)
+        {
+            if (list == null) return;
+
+            string baseProjectDir = @"C:\Users\Usuario\proyectopandastore20\juegos_torrent";
+            string localDir = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "juegos_torrent");
+            string torrentDir = System.IO.Directory.Exists(baseProjectDir) ? baseProjectDir : localDir;
+
+            string fh5Torrent = System.IO.Path.Combine(torrentDir, "For5zaHo5riz5on5UE-1.688.109.torrent");
+            string fh6Torrent = System.IO.Path.Combine(torrentDir, "forzahorizon6-pe1778859852461.torrent");
+
+            // 1. Forza Horizon 5 (Ultimate / Premium Edition)
+            var existingFh5 = list.FirstOrDefault(g => g.AppId == "1551360" || g.Name.Contains("Forza Horizon 5", StringComparison.OrdinalIgnoreCase));
+            if (existingFh5 != null)
+            {
+                list.Remove(existingFh5);
+            }
+            else
+            {
+                existingFh5 = new GameModel
+                {
+                    AppId = "1551360",
+                    Name = "Forza Horizon 5 Premium Edition",
+                    SteamFolderName = "ForzaHorizon5",
+                    Category = "Carreras / Conducción"
+                };
+            }
+            existingFh5.Name = "Forza Horizon 5 Premium Edition";
+            existingFh5.IsTorrentGame = true;
+            existingFh5.IsAuthorizedForClient = true;
+            existingFh5.TorrentFilePath = System.IO.File.Exists(fh5Torrent) ? fh5Torrent : "";
+            existingFh5.TargetExecutable = "ForzaHorizon5.exe";
+            existingFh5.CustomImageUrl = "https://cdn.cloudflare.steamstatic.com/steam/apps/1551360/header.jpg";
+
+            // 2. Forza Horizon 6 (Premium Edition)
+            var existingFh6 = list.FirstOrDefault(g => g.AppId == "forza_horizon_6" || g.AppId == "2483190" || g.Name.Contains("Forza Horizon 6", StringComparison.OrdinalIgnoreCase));
+            if (existingFh6 != null)
+            {
+                list.Remove(existingFh6);
+            }
+            else
+            {
+                existingFh6 = new GameModel
+                {
+                    AppId = "forza_horizon_6",
+                    Name = "Forza Horizon 6 Premium Edition",
+                    SteamFolderName = "ForzaHorizon6",
+                    Category = "Carreras / Conducción"
+                };
+            }
+            existingFh6.Name = "Forza Horizon 6 Premium Edition";
+            existingFh6.IsTorrentGame = true;
+            existingFh6.IsAuthorizedForClient = true;
+            existingFh6.TorrentFilePath = System.IO.File.Exists(fh6Torrent) ? fh6Torrent : "";
+            existingFh6.TargetExecutable = "ForzaHorizon6.exe";
+            existingFh6.CustomImageUrl = "https://cdn.cloudflare.steamstatic.com/steam/apps/1551360/header.jpg";
+
+            // Insert BOTH at the very top of the list
+            list.Insert(0, existingFh5);
+            list.Insert(0, existingFh6);
         }
 
         public class UpdateCheckResult

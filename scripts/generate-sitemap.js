@@ -1,20 +1,37 @@
+/**
+ * generate-sitemap.js — `npm run sitemap`
+ * Genera public/sitemap.xml con las páginas estáticas, todas las categorías y TODO el catálogo de
+ * productos de Firestore (paginado: la API REST devuelve máximo 300 documentos por página).
+ * Las URLs usan el mismo slug que src/utils/slugify.js para coincidir con los enlaces del sitio.
+ */
 const fs = require('fs');
 const https = require('https');
 
 const PROJECT_ID = 'pandastoreupdate';
-const URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/products`;
+const API = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 const SITEMAP_PATH = './public/sitemap.xml';
 const SITE_URL = 'https://pandastoregaming.cl';
 
-async function fetchProducts() {
+// Copia de slugify() en src/utils/slugify.js (este script corre en Node, fuera del bundle)
+function slugify(str) {
+  return (str || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+
+function getJson(url) {
   return new Promise((resolve, reject) => {
-    https.get(URL, (res) => {
+    https.get(url, (res) => {
       let data = '';
-      res.on('data', chunk => data += chunk);
+      res.on('data', (chunk) => (data += chunk));
       res.on('end', () => {
         try {
-          const json = JSON.parse(data);
-          resolve(json.documents || []);
+          resolve(JSON.parse(data));
         } catch (e) {
           reject(e);
         }
@@ -23,130 +40,83 @@ async function fetchProducts() {
   });
 }
 
+async function fetchAll(collection) {
+  const docs = [];
+  let pageToken = '';
+  do {
+    const json = await getJson(`${API}/${collection}?pageSize=300${pageToken ? `&pageToken=${pageToken}` : ''}`);
+    docs.push(...(json.documents || []));
+    pageToken = json.nextPageToken || '';
+  } while (pageToken);
+  return docs;
+}
+
+const escapeXml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+function urlEntry(path, { lastmod, changefreq, priority }) {
+  return [
+    '  <url>',
+    `    <loc>${escapeXml(SITE_URL + path)}</loc>`,
+    lastmod ? `    <lastmod>${lastmod}</lastmod>` : null,
+    changefreq ? `    <changefreq>${changefreq}</changefreq>` : null,
+    priority ? `    <priority>${priority}</priority>` : null,
+    '  </url>',
+  ].filter(Boolean).join('\n');
+}
+
+// Páginas estáticas indexables (sin redirecciones ni rutas privadas bloqueadas en robots.txt)
+const STATIC_PAGES = [
+  ['/', 'daily', '1.0'],
+  ['/promos', 'daily', '0.9'],
+  ['/sagas', 'daily', '0.9'],
+  ['/packs-nintendo', 'daily', '0.9'],
+  ['/desarrollo-web', 'weekly', '0.9'],
+  ['/descargar-launcher', 'weekly', '0.85'],
+  ['/productos', 'daily', '0.85'],
+  ['/categorias', 'weekly', '0.8'],
+  ['/instalacion-nintendo', 'weekly', '0.8'],
+  ['/instalacion-playstation', 'weekly', '0.8'],
+  ['/preguntas-frecuentes', 'weekly', '0.8'],
+  ['/testimonios', 'weekly', '0.8'],
+  ['/provedores', 'weekly', '0.7'],
+  ['/sobre-nosotros', 'monthly', '0.6'],
+  ['/terminos', 'monthly', '0.5'],
+];
+
 async function generateSitemap() {
   console.log('Generando sitemap...');
   try {
-    const products = await fetchProducts();
-    
+    const [products, categories] = await Promise.all([fetchAll('products'), fetchAll('categories')]);
     const today = new Date().toISOString().slice(0, 10);
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Rutas Estáticas y Categorías Principales -->
-  <url>
-    <loc>https://pandastoregaming.cl/</loc>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://pandastoregaming.cl/categoria/steam</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.95</priority>
-  </url>
-  <url>
-    <loc>https://pandastoregaming.cl/categoria/nintendo-switch</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.95</priority>
-  </url>
-  <url>
-    <loc>https://pandastoregaming.cl/categoria/playstation</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.95</priority>
-  </url>
-  <url>
-    <loc>https://pandastoregaming.cl/categoria/suscripciones</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://pandastoregaming.cl/promos</loc>
-  </url>
-  <url>
-    <loc>https://pandastoregaming.cl/sagas</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://pandastoregaming.cl/packs-nintendo</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://pandastoregaming.cl/descargar-launcher</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://pandastoregaming.cl/instalacion-activador</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://pandastoregaming.cl/instalacion-nintendo</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pandastoregaming.cl/instalacion-playstation</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pandastoregaming.cl/preguntas-frecuentes</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pandastoregaming.cl/testimonios</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pandastoregaming.cl/categorias</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://pandastoregaming.cl/productos</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://pandastoregaming.cl/sobre-nosotros</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://pandastoregaming.cl/terminos</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <!-- Fin Rutas Principales -->
+    const entries = [];
 
-  <!-- Rutas de Productos Dinámicas -->
-`;
+    STATIC_PAGES.forEach(([path, changefreq, priority]) => entries.push(urlEntry(path, { lastmod: today, changefreq, priority })));
 
-    products.forEach(doc => {
-      const docPath = doc.name.split('/');
-      const productId = docPath[docPath.length - 1];
-      
-      const name = doc.fields?.name?.stringValue || productId;
-      const slug = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
-      const lastmod = doc.updateTime ? String(doc.updateTime).slice(0, 10) : today;
-      xml += `  <url>
-    <loc>${SITE_URL}/producto/${slug}--${productId}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>\n`;
+    const categoryPaths = new Set();
+    categories.forEach((doc) => {
+      const name = doc.fields?.name?.stringValue;
+      const slug = slugify(name);
+      if (!slug || categoryPaths.has(slug)) return;
+      categoryPaths.add(slug);
+      entries.push(urlEntry(`/categoria/${slug}`, { lastmod: today, changefreq: 'daily', priority: '0.95' }));
     });
 
-    xml += `</urlset>`;
+    let productCount = 0;
+    products.forEach((doc) => {
+      const productId = doc.name.split('/').pop();
+      const name = doc.fields?.name?.stringValue || productId;
+      const slug = slugify(name);
+      const lastmod = doc.updateTime ? String(doc.updateTime).slice(0, 10) : today;
+      entries.push(urlEntry(`/producto/${slug}--${productId}`, { lastmod, changefreq: 'weekly', priority: '0.8' }));
+      productCount++;
+    });
 
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.join('\n')}\n</urlset>\n`;
     fs.writeFileSync(SITEMAP_PATH, xml, 'utf8');
-    console.log(`✅ Sitemap generado con éxito en ${SITEMAP_PATH} con ${products.length} productos.`);
+    console.log(`✅ Sitemap generado en ${SITEMAP_PATH}: ${STATIC_PAGES.length} páginas, ${categoryPaths.size} categorías y ${productCount} productos.`);
   } catch (error) {
     console.error('❌ Error al generar el sitemap:', error);
+    process.exitCode = 1;
   }
 }
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../../firebaseDb";
 import { DEFAULT_PAYMENT_SETTINGS, normalizePaymentSettings, PAYMENT_SETTINGS_DOC } from "../../utils/paymentMethods";
 import "./AdminMetodosPago.css";
 

@@ -326,10 +326,31 @@ const ONLINE_ONLY_KEYWORDS = [
  * Retorna true si un producto o juego es 100% online con servidores obligatorios
  * y por tanto NO es compatible con el modo historia/campaña offline ni con las promociones.
  */
+// Versiones que no son un juego vendible: betas, demos, pruebas, servidores, benchmarks y los
+// "modos" sueltos (Multiplayer, OSX) que Steam publica como apps aparte del juego completo.
+const NON_SELLABLE_STEAM_RE = /\b(beta|betas|playtest|demo|tech demo|test server|public test|public testing|benchmark|dedicated server|prologue)\b|[-–]\s*multiplayer\b|[-–]\s*osx\b/i;
+// Call of Duty que sí se venden: solo los viejos (hasta 2009). Cualquier otro CoD queda fuera.
+const ALLOWED_COD_KEYS = new Set([
+  'call of duty 2003', 'call of duty 2', 'call of duty 2 2005', 'call of duty united offensive', 'call of duty united offensive 2004',
+  'call of duty 4 modern warfare', 'call of duty 4 modern warfare 2007', 'call of duty world at war', 'call of duty world at war 2008',
+  'call of duty modern warfare remastered', 'call of duty modern warfare remastered 2017',
+  'call of duty modern warfare 2', 'call of duty modern warfare 2 2009',
+].map((n) => n.replace(/[^a-z0-9]/g, '')));
+
+export function isNonSellableSteamTitle(name) {
+  return NON_SELLABLE_STEAM_RE.test(String(name || ''));
+}
+
 export function isOnlineOnlySteamProduct(product) {
   if (!product) return false;
   const appId = String(product.app_id || product.appId || product.steamAppId || (String(product.id || '').startsWith('ryuu_') ? product.id.replace('ryuu_', '') : '')).trim();
   const rawName = (product.name || product.title || '').toLowerCase().trim();
+  // Betas, demos y pruebas nunca se venden (no son el juego completo)
+  if (isNonSellableSteamTitle(rawName)) return true;
+  // Call of Duty: solo los antiguos del catálogo propio; ningún CoD nuevo se vende
+  if (rawName.includes('call of duty') && !ALLOWED_COD_KEYS.has(rawName.replace(/[^a-z0-9]/g, ''))) return true;
+  // Entradas fantasma (no existen en la tienda de Steam ni tienen portada): 7950 = CoD 4 duplicado
+  if (appId === '7950') return true;
 
   // 1. Excepciones explícitas de campañas offline individuales permitidas
   if (

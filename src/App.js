@@ -1,7 +1,6 @@
 import React, { useEffect, useState, lazy, Suspense } from "react";
 import { useLocation } from 'react-router-dom';
 import { HelmetProvider, Helmet } from 'react-helmet-async';
-import nuevoFondo from "./assets/halloween/fondo-halloween.webp";
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
@@ -11,6 +10,7 @@ import WhatsappButton from './components/WhatsappButton';
 import InstagramFloatingBadge from './components/InstagramFloatingBadge/InstagramFloatingBadge';
 import CookieBanner from './components/CookieBanner/CookieBanner';
 import { auth } from './firebase';
+import { loadFirestore } from './firestoreLazy';
 import usePresence from './utils/usePresence';
 import { trackPageView } from './utils/analytics';
 import { captureReferralFromUrl } from './utils/referralHelper';
@@ -25,6 +25,10 @@ const Registro = lazy(() => import('./pages/Registro/Registro'));
 const IniciarSesion = lazy(() => import('./pages/IniciarSesion/IniciarSesion'));
 const Perfil = lazy(() => import('./pages/Perfil/Perfil'));
 const CategoriaPage = lazy(() => import('./pages/Categorias/CategoriaPage'));
+const SeoLanding = lazy(() => import('./pages/Seo/SeoPages').then((m) => ({ default: m.SeoLanding })));
+const SeoHub = lazy(() => import('./pages/Seo/SeoPages').then((m) => ({ default: m.SeoHub })));
+const GuiasHub = lazy(() => import('./pages/Seo/SeoPages').then((m) => ({ default: m.GuiasHub })));
+const GuiaPage = lazy(() => import('./pages/Seo/SeoPages').then((m) => ({ default: m.GuiaPage })));
 const CategoriasList = lazy(() => import('./pages/Categorias/CategoriasList'));
 const ProductosList = lazy(() => import('./pages/Productos/ProductosList'));
 const ProductDetail = lazy(() => import('./pages/Productos/ProductDetail'));
@@ -57,25 +61,57 @@ const AdminPreguntas = lazy(() => import('./pages/Admin/AdminPreguntas'));
 const AdminSoporte = lazy(() => import('./pages/Admin/AdminSoporte'));
 const AdminUserActivity = lazy(() => import('./pages/Admin/AdminUserActivity'));
 const AdminExportEmails = lazy(() => import('./pages/Admin/AdminExportEmails'));
-const AdminAutoImport = lazy(() => import('./pages/Admin/AdminAutoImport'));
 const AdminCupones = lazy(() => import('./pages/Admin/AdminCupones'));
 const AdminCorreos = lazy(() => import('./pages/Admin/AdminCorreos'));
 const AdminArmarPack = lazy(() => import('./pages/Admin/AdminArmarPack'));
 const AdminLicencias = lazy(() => import('./pages/Admin/AdminLicencias'));
 const AdminRevendedores = lazy(() => import('./pages/Admin/AdminRevendedores'));
 const AdminDistribuidores = lazy(() => import('./pages/Admin/AdminDistribuidores'));
-const AdminJuegosSinPublicar = lazy(() => import('./pages/Admin/AdminJuegosSinPublicar'));
 const AdminMetodosPago = lazy(() => import('./pages/Admin/AdminMetodosPago'));
+const AdminDesarrolloWeb = lazy(() => import('./pages/Admin/AdminDesarrolloWeb'));
+const AdminTelegramPosts = lazy(() => import('./pages/Admin/AdminTelegramPosts'));
 const PortalDistribuidor = lazy(() => import('./pages/PortalDistribuidor/PortalDistribuidor'));
 const CustomPackDetail = lazy(() => import('./pages/Packs/CustomPackDetail'));
 const LauncherDownloadPage = lazy(() => import('./pages/Info/LauncherDownloadPage'));
 const MiRutinaPage = lazy(() => import('./pages/Fitness/MiRutinaPage'));
 
+// Fondo servido desde /public y precargado en index.html (candidato a LCP)
+const nuevoFondo = "/fondo-navidad-pandastore.webp";
 const MOBILE_LAYOUT_BREAKPOINT = 700;
 const VIEWPORT_MODE_STORAGE_KEY = 'pandaViewportMode';
 
 // Fallback de carga elegante
 const PageFallback = () => <Loader text="Cargando..." subtext="PandaStore" fullScreen={true} />;
+
+const SNOWFLAKES = Array.from({ length: 36 }, (_, index) => ({
+  id: index,
+  left: `${(index * 37) % 100}%`,
+  delay: `${-(index % 12) * 0.9}s`,
+  duration: `${8 + (index % 7)}s`,
+  size: `${3 + (index % 5)}px`,
+  drift: `${index % 2 === 0 ? 24 : -24}px`,
+}));
+
+function ChristmasSnowfall() {
+  return (
+    <div className="christmas-snowfall" aria-hidden="true">
+      {SNOWFLAKES.map((flake) => (
+        <span
+          key={flake.id}
+          className="christmas-snowflake"
+          style={{
+            left: flake.left,
+            width: flake.size,
+            height: flake.size,
+            animationDelay: flake.delay,
+            animationDuration: flake.duration,
+            '--snow-drift': flake.drift,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 function ScrollToTop({ userId, authLoading }) {
   const { pathname } = useLocation();
@@ -92,6 +128,25 @@ function ScrollToTop({ userId, authLoading }) {
 function LivePresence() {
   const { pathname } = useLocation();
   usePresence(pathname);
+  return null;
+}
+
+// El fondo fijo (#app-bg) y la copia del banner (#app-shell-banner) viven en index.html para
+// pintarse en el primer frame (LCP). Solo el layout principal los muestra; las rutas con layout
+// propio los ocultan.
+const STATIC_SHELL_IDS = ['app-bg', 'app-shell-banner'];
+function MainLayoutBackground() {
+  useEffect(() => {
+    const els = STATIC_SHELL_IDS.map((id) => document.getElementById(id)).filter(Boolean);
+    els.forEach((el) => {
+      el.hidden = false;
+      el.dataset.mainLayout = 'true';
+    });
+    return () => els.forEach((el) => {
+      el.hidden = true;
+      delete el.dataset.mainLayout;
+    });
+  }, []);
   return null;
 }
 
@@ -169,8 +224,7 @@ function App() {
       setUser(u);
       if (u) {
         try {
-          const { getDoc, doc } = await import("firebase/firestore");
-          const { db } = await import("./firebase");
+          const { getDoc, doc, db } = await loadFirestore();
           let userDoc;
           try {
             userDoc = await getDoc(doc(db, "users", u.uid));
@@ -193,6 +247,15 @@ function App() {
     };
   }, []);
 
+
+  // Si la primera ruta no es del layout principal, MainLayoutBackground no montó: ocultar fondo y banner.
+  // (Los efectos de los hijos corren antes que este, así que la marca ya está puesta si corresponde.)
+  useEffect(() => {
+    STATIC_SHELL_IDS.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el && !el.dataset.mainLayout) el.hidden = true;
+    });
+  }, []);
 
   useEffect(() => {
     const root = document.getElementById('root');
@@ -290,6 +353,7 @@ function App() {
 
         <LivePresence />
         <ScrollToTop userId={user?.uid} authLoading={authLoading} />
+        <ChristmasSnowfall />
         <ErrorBoundary>
           <Suspense fallback={<PageFallback />}>
             <Routes>
@@ -309,13 +373,13 @@ function App() {
               <Route path="soporte" element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="actividad" element={<AdminUserActivity user={user} role={role} />} />
               <Route path="exportar-correos" element={<Navigate to="/admin/correos" replace />} />
-              <Route path="auto-import" element={<AdminAutoImport />} />
               <Route path="armar-pack" element={<AdminArmarPack />} />
               <Route path="licencias" element={<AdminLicencias />} />
               <Route path="revendedores" element={<AdminRevendedores user={user} role={role} />} />
               <Route path="distribuidores" element={<AdminDistribuidores user={user} role={role} />} />
-              <Route path="juegos-sin-publicar" element={<AdminJuegosSinPublicar />} />
               <Route path="metodos-pago" element={<AdminMetodosPago />} />
+              <Route path="desarrollo-web" element={<AdminDesarrolloWeb user={user} role={role} />} />
+              <Route path="telegram-posts" element={<AdminTelegramPosts user={user} role={role} />} />
             </Route>
             
             {/* Rutas Privadas de Entrenamiento PandaFit (URL Oculta) */}
@@ -323,34 +387,19 @@ function App() {
             <Route path="/rutina-gym" element={<MiRutinaPage />} />
             <Route path="/pandafit" element={<MiRutinaPage />} />
 
-            {/* Rutas Exclusivas de Desarrollo Web & E-Commerce (Layout independiente sin logos de juegos) */}
-            <Route path="/pandastoredesarrollo" element={<DesarrolloWeb mode="onepage" />} />
-            <Route path="/desarrollo-web" element={<DesarrolloWeb mode="onepage" />} />
-            <Route path="/desarrollo-web/onepage" element={<DesarrolloWeb mode="onepage" />} />
-            <Route path="/onepage" element={<DesarrolloWeb mode="onepage" />} />
-            <Route path="/ecommerce" element={<DesarrolloWeb mode="ecommerce" />} />
-            <Route path="/desarrollo-web/ecommerce" element={<DesarrolloWeb mode="ecommerce" />} />
-            <Route path="/pandastoreecommerce" element={<DesarrolloWeb mode="ecommerce" />} />
+            {/* Rutas Exclusivas de Desarrollo Web (Centralizadas en un único servicio por suscripción mensual) */}
+            <Route path="/pandastoredesarrollo" element={<DesarrolloWeb />} />
+            <Route path="/desarrollo-web" element={<DesarrolloWeb />} />
+            <Route path="/desarrollo-web/onepage" element={<Navigate to="/desarrollo-web" replace />} />
+            <Route path="/onepage" element={<Navigate to="/desarrollo-web" replace />} />
+            <Route path="/ecommerce" element={<Navigate to="/desarrollo-web" replace />} />
+            <Route path="/desarrollo-web/ecommerce" element={<Navigate to="/desarrollo-web" replace />} />
+            <Route path="/pandastoreecommerce" element={<Navigate to="/desarrollo-web" replace />} />
 
             {/* Todas las demás rutas con Header/Footer */}
             <Route path="*" element={
               <>
-                <div
-                  aria-hidden="true"
-                  style={{
-                    position: 'fixed',
-                    inset: 0,
-                    width: '100%',
-                    maxWidth: '100%',
-                    zIndex: 0,
-                    pointerEvents: 'none',
-                    backgroundImage: `url("${nuevoFondo}")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center top',
-                    backgroundColor: '#120526'
-                  }}
-                />
+                <MainLayoutBackground />
                 <div
                   className="main-bg-container"
                   style={{
@@ -370,6 +419,10 @@ function App() {
                         <Route path="/categorias" element={<CategoriasList />} />
                         <Route path="/productos" element={<ProductosList />} />
                         <Route path="/categoria/:id" element={<CategoriaPage />} />
+                        <Route path="/juegos" element={<SeoHub />} />
+                        <Route path="/juegos/:slug" element={<SeoLanding />} />
+                        <Route path="/guias" element={<GuiasHub />} />
+                        <Route path="/guias/:slug" element={<GuiaPage />} />
                         <Route path="/testimonios" element={<TestimoniosPage />} />
                         <Route path="/producto/:id" element={<ProductDetail />} />
                         <Route path="/preguntas-frecuentes" element={<FAQ />} />

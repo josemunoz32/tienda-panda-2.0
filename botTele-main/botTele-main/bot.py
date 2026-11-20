@@ -3,6 +3,7 @@ import re
 import asyncio
 import json
 import os
+import html
 import urllib.parse
 from datetime import datetime
 
@@ -43,17 +44,16 @@ cargar_env()
 
 TOKEN = os.getenv("TELEGRAM_TOKEN", "")
 CANAL_PUBLICO_ID = int(os.getenv("CANAL_PUBLICO_ID", os.getenv("CANAL_ID", "-1001553070593")))
-CANAL_REVENDEDORES_ID = int(os.getenv("CANAL_REVENDEDORES_ID", "0"))
 ADMIN_ID = int(os.getenv("ADMIN_ID", "5158777962"))
 
-MARGEN_PUBLICO = int(os.getenv("MARGEN_PUBLICO", "13000"))
+MARGEN_PUBLICO = int(os.getenv("MARGEN_PUBLICO", "10000"))
 MARGEN_REVENDEDOR = int(os.getenv("MARGEN_REVENDEDOR", "6000"))
 
 FIREBASE_KEY_PATH = os.getenv("FIREBASE_KEY_PATH", r"C:\Users\Usuario\proyectopandastore20\chatbot\firebase-key.json")
 TELEGRAM_CONTACT = os.getenv("TELEGRAM_CONTACT", "NintendoChile2")
-INSTAGRAM_URL = os.getenv("INSTAGRAM_URL", "https://www.instagram.com/juegos_nintendo_switch_chile")
+INSTAGRAM_URL = os.getenv("INSTAGRAM_URL", "https://www.instagram.com/panda_storegamingcl/")
 
-WEBSITE_URL = os.getenv("WEBSITE_URL", "https://pandastoreupdate.web.app")
+WEBSITE_URL = os.getenv("WEBSITE_URL", "https://pandastoregaming.cl")
 TESTIMONIOS_URL = f"{WEBSITE_URL}/testimonios"
 PROMOS_URL = f"{WEBSITE_URL}/promos"
 GUIA_INSTALL_URL = f"{WEBSITE_URL}/instalacion-nintendo"
@@ -139,13 +139,12 @@ def cargar_registro_publicados() -> dict:
             return {}
     return {}
 
-def guardar_registro_publicado(id_pack: str, msg_id_pub: int, msg_id_rev: int = None, datos_pack: dict = None):
+def guardar_registro_publicado(id_pack: str, msg_id_pub: int, datos_pack: dict = None):
     reg = cargar_registro_publicados()
     if datos_pack:
         datos_pack["huella"] = calcular_huella_pack(datos_pack)
     reg[id_pack] = {
         "msg_id_publico": msg_id_pub,
-        "msg_id_revendedor": msg_id_rev,
         "fecha": datetime.now().isoformat(),
         "pack": datos_pack or {}
     }
@@ -246,6 +245,8 @@ def guardar_pack_firestore(pack: dict, telegram_msg_id=None):
             "precio_usdt": pack.get("precio_usdt", 0),
             "horario_limitado": pack.get("horario_limitado", False),
             "disponible": True,
+            "huella": pack.get("huella", ""),
+            "fecha_creacion": firestore.SERVER_TIMESTAMP,
             "timestamp": firestore.SERVER_TIMESTAMP,
         }
         if telegram_msg_id is not None:
@@ -285,7 +286,79 @@ def calcular_precios_revendedor(precio_usd: int):
 def calcular_precios(precio_usd: int):
     return calcular_precios_publico(precio_usd)
 
-# ================= PARSERS =================
+# ================= PARSERS Y FILTRO DE JUEGOS =================
+FREE_GAMES_AND_APPS = {
+    "youtube", "twitch", "hulu", "crunchyroll", "funimation", "nintendo switch online",
+    "pokemon home", "pokémon home", "jump rope challenge",
+    "fortnite", "fall guys", "rocket league", "apex legends", "overwatch 2",
+    "warframe", "paladins", "smite", "brawlhalla", "yu-gi-oh! master duel",
+    "pokemon unite", "pokémon unite", "pokemon cafe", "pokémon café",
+    "pokemon cafe remix", "pokémon café remix", "pokemon quest", "pokémon quest",
+    "super kirby clash", "tetris 99", "f-zero 99", "pac-man 99",
+    "super animal royale", "asphalt 9", "asphalt 9: legends", "asphalt legends unite",
+    "dauntless", "sky: children of the light", "palia", "disney speedstorm",
+    "my hero ultra rumble", "star wars: hunters", "the elder scrolls: blades",
+    "trove", "dc universe online", "realm royale", "rogue company",
+    "world of tanks blitz", "super mario bros. 35", "deltarune chapter 1",
+    "capcom arcade stadium", "capcom arcade 2nd stadium",
+}
+
+def limpiar_nombre_juego(raw_name: str) -> str:
+    name = str(raw_name or "").strip()
+    name = re.sub(r"\[\s*\d+(?:[.,]\d+)?\s*(?:GB|MB|TB|KB)\s*\]", "", name, flags=re.IGNORECASE)
+    name = re.sub(r"\(\s*\d+(?:[.,]\d+)?\s*(?:GB|MB|TB|KB)\s*\)", "", name, flags=re.IGNORECASE)
+    name = re.sub(r"\s*[-–|]?\s*\b\d+(?:[.,]\d+)?\s*(?:GB|MB|TB)\b\s*$", "", name, flags=re.IGNORECASE)
+    return re.sub(r"\s{2,}", " ", name).strip()
+
+def es_juego_no_deseado(raw_or_cleaned_name: str) -> bool:
+    txt = str(raw_or_cleaned_name or "").strip()
+    if len(txt) < 2:
+        return True
+    if re.search(r"\[\s*DLC\s+Only\s*\]|\(\s*DLC\s+Only\s*\)", txt, re.IGNORECASE):
+        return True
+    patrones_excluidos = (
+        r"\b(?:open|closed)?\s*beta(?:\s+(?:test|ver\.?|version))?\b",
+        r"\bnetwork\s+test(?:\s+ver\.?)?\b",
+        r"\bplaytest(?:\s+program)?\b",
+        r"\b(?:server|stress|technical)\s+test\b",
+        r"\b(?:open\s+|closed\s+)?alpha(?:\s+test)?\b",
+        r"\bdemo(?:\s+(?:version|ver\.?|edition))?\b",
+        r"\bfriend(?:'s)?\s+pass\b",
+        r"\b(?:free\s+trial|game\s+trial)\b",
+        r"[-–(\[]\s*trial\b",
+        r"\btrial\s+(?:version|ver\.?|pass|&)",
+        r"\b(?:versi[oó]n|edici[oó]n)\s+de\s+prueba\b",
+        r"\bprueba\s+gratuita\b",
+        r"\b(?:free[\s-]to[\s-]play|free\s+version|starter\s+pack|starter\s+edition|lite\s+version)\b",
+        r"\bgratis\b",
+    )
+    if any(re.search(p, txt, re.IGNORECASE) for p in patrones_excluidos):
+        return True
+    normalized_base = re.sub(r"\s*\+\s*dlc\b.*$", "", txt.lower(), flags=re.IGNORECASE)
+    normalized_base = re.sub(r"\s*(?:™|®)", "", normalized_base)
+    normalized_base = re.sub(r"\s{2,}", " ", normalized_base).strip()
+    if normalized_base in FREE_GAMES_AND_APPS:
+        return True
+    if re.search(r"nintendo switch online:\s*playtest", txt, re.IGNORECASE):
+        return True
+    return False
+
+def limpiar_y_filtrar_juegos(lista):
+    seen = set()
+    resultado = []
+    for item in (lista or []):
+        if es_juego_no_deseado(item):
+            continue
+        limpio = limpiar_nombre_juego(item)
+        if not limpio or es_juego_no_deseado(limpio):
+            continue
+        key = limpio.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        resultado.append(limpio)
+    return resultado
+
 def parsear_tipo1(texto: str):
     lineas = texto.strip().splitlines()
     if not lineas or "---- List Game ----" not in texto:
@@ -294,7 +367,7 @@ def parsear_tipo1(texto: str):
     match_juegos = re.search(r"---- List Game ----(.*?)----End Game List ----", texto, re.S)
     if not match_juegos:
         return None
-    juegos = [j.strip() for j in match_juegos.group(1).splitlines() if j.strip()]
+    juegos = limpiar_y_filtrar_juegos([j.strip() for j in match_juegos.group(1).splitlines() if j.strip()])
     if len(juegos) < 1:
         return None
     match_precio = re.search(r"Price\s*:\s*(\d+)\$", texto)
@@ -329,7 +402,7 @@ def parsear_tipo2(texto: str):
         return None
     precio_usd = int(match_precio.group(1))
     precio_clp, precio_usdt = calcular_precios(precio_usd)
-    juegos = []
+    juegos_raw = []
     en_lista = False
     for linea in texto.splitlines():
         if "==============Transaction" in linea:
@@ -340,7 +413,8 @@ def parsear_tipo2(texto: str):
         if en_lista:
             linea_limpia = linea.strip()
             if linea_limpia and "no games found" not in linea_limpia.lower():
-                juegos.append(linea_limpia)
+                juegos_raw.append(linea_limpia)
+    juegos = limpiar_y_filtrar_juegos(juegos_raw)
     if len(juegos) < 1:
         return None
     return {
@@ -384,11 +458,12 @@ def parsear_tipo3(texto: str):
     else:
         return None
 
-    juegos = [
+    juegos_raw = [
         linea.strip()
         for linea in secciones[2].splitlines()
         if linea.strip() and not linea.strip().startswith(('ID:', 'Child:', 'Balance:', 'Gold points:', 'CC:', 'Orders:', 'Devices:', 'Country:', 'Active Plan:', 'Game Voucher:'))
     ]
+    juegos = limpiar_y_filtrar_juegos(juegos_raw)
     if not juegos:
         return None
     match_precio = re.search(r'💰\s*PRECIO:\s*([\d.]+)\s*USDT', secciones[3], re.IGNORECASE)
@@ -422,8 +497,8 @@ def parsear_tipo4(texto: str):
     match_juegos = re.search(r"---- List Game ----(.*?)----End Game List ----", texto, re.S)
     if not match_juegos:
         return None
-    juegos = [j.strip() for j in match_juegos.group(1).splitlines() if j.strip()]
-    if len(juegos) < 3:
+    juegos = limpiar_y_filtrar_juegos([j.strip() for j in match_juegos.group(1).splitlines() if j.strip()])
+    if len(juegos) < 2:
         return None
     match_precio = re.search(r"Price\s*:\s*(\d+)\$", texto)
     if not match_precio:
@@ -462,21 +537,22 @@ def parsear_tipo5(texto: str):
             return None
 
     # Extracción de lista de juegos
-    juegos = []
+    juegos_raw = []
     barras = re.split(r"[━]{10,}", texto)
     if len(barras) >= 4:
         for linea in barras[2].splitlines():
-            linea_limpia = re.sub(r"\[\s*\d+(?:\.\d+)?\s*GB\s*\]", "", linea, flags=re.IGNORECASE).strip()
+            linea_limpia = linea.strip()
             if linea_limpia and not linea_limpia.lower().startswith("game voucher"):
-                juegos.append(linea_limpia)
+                juegos_raw.append(linea_limpia)
     else:
         match_games = re.search(r"(?:Game Voucher:[^\n]*[\r\n]+|[━]{10,}[\r\n]+)(.*?)(?=\n[━]{10,}|\n💰|\nPRECIO:)", texto, re.S | re.IGNORECASE)
         if match_games:
             for linea in match_games.group(1).splitlines():
-                linea_limpia = re.sub(r"\[\s*\d+(?:\.\d+)?\s*GB\s*\]", "", linea, flags=re.IGNORECASE).strip()
+                linea_limpia = linea.strip()
                 if linea_limpia and not re.match(r"^(Child:|Devices:|CC:|Active Plan:|Game Voucher:|Balance:|Gold points:|Orders:|Country:)", linea_limpia, re.IGNORECASE):
-                    juegos.append(linea_limpia)
+                    juegos_raw.append(linea_limpia)
 
+    juegos = limpiar_y_filtrar_juegos(juegos_raw)
     if not juegos:
         return None
 
@@ -507,57 +583,52 @@ def parsear_tipo5(texto: str):
     }
 
 # ================= CONSTRUCCIÓN DE MENSAJES =================
-def construir_mensaje_pack(pack: dict, es_revendedor: bool = False, bot_username: str = "PandaStoreBot"):
+def construir_mensaje_pack(pack: dict, bot_username: str = "ninte2Bot"):
     precio_usd = pack.get("precio_usd", 0)
     id_str = pack.get("id_pack", "")
     id_param = id_str.replace("#", "").replace("-", "_")
 
-    if es_revendedor:
-        clp, usdt = calcular_precios_revendedor(precio_usd)
-        header = "🐼 PANDA STORE | PROVEEDOR DIRECTO 👑"
-        etiqueta_precio = f"💰 PRECIO MAYORISTA: ${clp:,} CLP | {usdt} USDT".replace(",", ".")
-        subtitulo = "Cuenta Primaria (Juega desde tu propio usuario)"
-    else:
-        clp, usdt = calcular_precios_publico(precio_usd)
-        header = "🎮 PANDA STORE • PACK NINTENDO SWITCH"
-        subtitulo = "Cuenta Primaria (Juega desde tu propio usuario)"
-        etiqueta_precio = f"💰 PRECIO: ${clp:,} CLP / {usdt} USDT".replace(",", ".")
+    clp, usdt = calcular_precios_publico(precio_usd)
+    etiqueta_precio = f"💰 <b>Precio:</b> ${clp:,} CLP · {usdt} USDT".replace(",", ".")
 
     horario = "De 12:00 a 20:00 hrs" if pack.get("horario_limitado") else "Las 24 horas"
 
+    juegos = limpiar_y_filtrar_juegos(pack.get("juegos", []))
+    if not juegos:
+        return None, None
+    mostrar_juegos = juegos[:25]
+
     mensaje = (
-        f"{header}\n"
-        f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        f"ID: {id_str}  |  {subtitulo}\n\n"
-        f"🔥 JUEGOS INCLUIDOS:\n"
+        f"🐼 <b>PANDA STORE · PACK NINTENDO SWITCH</b>\n"
+        f"<code>{html.escape(id_str)}</code>  |  Cuenta Primaria\n"
+        f"<i>Juega desde tu propio usuario</i>\n\n"
+        f"🎮 <b>Juegos incluidos ({len(juegos)}):</b>\n"
     )
 
-    juegos = pack.get("juegos", [])
-    mostrar_juegos = juegos[:25]
     for j in mostrar_juegos:
-        mensaje += f"• {j}\n"
+        mensaje += f"• {html.escape(j)}\n"
     if len(juegos) > 25:
-        mensaje += f"• ... y {len(juegos) - 25} títulos más incluidos\n"
+        mensaje += f"• <i>... y {len(juegos) - 25} títulos más incluidos</i>\n"
 
     mensaje += (
-        f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        f"\n───────────────\n"
         f"{etiqueta_precio}\n"
-        f"⏰ DISPONIBILIDAD: {horario}\n"
-        f"💳 PAGO: BancoEstado • Mercado Pago • USDT • PayPal\n"
+        f"⚡ <b>Disponibilidad:</b> {horario}\n"
+        f"💳 <b>Pago:</b> BancoEstado · Mercado Pago · USDT · PayPal"
     )
 
-    # Botones
+    # Botones limpios sin exceso de emojis
     url_comprar_bot = f"https://t.me/{bot_username}?start=buy_{id_param}"
     url_testimonios = TESTIMONIOS_URL
     url_contacto = f"https://t.me/{TELEGRAM_CONTACT}?text=Hola!%20Deseo%20comprar%20el%20{urllib.parse.quote(id_str)}"
 
     botones = [
         [
-            InlineKeyboardButton("🛒 COMPRAR PACK", url=url_comprar_bot),
-            InlineKeyboardButton("📸 VENTAS ANTERIORES", url=url_testimonios)
+            InlineKeyboardButton("Comprar Pack", url=url_comprar_bot),
+            InlineKeyboardButton("Testimonios", url=url_testimonios)
         ],
         [
-            InlineKeyboardButton("📩 CONTACTO DIRECTO", url=url_contacto)
+            InlineKeyboardButton("Contacto Directo", url=url_contacto)
         ]
     ]
 
@@ -833,10 +904,12 @@ async def enviar_canal_publico(bot, pack: dict):
     if not CANAL_PUBLICO_ID:
         return None
     bot_info = await bot.get_me()
-    msg_pub, markup_pub = construir_mensaje_pack(pack, es_revendedor=False, bot_username=bot_info.username)
+    msg_pub, markup_pub = construir_mensaje_pack(pack, bot_username=bot_info.username)
+    if not msg_pub:
+        return None
     for intento in range(3):
         try:
-            sent = await bot.send_message(chat_id=CANAL_PUBLICO_ID, text=msg_pub, reply_markup=markup_pub)
+            sent = await bot.send_message(chat_id=CANAL_PUBLICO_ID, text=msg_pub, reply_markup=markup_pub, parse_mode="HTML")
             print(f"[{datetime.now().strftime('%H:%M:%S')}] 📤 Pack {pack.get('id_pack')} publicado en CANAL PÚBLICO")
             return sent.message_id
         except RetryAfter as e:
@@ -845,25 +918,6 @@ async def enviar_canal_publico(bot, pack: dict):
         except Exception as e:
             if intento == 2:
                 print(f"⚠️ Error publicando en canal público: {e}")
-            await asyncio.sleep(0.5)
-    return None
-
-async def enviar_canal_revendedores(bot, pack: dict):
-    if not CANAL_REVENDEDORES_ID or CANAL_REVENDEDORES_ID == 0:
-        return None
-    bot_info = await bot.get_me()
-    msg_rev, markup_rev = construir_mensaje_pack(pack, es_revendedor=True, bot_username=bot_info.username)
-    for intento in range(3):
-        try:
-            sent = await bot.send_message(chat_id=CANAL_REVENDEDORES_ID, text=msg_rev, reply_markup=markup_rev)
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] 📤 Pack {pack.get('id_pack')} publicado en CANAL REVENDEDORES")
-            return sent.message_id
-        except RetryAfter as e:
-            print(f"⚠️ RateLimit (Revendedores): esperando {e.retry_after}s...")
-            await asyncio.sleep(e.retry_after + 0.5)
-        except Exception as e:
-            if intento == 2:
-                print(f"⚠️ Error publicando en canal revendedores: {e}")
             await asyncio.sleep(0.5)
     return None
 
@@ -879,18 +933,12 @@ async def worker_publicador(bot):
                 cola_packs.task_done()
                 continue
 
-            # Publicar en paralelo
-            task_pub = enviar_canal_publico(bot, pack)
-            task_rev = enviar_canal_revendedores(bot, pack)
-
-            resultados = await asyncio.gather(task_pub, task_rev, return_exceptions=True)
-
-            msg_id_pub = resultados[0] if (resultados and isinstance(resultados[0], int)) else None
-            msg_id_rev = resultados[1] if (len(resultados) > 1 and isinstance(resultados[1], int)) else None
+            # Publicar en Canal Público
+            msg_id_pub = await enviar_canal_publico(bot, pack)
 
             # Guardar en registro local
             if msg_id_pub:
-                guardar_registro_publicado(pack.get("id_pack"), msg_id_pub, msg_id_rev, pack)
+                guardar_registro_publicado(pack.get("id_pack"), msg_id_pub, pack)
 
             # Guardar en Firestore
             await asyncio.to_thread(guardar_pack_firestore, pack, msg_id_pub)

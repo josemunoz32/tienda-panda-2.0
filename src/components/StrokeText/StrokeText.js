@@ -1,12 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 import './StrokeText.css';
-
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 const DEFAULT_TEXT = 'Draw Attention';
 
@@ -14,6 +9,7 @@ const StrokeText = ({
   text = DEFAULT_TEXT,
   strokeColor = '#A78BFA',
   fillColor = '#F8FAFC',
+  festive = false,
   strokeWidth = 1.4,
   drawDuration = 1.6,
   fillDelay = 0.2,
@@ -159,8 +155,8 @@ const StrokeText = ({
     };
 
     let timeline = null;
-    let scrollTrigger = null;
     let removeHover = null;
+    let stopObserver = null;
 
     if (trigger === 'hover') {
       setEnd();
@@ -173,13 +169,38 @@ const StrokeText = ({
       removeHover = () => root.removeEventListener('pointerenter', play);
     } else {
       timeline = build();
-      if (trigger === 'scroll') {
-        scrollTrigger = ScrollTrigger.create({
-          trigger: root,
-          start: 'top 85%',
-          once: true,
-          onEnter: () => timeline?.play(0)
+      if (trigger === 'scroll' && typeof IntersectionObserver !== 'undefined') {
+        // Equivale a ScrollTrigger "top 85%" + once, sin cargar ese plugin (~40 KB).
+        const io = new IntersectionObserver(([entry]) => {
+          if (!entry.isIntersecting) return;
+          io.disconnect();
+          timeline?.play(0);
+        }, { rootMargin: '0px 0px -15% 0px' });
+        io.observe(root);
+        stopObserver = () => io.disconnect();
+      } else if (trigger === 'view' && typeof IntersectionObserver !== 'undefined') {
+        // Se dibuja una vez cada vez que entra en pantalla y luego queda estático:
+        // el loop infinito por letra saturaba el hilo principal en móviles.
+        const io = new IntersectionObserver(([entry]) => {
+          if (entry.isIntersecting) timeline?.play(0);
+          else timeline?.pause(0);
         });
+        io.observe(root);
+        stopObserver = () => io.disconnect();
+      } else if (trigger === 'loop' && typeof IntersectionObserver !== 'undefined') {
+        // El loop infinito solo corre mientras el título está en pantalla;
+        // fuera de ella mantenía el ticker de GSAP repintando el SVG sin parar.
+        let started = false;
+        const io = new IntersectionObserver(([entry]) => {
+          if (entry.isIntersecting) {
+            if (started) timeline?.resume();
+            else { started = true; timeline?.play(0); }
+          } else {
+            timeline?.pause();
+          }
+        });
+        io.observe(root);
+        stopObserver = () => io.disconnect();
       } else {
         timeline.play(0);
       }
@@ -187,7 +208,7 @@ const StrokeText = ({
 
     return () => {
       removeHover?.();
-      scrollTrigger?.kill();
+      stopObserver?.();
       timeline?.kill();
       gsap.killTweensOf(targets);
     };
@@ -204,6 +225,16 @@ const StrokeText = ({
       aria-label={String(text ?? '')}
     >
       <svg className="stroke-text__svg" viewBox={viewBox} preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        {festive && (
+          <defs>
+            <linearGradient id={wipeId + '-gold'} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#fffefa" />
+              <stop offset="34%" stopColor="#fff6dc" />
+              <stop offset="58%" stopColor="#ffda83" />
+              <stop offset="100%" stopColor="#efad55" />
+            </linearGradient>
+          </defs>
+        )}
         {fillMode === 'wipe' && box && (
           <defs>
             <clipPath id={wipeId} clipPathUnits="userSpaceOnUse">
@@ -225,7 +256,7 @@ const StrokeText = ({
           style={fontStyle}
         >
           {characters.map((char, index) => (
-            <tspan data-stroke-char key={`s-${index}`}>
+            <tspan data-stroke-char className={festive && /[0-9]/.test(char) ? 'stroke-text__digit' : undefined} key={`s-${index}`}>
               {char}
             </tspan>
           ))}
@@ -235,13 +266,13 @@ const StrokeText = ({
           className="stroke-text__fill"
           x="0"
           y="0"
-          fill={fillColor}
+          fill={festive ? `url(#${wipeId}-gold)` : fillColor}
           stroke="none"
           style={fontStyle}
           clipPath={fillMode === 'wipe' && box ? `url(#${wipeId})` : undefined}
         >
           {characters.map((char, index) => (
-            <tspan data-fill-char key={`f-${index}`}>
+            <tspan data-fill-char className={festive && /[0-9]/.test(char) ? 'stroke-text__digit' : undefined} key={`f-${index}`}>
               {char}
             </tspan>
           ))}

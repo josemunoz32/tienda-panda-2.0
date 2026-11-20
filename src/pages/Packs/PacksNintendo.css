@@ -809,12 +809,12 @@
   box-shadow: 0 6px 24px rgba(34,158,217,0.4);
 }
 
-.pn-modal-red--instagram {
+.pn-modal-red--deprecated {
   background: linear-gradient(135deg, #E1306C, #C13584, #833AB4);
   box-shadow: 0 4px 16px rgba(225,48,108,0.25);
 }
 
-.pn-modal-red--instagram:hover {
+.pn-modal-red--deprecated:hover {
   box-shadow: 0 6px 24px rgba(225,48,108,0.4);
 }
 

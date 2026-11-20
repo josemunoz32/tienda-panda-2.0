@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { AVAILABLE_TAGS } from "../../utils/productTags";
-import { db, auth, storage } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
+import { storage } from "../../firebaseServices";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, getDocs, addDoc, updateDoc, doc, getDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -297,7 +299,11 @@ export default function ProductoForm() {
         )}
         <input name="name" placeholder="Título" value={form.name} onChange={handleChange} required style={{padding:10,borderRadius:8,border:'1.5px solid #a084e8',fontSize:'1.08rem',fontWeight:500}} />
         <input name="description" placeholder="Descripción" value={form.description} onChange={handleChange} style={{padding:10,borderRadius:8,border:'1.5px solid #a084e8',fontSize:'1.08rem'}} />
-        <input name="stock" type="number" placeholder="Stock" value={form.stock} onChange={handleChange} min="0" style={{padding:10,borderRadius:8,border:'1.5px solid #a084e8',fontSize:'1.08rem'}} />
+        {/* Todo producto está siempre disponible; solo se marca agotado a mano */}
+        <label style={{display:'flex',alignItems:'center',gap:10,cursor:'pointer',padding:10,borderRadius:8,border:`1.5px solid ${form.agotado === true ? '#ef4444' : '#22c55e'}`,background: form.agotado === true ? 'rgba(239,68,68,0.10)' : 'rgba(34,197,94,0.10)',fontSize:'1.02rem',fontWeight:700}}>
+          <input type="checkbox" checked={form.agotado === true} onChange={e => setForm(f => ({ ...f, agotado: e.target.checked }))} style={{width:18,height:18,accentColor:'#ef4444'}} />
+          {form.agotado === true ? '❌ Agotado' : '✅ Disponible (siempre en stock)'}
+        </label>
 
         <select name="categoryId" value={form.categoryId} onChange={handleChange} required style={{padding:10,borderRadius:8,border:'1.5px solid #a084e8',fontSize:'1.08rem'}}>
           <option value="">Selecciona categoría</option>

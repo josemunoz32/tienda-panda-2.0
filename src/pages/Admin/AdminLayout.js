@@ -13,6 +13,7 @@ const NAV_SECTIONS = [
     items: [
       { path: "/admin/dashboard", icon: "dashboard", label: "Tablero Analítico Pro", badge: "PRO" },
       { path: "/admin/actividad", icon: "shopping_cart", label: "Carritos y Tráfico en Vivo", badge: "LIVE" },
+      { path: "/admin/desarrollo-web", icon: "language", label: "Páginas Web & Cuotas", badge: "PRO" },
     ],
   },
   {
@@ -22,8 +23,6 @@ const NAV_SECTIONS = [
     badge: "CORE",
     items: [
       { path: "/productos", icon: "storefront", label: "Catálogo de Productos" },
-      { path: "/admin/juegos-sin-publicar", icon: "sports_esports", label: "Switch: Packs & Stock", badge: "BOT" },
-      { path: "/admin/auto-import", icon: "cloud_upload", label: "Carga Masiva (Steam / PSN)" },
       { path: "/admin/armar-pack", icon: "card_giftcard", label: "Armar Pack Promos" },
     ],
   },
@@ -41,6 +40,7 @@ const NAV_SECTIONS = [
     title: "4. Ventas, B2B & Pagos",
     icon: "payments",
     items: [
+      { path: "/admin/desarrollo-web", icon: "web", label: "Suscripciones Desarrollo Web", badge: "LIVE" },
       { path: "/admin/revendedores", icon: "account_balance_wallet", label: "Revendedores & Billeteras", badge: "B2B" },
       { path: "/admin/distribuidores", icon: "hub", label: "Distribuidores Steam B2B" },
       { path: "/admin/metodos-pago", icon: "credit_card", label: "Métodos de Pago" },
@@ -55,6 +55,7 @@ const NAV_SECTIONS = [
       { path: "/admin/cupones", icon: "confirmation_number", label: "Cupones de Descuento" },
       { path: "/admin/resenas", icon: "rate_review", label: "Moderación de Reseñas" },
       { path: "/admin/correos", icon: "email", label: "Campañas de Email", badge: "MAIL" },
+      { path: "/admin/telegram-posts", icon: "send", label: "Posts Canal Telegram", badge: "BOT" },
     ],
   },
 ];

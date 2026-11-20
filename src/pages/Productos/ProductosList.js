@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { db, auth, storage } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
+import { storage } from "../../firebaseServices";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, getDocs, deleteDoc, doc, getDoc, updateDoc, addDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -40,7 +42,7 @@ export default function ProductosList() {
     priceStandardCLP: "",
     pricePrimariaCLP: "",
     priceSecundariaCLP: "",
-    stock: "",
+    agotado: false,
     plataforma: "",
   });
   const [savingQuickEdit, setSavingQuickEdit] = useState(false);
@@ -108,14 +110,14 @@ export default function ProductosList() {
     setTimeout(()=>{ setMsg(""); setMsgType(""); }, 2500);
   };
 
-  // 1-Click Stock Toggle
+  // Botón Agotado: todo producto está siempre disponible salvo que el admin lo marque agotado.
+  // Un clic lo marca agotado y otro clic lo reactiva.
   const handleToggleStock = async (prod) => {
-    const currentStock = Number(prod.stock || 0);
-    const newStock = currentStock > 0 ? 0 : 10;
+    const agotado = prod.agotado !== true;
     try {
-      await updateDoc(doc(db, "products", prod.id), { stock: newStock });
-      setProductos(prev => prev.map(p => p.id === prod.id ? { ...p, stock: newStock } : p));
-      setMsg(`Stock de "${prod.name}" a ${newStock > 0 ? 'En Stock (10)' : 'Agotado (0)'}`);
+      await updateDoc(doc(db, "products", prod.id), { agotado });
+      setProductos(prev => prev.map(p => p.id === prod.id ? { ...p, agotado } : p));
+      setMsg(agotado ? `"${prod.name}" quedó AGOTADO` : `"${prod.name}" se reactivó: disponible`);
       setMsgType("success");
     } catch (e) {
       setMsg("Error al actualizar stock");
@@ -155,7 +157,7 @@ export default function ProductosList() {
       priceCLP: prod.priceCLP ?? "",
       pricePrimariaCLP: prod.pricePrimariaCLP ?? "",
       priceSecundariaCLP: prod.priceSecundariaCLP ?? "",
-      stock: prod.stock ?? "",
+      agotado: prod.agotado === true,
       plataforma: prod.plataforma || prod.platform || "",
     });
   };
@@ -170,7 +172,7 @@ export default function ProductosList() {
       name: quickForm.name,
       categoryId: quickForm.categoryId,
       imageUrl: quickForm.imageUrl,
-      stock: quickForm.stock === "" ? 0 : Number(quickForm.stock),
+      agotado: quickForm.agotado === true,
       plataforma: quickForm.plataforma,
     };
     
@@ -273,12 +275,12 @@ export default function ProductosList() {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
-  const handleBulkSetStock = async (newStock) => {
+  const handleBulkSetAgotado = async (agotado) => {
     if (selectedIds.length === 0) return;
     try {
-      await Promise.all(selectedIds.map(id => updateDoc(doc(db, "products", id), { stock: newStock })));
-      setProductos(prev => prev.map(p => selectedIds.includes(p.id) ? { ...p, stock: newStock } : p));
-      setMsg(`⚡ ${selectedIds.length} productos actualizados a Stock = ${newStock}`);
+      await Promise.all(selectedIds.map(id => updateDoc(doc(db, "products", id), { agotado })));
+      setProductos(prev => prev.map(p => selectedIds.includes(p.id) ? { ...p, agotado } : p));
+      setMsg(`⚡ ${selectedIds.length} productos ${agotado ? 'marcados como AGOTADOS' : 'reactivados (disponibles)'}`);
       setMsgType("success");
       setSelectedIds([]);
     } catch (e) {
@@ -361,8 +363,8 @@ export default function ProductosList() {
   const countFaltaSec = productos.filter(lacksSecundaria).length;
   const countFaltaPri = productos.filter(lacksPrimaria).length;
   const countSinPrecio = productos.filter(lacksAllPrices).length;
-  const countOutStock = productos.filter(p => Number(p.stock || 0) <= 0).length;
-  const countInStock = productos.filter(p => Number(p.stock || 0) > 0).length;
+  const countOutStock = productos.filter(p => p.agotado === true).length;
+  const countInStock = productos.filter(p => p.agotado !== true).length;
 
   // Filtered List
   const filteredProducts = productos.filter(prod => {
@@ -384,8 +386,8 @@ export default function ProductosList() {
     else if (filterPricePreset === "faltaSecundaria") matchesPreset = lacksSecundaria(prod);
     else if (filterPricePreset === "faltaPrimaria") matchesPreset = lacksPrimaria(prod);
     else if (filterPricePreset === "sinPrecio") matchesPreset = lacksAllPrices(prod);
-    else if (filterPricePreset === "inStock") matchesPreset = Number(prod.stock || 0) > 0;
-    else if (filterPricePreset === "outStock") matchesPreset = Number(prod.stock || 0) <= 0;
+    else if (filterPricePreset === "inStock") matchesPreset = prod.agotado !== true;
+    else if (filterPricePreset === "outStock") matchesPreset = prod.agotado === true;
 
     return matchesCat && matchesSearch && matchesPreset;
   });
@@ -465,7 +467,7 @@ export default function ProductosList() {
           onClick={() => setFilterPricePreset('inStock')}
         >
           <div className="adm-stat-value">{countInStock}</div>
-          <div className="adm-stat-label">✅ En Stock</div>
+          <div className="adm-stat-label">✅ Disponibles</div>
         </div>
       </div>
 
@@ -492,11 +494,11 @@ export default function ProductosList() {
             ⚡ {selectedIds.length} producto(s) seleccionado(s)
           </div>
           <div className="adm-bulk-buttons">
-            <button onClick={() => handleBulkSetStock(10)} className="adm-btn-bulk">
-              ✅ Poner en Stock (10)
+            <button onClick={() => handleBulkSetAgotado(false)} className="adm-btn-bulk">
+              ✅ Reactivar (disponibles)
             </button>
-            <button onClick={() => handleBulkSetStock(0)} className="adm-btn-bulk">
-              ❌ Marcar Agotados (0)
+            <button onClick={() => handleBulkSetAgotado(true)} className="adm-btn-bulk">
+              ❌ Marcar Agotados
             </button>
             <button onClick={handleBulkDelete} className="adm-btn-bulk danger">
               🗑️ Eliminar Seleccionados
@@ -564,7 +566,7 @@ export default function ProductosList() {
           </thead>
           <tbody>
             {filteredProducts.map(prod => {
-              const inStock = Number(prod.stock || 0) > 0;
+              const inStock = prod.agotado !== true;
               const missingSec = lacksSecundaria(prod);
               const missingPri = lacksPrimaria(prod);
               const missingNone = lacksAllPrices(prod);
@@ -651,9 +653,9 @@ export default function ProductosList() {
                     <button
                       className={`adm-badge-stock ${inStock ? 'in-stock' : 'out-stock'}`}
                       onClick={() => handleToggleStock(prod)}
-                      title="Clic para cambiar stock de 0 a 10"
+                      title={inStock ? "Clic para marcar AGOTADO" : "Clic para reactivar (disponible)"}
                     >
-                      {inStock ? `✅ En Stock (${prod.stock})` : `❌ Agotado (0)`}
+                      {inStock ? `✅ Disponible` : `❌ Agotado`}
                     </button>
                   </td>
                   <td>
@@ -730,7 +732,7 @@ export default function ProductosList() {
       {/* Mobile Cards View (< 768px) */}
       <div className="adm-cards-grid">
         {filteredProducts.map(prod => {
-          const inStock = Number(prod.stock || 0) > 0;
+          const inStock = prod.agotado !== true;
           const missingSec = lacksSecundaria(prod);
           const missingPri = lacksPrimaria(prod);
 
@@ -779,8 +781,9 @@ export default function ProductosList() {
                 <button
                   className={`adm-badge-stock ${inStock ? 'in-stock' : 'out-stock'}`}
                   onClick={() => handleToggleStock(prod)}
+                  title={inStock ? "Clic para marcar AGOTADO" : "Clic para reactivar (disponible)"}
                 >
-                  {inStock ? `Stock: ${prod.stock}` : `Agotado`}
+                  {inStock ? `✅ Disponible` : `❌ Agotado`}
                 </button>
                 <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>
                   {prod.plataforma || 'General'}
@@ -950,14 +953,16 @@ export default function ProductosList() {
               </div>
 
               <div className="adm-form-group">
-                <label className="adm-form-label">Stock Actual</label>
-                <input
-                  type="number"
-                  value={quickForm.stock}
-                  onChange={e => setQuickForm({ ...quickForm, stock: e.target.value })}
-                  className="adm-form-input"
-                  placeholder="ej. 10"
-                />
+                <label className="adm-form-label">Disponibilidad</label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '10px 12px', borderRadius: 10, background: quickForm.agotado ? 'rgba(239,68,68,0.12)' : 'rgba(34,197,94,0.12)', border: `1px solid ${quickForm.agotado ? 'rgba(239,68,68,0.45)' : 'rgba(34,197,94,0.45)'}` }}>
+                  <input
+                    type="checkbox"
+                    checked={quickForm.agotado}
+                    onChange={e => setQuickForm({ ...quickForm, agotado: e.target.checked })}
+                    style={{ width: 18, height: 18, accentColor: '#ef4444' }}
+                  />
+                  <span style={{ fontWeight: 700 }}>{quickForm.agotado ? '❌ Agotado' : '✅ Disponible (siempre en stock)'}</span>
+                </label>
               </div>
 
               <div className="adm-form-group">

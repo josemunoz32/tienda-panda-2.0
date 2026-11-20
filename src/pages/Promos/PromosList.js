@@ -2,16 +2,18 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Helmet } from 'react-helmet-async';
 import { useMoneda } from "../../context/MonedaContext";
-import { db, auth } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
 import { collection, getDocs, doc, setDoc, getDoc } from "firebase/firestore";
 import { getMinPriceByMoneda } from "../../components/Header";
 import { useLocation, useNavigate } from "react-router-dom";
 import letreroPromos from "../../assets/letreros/promociones.png";
 import SpecularButton from "../../components/SpecularButton/SpecularButton";
 import Loader from "../../components/Loader";
-import { VIP_HIGHLIGHT_GAMES, isVipGame, isTopTierVip, isSteamProduct, getSteamGameSurcharge, getVipPrice, isRetiredSteamTitle } from "../../utils/vipGames";
+import { VIP_HIGHLIGHT_GAMES, isVipGame, isTopTierVip, isSteamProduct, getSteamGameSurcharge, getVipPrice, isRetiredSteamTitle, steamPromoPrice, STEAM_PROMO_LABEL } from "../../utils/vipGames";
 import { isOnlineOnlySteamProduct } from "../../utils/steamCatalogCache";
-import { calculateSwitchStockMap, getGameStockCount } from "../../utils/switchStockHelper";
+import { calculateSwitchStockMap } from "../../utils/switchStockHelper";
+import { isProductAgotado } from "../../utils/productStock";
 import { hasResellerBenefits } from "../../utils/userRoles";
 import steamImportData from "../../assets/steam_import_data.json";
 import steamPromo3x from "../../assets/promos/steam_3x_4990.webp";
@@ -62,7 +64,7 @@ const makeSteamPromoProduct = (product) => {
 
 
 
-const PROMOS = [
+const PROMOS_BASE = [
   /* Packs Steam Armables a Elección */
   {
     key: "promo-estreno-vip",
@@ -137,6 +139,10 @@ const PROMOS = [
   { key: "promo-splatoon",   name: "Splatoon 3 + DLC",   priceCLP: 24000, image: require("../../assets/promos/splatoon 3 + dlc.webp"),       selectCount: 1 },
 ];
 
+// Promoción Steam -20% solo en las promos de Steam (las de Nintendo no cambian).
+// listPriceCLP = precio de lista (tachado y base del precio de revendedor).
+const PROMOS = PROMOS_BASE.map((p) => (p.isSteam && !p.isSteamPass ? { ...p, listPriceCLP: p.priceCLP, priceCLP: steamPromoPrice(p.priceCLP) } : p)); // Panda Pass (suscripción) sin descuento
+
 const WA_ICON = (
   <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style={{ flexShrink: 0 }}>
     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
@@ -166,7 +172,9 @@ function PromoCard({ promo, onSelect, highlighted, formatearPrecio, cardRef, rol
   const [hovered, setHovered] = useState(false);
   const isReseller = role === "revendedor";
   const isSteamOrVip = promo.isSteam || promo.isVipPromo || promo.isRandomPack || promo.isSteamPass || promo.key.includes("steam") || promo.key.includes("vip");
-  const finalPrice = (isReseller && isSteamOrVip) ? Math.round(promo.priceCLP * 0.5) : promo.priceCLP;
+  const listPrice = promo.listPriceCLP || promo.priceCLP;
+  const finalPrice = (isReseller && isSteamOrVip) ? Math.round(listPrice * 0.5) : promo.priceCLP;
+  const hasSteamPromo = !isReseller && promo.listPriceCLP > promo.priceCLP;
 
   const cardBorder = highlighted
     ? "2px solid #22c55e"
@@ -285,9 +293,14 @@ function PromoCard({ promo, onSelect, highlighted, formatearPrecio, cardRef, rol
             whiteSpace: "nowrap", flexShrink: 0,
             display: "flex", flexDirection: "column", alignItems: "flex-end"
           }}>
-            {isReseller && isSteamOrVip && (
+            {((isReseller && isSteamOrVip) || hasSteamPromo) && (
               <span style={{ fontSize: "0.68rem", textDecoration: "line-through", opacity: 0.75, fontWeight: 700 }}>
-                {formatearPrecio(promo.priceCLP)}
+                {formatearPrecio(listPrice)}
+              </span>
+            )}
+            {hasSteamPromo && (
+              <span style={{ fontSize: "0.62rem", fontWeight: 900, background: "linear-gradient(135deg,#ef4444,#f97316)", color: "#fff", borderRadius: 5, padding: "1px 5px", marginBottom: 2 }}>
+                {STEAM_PROMO_LABEL} OFERTA
               </span>
             )}
             <span>{formatearPrecio(finalPrice)}</span>
@@ -392,7 +405,7 @@ export default function PromosList() {
   const [modalTopOffset, setModalTopOffset] = useState(96);
   const [highlightPromoKey, setHighlightPromoKey] = useState(null);
   const [confirmPromo, setConfirmPromo] = useState(null);
-  const [switchStockMap, setSwitchStockMap] = useState(new Map());
+  const [, setSwitchStockMap] = useState(new Map());
   const [user, setUser] = useState(auth.currentUser);
   const [role, setRole] = useState(null);
   const [promoSelectedDlcs, setPromoSelectedDlcs] = useState({});
@@ -694,6 +707,11 @@ export default function PromosList() {
   /* Dynamic Steam promo price calculation */
   const steamDynamicPrice = useMemo(() => {
     if (!activePromo?.isSteam) return activePromo?.priceCLP || 0;
+    // Panda Pass (suscripción mensual): sin la promoción -20%, mismo cálculo de siempre
+    if (activePromo.isSteamPass) {
+      const passTotal = activePromo.priceCLP + totalDlcExtraPrice;
+      return role === "revendedor" ? Math.round(passTotal * 0.5) : passTotal;
+    }
     
     let basePrice = 0;
     // Si es Pack Juegos VIP (1 Estreno + 2 Juegos de regalo)
@@ -708,22 +726,22 @@ export default function PromosList() {
     } else {
       const selectedProducts = steamPromoCatalog.filter(p => selectedIds.includes(p.id));
       const extraSurcharges = selectedProducts.reduce((acc, p) => acc + getSteamGameSurcharge(p), 0);
-      basePrice = activePromo.priceCLP + extraSurcharges;
+      // Precio de LISTA del pack; la promoción -20% se aplica abajo solo al público
+      basePrice = (activePromo.listPriceCLP || activePromo.priceCLP) + extraSurcharges;
     }
 
-    const totalRaw = basePrice + totalDlcExtraPrice;
-
+    // Revendedor: 50% del precio de lista (no acumula la promoción del público)
     if (role === "revendedor") {
-      return Math.round(totalRaw * 0.5);
+      return Math.round((basePrice + totalDlcExtraPrice) * 0.5);
     }
-    return totalRaw;
+    // Público: pack (con recargos Ubisoft/EA) con -20% terminado en 90; los DLC opcionales van aparte
+    return steamPromoPrice(basePrice) + totalDlcExtraPrice;
   }, [activePromo, selectedIds, products, steamPromoCatalog, selectedVipId, role, totalDlcExtraPrice]);
 
   const toggleSelect = id => {
-    if (!activePromo?.isSteam) {
-      const prod = products.find(p => p.id === id);
-      const stock = getGameStockCount(prod?.name, switchStockMap);
-      if (stock === 0 && !selectedIds.includes(id)) {
+    {
+      const prod = products.find(p => p.id === id) || steamPromoCatalog.find(p => p.id === id);
+      if (isProductAgotado(prod) && !selectedIds.includes(id)) {
         return;
       }
     }
@@ -1318,8 +1336,7 @@ export default function PromosList() {
                 const vipExtra = vipListPrice >= 15000 ? 5000 : vipListPrice >= 12000 ? 3000 : 0;
                 const visibleVipExtra = role === "revendedor" ? Math.round(vipExtra * 0.5) : vipExtra;
 
-                const switchStock = !activePromo.isSteam ? getGameStockCount(p.name, switchStockMap) : null;
-                const isSwitchOutOfStock = !activePromo.isSteam && switchStock === 0;
+                const isSwitchOutOfStock = isProductAgotado(p);
                 const steamImg = p.imageUrl || p.image || (p.app_id ? `https://cdn.akamai.steamstatic.com/steam/apps/${p.app_id}/header.jpg` : null);
                 const extraCharge = isVipMode ? (vipTab === "vip" ? visibleVipExtra : 0) : visibleSurcharge;
 
@@ -1447,14 +1464,14 @@ export default function PromosList() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 700, color: "#fff", lineHeight: 1.25, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", fontSize: 13 }}>{p.name}</div>
                       <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
-                        {switchStock !== null && (
+                        {(
                           isSwitchOutOfStock ? (
                             <span style={{ background: "rgba(239,68,68,0.2)", color: "#ef4444", borderRadius: 999, padding: "2px 8px", fontWeight: 800, fontSize: 10, border: "1px solid rgba(239,68,68,0.5)" }}>
-                              ❌ AGOTADO EN COMBOS
+                              ❌ Agotado
                             </span>
                           ) : (
                             <span style={{ background: "rgba(34,197,94,0.15)", color: "#22c55e", borderRadius: 999, padding: "2px 8px", fontWeight: 800, fontSize: 10, border: "1px solid rgba(34,197,94,0.4)" }}>
-                              🟢 Stock: {switchStock}
+                              🟢 En stock
                             </span>
                           )
                         )}
@@ -1466,7 +1483,7 @@ export default function PromosList() {
                     <input
                       type="checkbox"
                       checked={checked}
-                      disabled={isSwitchOutOfStock}
+                      disabled={isSwitchOutOfStock && !checked}
                       onChange={() => toggleSelect(p.id)}
                       style={{ width: 22, height: 22, accentColor: "#00f5d4", cursor: isSwitchOutOfStock ? "not-allowed" : "pointer" }}
                     />

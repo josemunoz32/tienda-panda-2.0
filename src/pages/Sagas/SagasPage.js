@@ -3,9 +3,11 @@ import ReactDOM from 'react-dom';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { useMoneda } from '../../context/MonedaContext';
-import { db, auth } from '../../firebase';
+import { auth } from '../../firebase';
+import { db } from '../../firebaseDb';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { STEAM_SAGAS } from '../../utils/sagasData';
+import { steamPromoPrice, STEAM_PROMO_LABEL } from '../../utils/vipGames';
 import { hasResellerBenefits } from '../../utils/userRoles';
 import './SagasPage.css';
 
@@ -40,8 +42,10 @@ export default function SagasPage() {
     if (!saga) return;
     const packId = `promo-${saga.key}-${Date.now()}`;
     const extraPrice = (selectedVipExtras || []).reduce((acc, curr) => acc + (curr.priceCLP || 8000), 0);
-    const publicPriceCLP = (saga.priceCLP || 0) + extraPrice;
-    const finalPriceCLP = isReseller ? Math.round(publicPriceCLP * 0.5) : publicPriceCLP;
+    // Promoción Steam -20% al público; el revendedor paga el 50% del precio de lista
+    const listPriceCLP = (saga.priceCLP || 0) + extraPrice;
+    const publicPriceCLP = steamPromoPrice(listPriceCLP);
+    const finalPriceCLP = isReseller ? Math.round(listPriceCLP * 0.5) : publicPriceCLP;
 
     const vipText = selectedVipExtras.length > 0
       ? ` + Extras VIP: ${selectedVipExtras.map(v => v.name).join(', ')}`
@@ -166,7 +170,7 @@ export default function SagasPage() {
               </div>
 
               <div className="saga-card-footer">
-                <span className="saga-card-price">{formatearPrecio(isReseller ? Math.round(saga.priceCLP * 0.5) : saga.priceCLP)}</span>
+                <span className="saga-card-price">{!isReseller && <s style={{ opacity: 0.55, fontSize: '0.8em', marginRight: 6 }}>{formatearPrecio(saga.priceCLP)}</s>}{formatearPrecio(isReseller ? Math.round(saga.priceCLP * 0.5) : steamPromoPrice(saga.priceCLP))}{!isReseller && <span className="saga-promo-badge">{STEAM_PROMO_LABEL}</span>}</span>
                 <button
                   type="button"
                   className="saga-card-action-btn"
@@ -188,8 +192,9 @@ export default function SagasPage() {
         const saga = sagaPreviewModal.saga;
         const selectedVipExtras = sagaPreviewModal.selectedVipExtras || [];
         const extraPrice = selectedVipExtras.reduce((acc, curr) => acc + (curr.priceCLP || 8000), 0);
-        const publicPrice = (saga.priceCLP || 0) + extraPrice;
-        const totalPrice = isReseller ? Math.round(publicPrice * 0.5) : publicPrice;
+        const listPrice = (saga.priceCLP || 0) + extraPrice;
+        const publicPrice = steamPromoPrice(listPrice);
+        const totalPrice = isReseller ? Math.round(listPrice * 0.5) : publicPrice;
 
         const toggleVipExtra = (vipItem) => {
           const exists = selectedVipExtras.some(v => v.id === vipItem.id);

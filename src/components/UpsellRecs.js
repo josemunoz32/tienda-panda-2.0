@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { db, auth } from "../firebase";
+import { auth } from "../firebase";
+import { db } from "../firebaseDb";
 import { collection, getDocs, setDoc, doc } from "firebase/firestore";
 import { useMoneda } from "../context/MonedaContext";
 import "./UpsellRecs.css";

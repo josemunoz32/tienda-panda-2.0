@@ -1,7 +1,8 @@
 import { notifyNewResellerApplication } from "../../utils/telegramNotifications";
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { auth, googleProvider, db } from "../../firebase";
+import { auth, googleProvider, browserPopupRedirectResolver } from "../../firebase";
+import { db } from "../../firebaseDb";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -243,7 +244,7 @@ export default function IniciarSesion({ initialTab = "login" }) {
     setResellerLoading(true);
     setResellerError("");
     try {
-      const result = await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider, browserPopupRedirectResolver);
       await saveResellerApplication(result.user, whatsapp);
       setResellerSuccess(true);
     } catch (err) {
@@ -395,7 +396,7 @@ export default function IniciarSesion({ initialTab = "login" }) {
     setLoading(true);
 
     try {
-      const result = await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider, browserPopupRedirectResolver);
       const user = result.user;
 
       const userDocRef = doc(db, "users", user.uid);

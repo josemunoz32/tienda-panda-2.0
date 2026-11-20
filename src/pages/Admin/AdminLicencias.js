@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { db } from "../../firebase";
+import { db } from "../../firebaseDb";
 import {
   collection,
   getDocs,
@@ -383,11 +383,11 @@ export default function AdminLicencias() {
         const NON_BASE_REGEX = /\b(soundtrack|original sound track|artbook|digital artbook|wallpaper pack|dedicated server|mod kit|sdk)\b/i;
 
         let ryuuData = await getCachedSteamCatalog();
-        const fixesPromise = fetch("https://generator.ryuu.lol/files/fixes.json").catch(() => null);
+        const fixesPromise = fetch("/api/ryuu/fixes.json").catch(() => null);
         let ryuuPromise = null;
         // Si no hay datos en caché o si el caché está incompleto (< 10.000 juegos), descargar el catálogo completo
         if (!ryuuData || !Array.isArray(ryuuData) || ryuuData.length < 10000) {
-          ryuuPromise = fetch("https://generator.ryuu.lol/files/games.json").catch(() => null);
+          ryuuPromise = fetch("/api/ryuu/games.json").catch(() => null);
         }
 
         const [ryuuRes, fixesRes] = await Promise.all([ryuuPromise, fixesPromise]);

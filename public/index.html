@@ -59,12 +59,67 @@
     <!-- Preconnect para performance (Core Web Vitals) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://firebasestorage.googleapis.com" />
+    <link rel="preconnect" href="https://firestore.googleapis.com" />
     <link rel="dns-prefetch" href="https://www.google-analytics.com" />
 
-    <!-- Fonts (Non-blocking async load) -->
-    <link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" /></noscript>
+    <!-- Banner principal (elemento LCP): se descubre sin esperar al bundle JS -->
+    <link rel="preload" as="image" media="(max-width: 700px)" href="%PUBLIC_URL%/banner-menu-navidad-v2-movil.webp" fetchpriority="high" />
+    <link rel="preload" as="image" media="(min-width: 701px)" href="%PUBLIC_URL%/banner-menu-navidad-v2-pc.webp" fetchpriority="high" />
+    <link rel="preload" as="image" type="image/webp" href="%PUBLIC_URL%/fondo-navidad-pandastore.webp" fetchpriority="high" />
+
+    <!-- Fondo de Halloween (~63 KB): se muestra primero una miniatura embebida y la imagen completa se
+         pide después de la carga inicial (en /home prerenderizado, cuando arranca el bundle). -->
+    <script>
+      (function() {
+        function loadBg() {
+          var img = new Image();
+          img.onload = function() {
+            var el = document.getElementById('app-bg');
+            if (el) el.classList.add('bg-ready');
+          };
+          img.src = '/fondo-navidad-pandastore.webp';
+        }
+        // El fondo (~47 KB WebP) se pide de inmediato: debe verse al instante
+        loadBg();
+      })();
+    </script>
+
+    <!-- Material Icons (~126 KB): se pide después del primer pintado y del evento load, para no competir
+         por ancho de banda con el banner y las imágenes de la carga inicial. .material-icons queda oculto
+         hasta que la fuente está lista (ver estilos críticos). -->
+    <script>
+      (function() {
+        function loadIcons() {
+          var l = document.createElement('link');
+          l.rel = 'stylesheet';
+          l.href = 'https://fonts.googleapis.com/icon?family=Material+Icons&display=swap';
+          l.onload = function() {
+            var ready = function() { document.documentElement.classList.add('icons-ready'); };
+            if (document.fonts && document.fonts.load) document.fonts.load('24px "Material Icons"').then(ready, ready);
+            else ready();
+          };
+          document.head.appendChild(l);
+        }
+        function afterFirstPaint(cb) {
+          try {
+            new PerformanceObserver(function(list, obs) {
+              if (list.getEntriesByName('first-contentful-paint').length) { obs.disconnect(); cb(); }
+            }).observe({ type: 'paint', buffered: true });
+          } catch (e) { cb(); }
+        }
+        window.addEventListener('load', function() {
+          afterFirstPaint(function() {
+            // En el /home prerenderizado, esperar a que arranque el bundle (ya cargaron las imágenes principales)
+            if (window.__pandaPrerendered && !window.__pandaBooted) {
+              window.addEventListener('panda:boot', function() { setTimeout(loadIcons, 0); }, { once: true });
+            } else {
+              setTimeout(loadIcons, 0);
+            }
+          });
+        }, { once: true });
+      })();
+    </script>
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" /><style>.material-icons{visibility:visible!important}</style></noscript>
 
     <!-- VideoGameStore Schema JSON-LD -->
     <script type="application/ld+json">
@@ -132,7 +187,7 @@
       "foundingDate": "2022",
       "areaServed": "Global",
       "sameAs": [
-        "https://www.instagram.com/pandastoregaming.cl/"
+        "https://www.instagram.com/panda_storegamingcl/"
       ]
     }
     </script>
@@ -232,13 +287,22 @@
     }
     </script>
 
-    <!-- Meta Pixel & Microsoft Clarity (Carga Asíncrona Defer/Idle para 100% Core Web Vitals) -->
+    <!-- Meta Pixel & Microsoft Clarity: se cargan con la primera interacción real del visitante
+         (toque, clic, rueda, tecla o mouse) para no competir con la carga inicial de la página.
+         Firebase Analytics (src/firebase.js) usa el mismo disparador. -->
     <script>
       (function() {
+        var INTERACTION_EVENTS = ['pointerdown', 'touchstart', 'wheel', 'keydown', 'mousemove'];
         var thirdPartyLoaded = false;
-        function loadThirdParty() {
+        // Solo gestos reales: Chrome genera mousemove "falsos" (sin desplazamiento) cuando cambia el
+        // contenido bajo el cursor, y esos no deben contar como interacción.
+        function loadThirdParty(e) {
           if (thirdPartyLoaded) return;
+          if (e && (!e.isTrusted || (e.type === 'mousemove' && !e.movementX && !e.movementY))) return;
           thirdPartyLoaded = true;
+          INTERACTION_EVENTS.forEach(function(evt) {
+            window.removeEventListener(evt, loadThirdParty, { passive: true });
+          });
 
           // Meta Pixel
           !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -256,19 +320,8 @@
           })(window,document,"clarity","script","wtaj77qa6c");
         }
 
-        var isCrawlerOrTest = typeof navigator !== 'undefined' && /Lighthouse|HeadlessChrome|Chrome-Lighthouse|bot/i.test(navigator.userAgent);
-        if (!isCrawlerOrTest) {
-          if ('requestIdleCallback' in window) {
-            window.requestIdleCallback(function() {
-              setTimeout(loadThirdParty, 5000);
-            }, { timeout: 8000 });
-          } else {
-            setTimeout(loadThirdParty, 5000);
-          }
-        }
-
-        ['scroll', 'touchstart', 'mousemove', 'click', 'keydown'].forEach(function(evt) {
-          window.addEventListener(evt, loadThirdParty, { once: true, passive: true });
+        INTERACTION_EVENTS.forEach(function(evt) {
+          window.addEventListener(evt, loadThirdParty, { passive: true });
         });
       })();
     </script>
@@ -296,6 +349,55 @@
         width: 1em;
         height: 1em;
         overflow: hidden;
+      }
+      /* Mientras la fuente de íconos no carga, no mostrar el nombre del ícono como texto */
+      html:not(.icons-ready) .material-icons {
+        visibility: hidden !important;
+      }
+      /* Copia estática del banner de BannerHeader (mismas medidas) para pintarlo antes de React (LCP).
+         Queda debajo de #root (z-index 1), tapada por el header real; App.js la oculta en rutas sin ese header. */
+      .app-shell-banner {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: min(calc(100vw * 296 / 1920), 420px);
+        overflow: hidden;
+        background: #0b0318;
+        box-sizing: content-box;
+        z-index: 0;
+        pointer-events: none;
+      }
+      .app-shell-banner img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center center;
+      }
+      @media (max-width: 700px) {
+        .app-shell-banner {
+          height: auto;
+          aspect-ratio: 1104 / 237;
+        }
+      }
+      /* /home prerenderizado en el build (scripts/prerender-home.js): una copia por layout del carrusel */
+      .prerender { display: contents; }
+      .prerender--desktop { display: none; }
+      @media (min-width: 768px) {
+        .prerender--mobile { display: none; }
+        .prerender--desktop { display: contents; }
+      }
+      #app-bg {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        /* Miniatura difuminada (~400 bytes) hasta que carga el fondo completo (ver script del fondo) */
+        background: #120526 url("data:image/webp;base64,UklGRmoAAABXRUJQVlA4IF4AAACQAwCdASoYACAAPtFSoUyoJCMiMBgMAQAaCUz8iMABUFgj/dcAAP7ws6uKCPaA4E8R3GH0VzbJzdT+CQaHdOyflysD2a0OjhPy24AKv3dGepEp5jIE3A4scW+JS/4A") center top / cover no-repeat;
+      }
+      #app-bg.bg-ready {
+        background-image: url("/fondo-navidad-pandastore.webp");
       }
       .home-root {
         margin-top: 220px;
@@ -327,11 +429,19 @@
   </head>
   <body>
     <!-- ══ CONTENEDOR RAÍZ CON PRELOADER ELEGANTE Y DATOS SEMÁNTICOS ACCESIBLES PARA SEO ══ -->
+    <!-- Fondo fijo del layout principal: estático para pintarse en el primer frame (LCP). React lo oculta en rutas con layout propio. -->
+    <div id="app-bg" aria-hidden="true"></div>
+    <div id="app-shell-banner" class="app-shell-banner" aria-hidden="true">
+      <picture>
+        <source media="(max-width: 700px)" srcset="%PUBLIC_URL%/banner-menu-navidad-v2-movil.webp" />
+        <img src="%PUBLIC_URL%/banner-menu-navidad-v2-pc.webp" alt="" width="1920" height="296" fetchpriority="high" decoding="async" elementtiming="hero" />
+      </picture>
+    </div>
     <div id="root">
-      <!-- Splash / Preloader visual mientras descarga y ejecuta el bundle JS de React -->
-      <div id="app-initial-preloader" style="position: fixed; inset: 0; background: #0b0518; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 99999; pointer-events: none;">
+      <!-- Splash / Preloader visual (transparente: deja ver el fondo) mientras descarga y ejecuta el bundle JS de React -->
+      <div id="app-initial-preloader" style="position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 99999; pointer-events: none;">
         <div style="width: 72px; height: 72px; border-radius: 18px; background: rgba(162, 89, 255, 0.12); border: 1px solid rgba(162, 89, 255, 0.3); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; animation: pandaPreloaderPulse 1.8s infinite ease-in-out;">
-          <img src="%PUBLIC_URL%/favicon-96.png" alt="PandaStore" width="50" height="50" decoding="async" style="width: 50px; height: 50px; object-fit: contain;" />
+          <img src="%PUBLIC_URL%/favicon-96.webp" alt="PandaStore" width="50" height="50" decoding="async" style="width: 50px; height: 50px; object-fit: contain;" />
         </div>
         <div style="width: 32px; height: 32px; border: 3px solid rgba(162, 89, 255, 0.2); border-top-color: #22c55e; border-radius: 50%; animation: pandaPreloaderSpin 0.75s linear infinite;"></div>
       </div>

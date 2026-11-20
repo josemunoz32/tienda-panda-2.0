@@ -160,3 +160,52 @@ export const getSteamGameSurcharge = (p) => {
   if (!requiresExternalCode) return 0;
   return Number(p.surchargeCLP || p.extraChargeCLP || p.priceCLP || 0);
 };
+
+/**
+ * Precio REAL de un juego de Steam: regla única para toda la web (tarjetas, ficha, carrito y checkout).
+ * La lista VIP (vipGamesData.json) manda: VIP $8.000, Ubisoft $12.000, EA $15.000, etc.
+ * Si el juego no está en la lista VIP se usa su precio de catálogo; si no tiene, $2.000.
+ */
+export const STEAM_DEFAULT_PRICE_CLP = 2000;
+
+/**
+ * Promoción Steam: 20% de descuento para el público en juegos sueltos y packs de la categoría Steam.
+ * El precio final siempre termina en "90" y nunca supera el 80% del precio de lista:
+ *   $2.000 → $1.590 · $4.990 → $3.990 · $8.000 → $6.390 · $9.990 → $7.990 · $12.000 → $9.590
+ *   $15.000 → $11.990 · $17.990 → $14.390
+ * Los revendedores NO reciben este descuento: su precio se sigue calculando sobre el precio de lista.
+ * Para terminar la promoción basta con poner STEAM_PROMO_DISCOUNT = 0.
+ */
+export const STEAM_PROMO_DISCOUNT = 0.2;
+export const STEAM_PROMO_LABEL = "-20%";
+export const steamPromoPrice = (listPrice) => {
+  const list = Number(listPrice);
+  if (!Number.isFinite(list) || list <= 0 || !STEAM_PROMO_DISCOUNT) return list;
+  const target = list * (1 - STEAM_PROMO_DISCOUNT);
+  let price = Math.floor(target / 100) * 100 + 90;
+  if (price > target) price -= 100;
+  return price > 0 ? price : list;
+};
+
+/** Precio de LISTA de un juego de Steam (sin promoción). La lista VIP manda: VIP $8.000, Ubisoft $12.000, EA $15.000… */
+export const getSteamListPrice = (p) => {
+  const vip = getVipPrice(p);
+  if (vip) return Number(vip);
+  const stored = Number(p?.steamListPriceCLP);
+  if (Number.isFinite(stored) && stored > 0) return stored;
+  const base = Number(p?.priceCLP);
+  return Number.isFinite(base) && base > 0 ? base : STEAM_DEFAULT_PRICE_CLP;
+};
+
+/**
+ * Precio REAL que paga el público por un juego de Steam: precio de lista con la promoción aplicada.
+ * Regla única para tarjetas, ficha, carrito y checkout.
+ */
+export const getSteamRealPrice = (p) => steamPromoPrice(getSteamListPrice(p));
+
+/** Devuelve el producto de Steam con el precio de promoción y el de lista guardado aparte (para tachado y revendedores). */
+export const withSteamPromo = (p) => {
+  if (!p) return p;
+  const list = getSteamListPrice(p);
+  return { ...p, priceCLP: steamPromoPrice(list), steamListPriceCLP: list };
+};

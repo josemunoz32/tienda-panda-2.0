@@ -166,7 +166,7 @@ const ReflectiveCard = ({
             <span className="reflective-ig-handle">Atención 24/7 Oficial</span>
           </div>
           <a
-            href="https://t.me/NintendoChile2"
+            href="https://t.me/juegosNintendoSwitchChile2"
             target="_blank"
             rel="noopener noreferrer"
             className="reflective-ig-btn"

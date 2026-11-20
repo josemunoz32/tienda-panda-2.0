@@ -13,7 +13,7 @@
  */
 
 import { collection, getDocs, doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "../firebaseDb";
 
 export const WHATSAPP_OFICIAL = "56974751810";
 // Tipo de cambio conservador para compras al proveedor. No se usa el precio
@@ -1156,7 +1156,17 @@ const STOCK_CACHE_TTL_MS = 60 * 1000; // 60 segundos de caché
 /**
  * Carga todos los packs disponibles y calcula el mapa de stock por título y por variante
  */
+// El control de stock de Nintendo por packs quedó desactivado: todo el catálogo publicado se vende
+// siempre "en stock". No se consulta packs_nintendo (el bot de Telegram sigue usándolo para publicar).
+export const SWITCH_ALWAYS_IN_STOCK = true;
+const ALWAYS_IN_STOCK_COUNT = 99;
+
 export async function calculateSwitchStockMap(forceRefresh = false) {
+  if (SWITCH_ALWAYS_IN_STOCK) return { stockMap: new Map() };
+  return calculateSwitchStockMapFromPacks(forceRefresh);
+}
+
+async function calculateSwitchStockMapFromPacks(forceRefresh = false) {
   const now = Date.now();
   if (!forceRefresh && _cachedStockResult && (now - _lastStockFetchTime < STOCK_CACHE_TTL_MS)) {
     return _cachedStockResult;
@@ -1417,6 +1427,7 @@ const _stockCountCache = new Map();
  * Obtiene el stock de un juego específico contra el stockMap con tolerancia multilingüe y de variantes (Memoizado O(1))
  */
 export function getGameStockCount(gameName, stockMap, requireBaseGame = true) {
+  if (SWITCH_ALWAYS_IN_STOCK) return ALWAYS_IN_STOCK_COUNT;
   if (!gameName || !stockMap || !(stockMap instanceof Map) || stockMap.size === 0) return 0;
 
   if (stockMap !== _lastStockMapRef) {

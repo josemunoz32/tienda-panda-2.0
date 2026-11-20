@@ -10,15 +10,19 @@ import { useMoneda } from "../../context/MonedaContext";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Helmet } from 'react-helmet-async';
 import { prodUrl, extractId, slugify } from '../../utils/slugify';
-import { db, auth } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
 import { trackViewItem } from "../../utils/analytics";
 import ProductDlcs from "../../components/ProductDlcs/ProductDlcs";
+import { RelatedLandings } from "../Seo/SeoPages";
 import { fetchRyuuCatalog } from "../../utils/ryuuDlcHelper";
+import { getSteamListPrice, steamPromoPrice, STEAM_PROMO_LABEL } from "../../utils/vipGames";
 import Masonry from "../../components/Masonry/Masonry";
 import Loader from "../../components/Loader";
 import { getProductPricing, formatCLP, parseNumberCLP } from "../../utils/priceHelper";
 import { hasResellerBenefits } from "../../utils/userRoles";
-import { calculateSwitchStockMap, getGameStockCount, buildStockRequestWhatsappUrl } from "../../utils/switchStockHelper";
+import { calculateSwitchStockMap, buildStockRequestWhatsappUrl } from "../../utils/switchStockHelper";
+import { isProductAgotado } from "../../utils/productStock";
 import {
   doc,
   getDoc,
@@ -206,8 +210,11 @@ function PriceSelector({ producto, selectedOption, onChange, selectStyle, userPr
       }, "revendedor", userProfile?.purchaseCount || userProfile?.comprasRealizadas || 0);
       if (pr?.precioFinal) steamDisplay = pr.precioFinal;
     }
+    const steamList = Number(producto.steamListPriceCLP) || steamCLP;
     options.push({
-      label: `Steam: ${formatearPrecio(steamDisplay)}`,
+      label: !isReseller && steamList > steamCLP
+        ? `Steam: ${formatearPrecio(steamDisplay)} (antes ${formatearPrecio(steamList)} · ${STEAM_PROMO_LABEL})`
+        : `Steam: ${formatearPrecio(steamDisplay)}`,
       value: String(steamCLP)
     });
   } else if (!hasMonthlyPlans && isPlayStation) {
@@ -437,8 +444,8 @@ export default function ProductDetail() {
   // Handler para Comprar ahora
   const navigate = useNavigate();
   function handleComprarAhora() {
-    if (isSwitchOutOfStock) {
-      alert("Este juego de Nintendo Switch se encuentra temporalmente sin stock en nuestros packs. Puedes solicitarlo directamente por WhatsApp.");
+    if (isProductOutOfStock) {
+      alert("Este producto se encuentra temporalmente agotado. Puedes solicitarlo directamente por WhatsApp.");
       return;
     }
     const optionValue = selectedOption || getDefaultProductOption(producto, moneda);
@@ -584,7 +591,7 @@ export default function ProductDetail() {
     return () => unsubscribe();
   }, []);
 
-  const [switchStockMap, setSwitchStockMap] = useState(new Map());
+  const [, setSwitchStockMap] = useState(new Map());
 
   // Productos antiguos pueden guardar sólo el ID de Firestore. Resolvemos el
   // nombre real para aplicar la regla B2B correcta (Streaming ≠ Suscripción).
@@ -812,6 +819,21 @@ export default function ProductDetail() {
           p.imageUrl = resolvedImg;
           p.image = resolvedImg;
 
+          // Precio real de Steam (lista VIP manda): el mismo que muestran las tarjetas y que se cobra.
+          // Antes la ficha usaba el precio de catálogo ($2.000) aunque el juego fuera VIP ($8.000).
+          if (isSteamProduct(p) && !(Array.isArray(p.preciosPorMes) && p.preciosPorMes.length)) {
+            // Promoción Steam -20%: priceCLP = precio con descuento; steamListPriceCLP = precio de lista
+            const listPrice = getSteamListPrice(p);
+            const realPrice = steamPromoPrice(listPrice);
+            if (listPrice !== Number(p.priceCLP) && typeof p.description === "string") {
+              p.description = p.description
+                .replace(/\(\$[\d.]+\)/, `($${listPrice.toLocaleString("es-CL")})`)
+                .replace(/STEAM NORMAL/i, listPrice >= 8000 ? "STEAM VIP" : "STEAM PREMIUM");
+            }
+            p.steamListPriceCLP = listPrice;
+            p.priceCLP = realPrice;
+          }
+
           setProducto(p);
           trackViewItem(p, auth.currentUser?.uid || null);
         }
@@ -1014,8 +1036,8 @@ export default function ProductDetail() {
   };
 
   const handleCart = async () => {
-    if (isSwitchOutOfStock) {
-      alert("Este juego de Nintendo Switch se encuentra temporalmente sin stock en nuestros packs. Puedes solicitarlo directamente por WhatsApp.");
+    if (isProductOutOfStock && !inCart) {
+      alert("Este producto se encuentra temporalmente agotado. Puedes solicitarlo directamente por WhatsApp.");
       return;
     }
     const baseId = producto.id || id;
@@ -1259,8 +1281,8 @@ export default function ProductDetail() {
     String(producto.categoria || "").toLowerCase().includes("switch") ||
     String(productCategoryName || "").toLowerCase().includes("switch");
   const isPlayStation = !isSwitchProd && (rawPlat.includes("ps4") || rawPlat.includes("ps5") || rawPlat.includes("playstation") || rawCatId.includes("ps"));
-  const switchPacksStock = isSwitchProd ? getGameStockCount(producto.name, switchStockMap, true) : null;
-  const isSwitchOutOfStock = isSwitchProd && (switchPacksStock === null || switchPacksStock <= 0);
+  // Único criterio de "agotado": campo agotado === true en el producto (todas las plataformas)
+  const isProductOutOfStock = isProductAgotado(producto);
   const isPcOrSteam = !isPlayStation && !isSwitchProd;
 
   const platformLabel = isSwitchProd ? "Nintendo Switch" : isPlayStation ? "PS5 / PS4" : "Steam PC";
@@ -1479,6 +1501,7 @@ export default function ProductDetail() {
           </div>
         )}
         <DescripcionExpandible descripcion={producto.description} />
+        <RelatedLandings productId={producto.id || id} name={producto.name} />
         
         {/* Los DLC se venden exclusivamente para productos Steam (nunca Switch ni PlayStation). */}
         {!isSwitchProd && !isPlayStation && isSteamProduct(producto) && (
@@ -1491,8 +1514,11 @@ export default function ProductDetail() {
           />
         )}
         
-        {isSwitchOutOfStock ? (
+        {isProductOutOfStock ? (
           <div style={{ marginTop: 20, width: '100%' }}>
+            <div style={{ textAlign: 'center', color: '#f87171', fontWeight: 800, fontSize: '1.05rem', marginBottom: 12 }}>
+              ❌ Agotado
+            </div>
             <a
               href={buildStockRequestWhatsappUrl(producto.name)}
               target="_blank"
@@ -1518,7 +1544,7 @@ export default function ProductDetail() {
               <span>Solicitar Stock por WhatsApp (Agotado en Web)</span>
             </a>
             <div style={{ textAlign: 'center', color: '#c4b5fd', fontSize: '0.85rem', marginTop: 10, fontWeight: 500 }}>
-              Te avisaremos apenas un pack o cuenta con este juego esté disponible para entrega inmediata.
+              Te avisaremos apenas este producto esté disponible nuevamente.
             </div>
           </div>
         ) : (
@@ -1531,7 +1557,6 @@ export default function ProductDetail() {
               type="button"
               className="producto-buy-button"
               onClick={handleComprarAhora}
-              disabled={typeof producto.stock === 'number' && producto.stock <= 0}
             >
               <span>Comprar ahora</span>
               <span className="material-icons">arrow_forward</span>

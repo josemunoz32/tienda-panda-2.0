@@ -435,21 +435,23 @@
   },
   {
     "name": "Avatar: Frontiers Of Pandora",
-    "priceCLP": "4990",
-    "priceUSD": "5.54",
-    "pricePrimariaCLP": "4990",
-    "pricePrimariaUSD": "5.54",
-    "priceSecundariaCLP": "4990",
-    "priceSecundariaUSD": "5.54",
+    "priceCLP": "12000",
+    "priceUSD": "13.33",
+    "pricePrimariaCLP": "12000",
+    "pricePrimariaUSD": "13.33",
+    "priceSecundariaCLP": "12000",
+    "priceSecundariaUSD": "13.33",
     "plataforma": "Steam",
-    "genero": "Steam Premium",
+    "genero": "Steam VIP",
     "idioma": "Español / Multilenguaje",
     "anio": "2026",
-    "comentario": "JUEGO DESTACADO / SE VENDEN APARTE ($4.990)",
+    "comentario": "JUEGO STEAM VIP ($12.000)",
     "tags": [
       "Steam",
-      "Premium",
-      "4990"
+      "VIP",
+      "12000",
+      "VIP",
+      "Estreno"
     ],
     "isGreenTier": true,
     "stock": "1000",
@@ -535,21 +537,23 @@
   },
   {
     "name": "Assassin's Creed Shadows",
-    "priceCLP": "4990",
-    "priceUSD": "5.54",
-    "pricePrimariaCLP": "4990",
-    "pricePrimariaUSD": "5.54",
-    "priceSecundariaCLP": "4990",
-    "priceSecundariaUSD": "5.54",
+    "priceCLP": "12000",
+    "priceUSD": "13.33",
+    "pricePrimariaCLP": "12000",
+    "pricePrimariaUSD": "13.33",
+    "priceSecundariaCLP": "12000",
+    "priceSecundariaUSD": "13.33",
     "plataforma": "Steam",
-    "genero": "Steam Premium",
+    "genero": "Steam VIP",
     "idioma": "Español / Multilenguaje",
     "anio": "2026",
-    "comentario": "JUEGO DESTACADO / SE VENDEN APARTE ($4.990)",
+    "comentario": "JUEGO STEAM VIP ($12.000)",
     "tags": [
       "Steam",
-      "Premium",
-      "4990"
+      "VIP",
+      "12000",
+      "VIP",
+      "Estreno"
     ],
     "isGreenTier": true,
     "stock": "1000",
@@ -1167,21 +1171,23 @@
   },
   {
     "name": "Need for Speed™ Heat",
-    "priceCLP": "4990",
-    "priceUSD": "5.54",
-    "pricePrimariaCLP": "4990",
-    "pricePrimariaUSD": "5.54",
-    "priceSecundariaCLP": "4990",
-    "priceSecundariaUSD": "5.54",
+    "priceCLP": "15000",
+    "priceUSD": "16.67",
+    "pricePrimariaCLP": "15000",
+    "pricePrimariaUSD": "16.67",
+    "priceSecundariaCLP": "15000",
+    "priceSecundariaUSD": "16.67",
     "plataforma": "Steam",
     "genero": "Steam Premium",
     "idioma": "Español / Multilenguaje",
     "anio": "2026",
-    "comentario": "JUEGO DESTACADO / SE VENDEN APARTE ($4.990)",
+    "comentario": "JUEGO STEAM PREMIUM ($15.000)",
     "tags": [
       "Steam",
       "Premium",
-      "4990"
+      "15000",
+      "VIP",
+      "Estreno"
     ],
     "isGreenTier": true,
     "stock": "1000",
@@ -1415,21 +1421,23 @@
   },
   {
     "name": "Need for Speed™ Payback",
-    "priceCLP": "4990",
-    "priceUSD": "5.54",
-    "pricePrimariaCLP": "4990",
-    "pricePrimariaUSD": "5.54",
-    "priceSecundariaCLP": "4990",
-    "priceSecundariaUSD": "5.54",
+    "priceCLP": "15000",
+    "priceUSD": "16.67",
+    "pricePrimariaCLP": "15000",
+    "pricePrimariaUSD": "16.67",
+    "priceSecundariaCLP": "15000",
+    "priceSecundariaUSD": "16.67",
     "plataforma": "Steam",
     "genero": "Steam Premium",
     "idioma": "Español / Multilenguaje",
     "anio": "2026",
-    "comentario": "JUEGO DESTACADO / SE VENDEN APARTE ($4.990)",
+    "comentario": "JUEGO STEAM PREMIUM ($15.000)",
     "tags": [
       "Steam",
       "Premium",
-      "4990"
+      "15000",
+      "VIP",
+      "Estreno"
     ],
     "isGreenTier": true,
     "stock": "1000",
@@ -1491,12 +1499,12 @@
   },
   {
     "name": "Borderlands 4",
-    "priceCLP": "8000",
-    "priceUSD": "8.89",
-    "pricePrimariaCLP": "8000",
-    "pricePrimariaUSD": "8.89",
-    "priceSecundariaCLP": "8000",
-    "priceSecundariaUSD": "8.89",
+    "priceCLP": "2000",
+    "priceUSD": "2.22",
+    "pricePrimariaCLP": "2000",
+    "pricePrimariaUSD": "2.22",
+    "priceSecundariaCLP": "2000",
+    "priceSecundariaUSD": "2.22",
     "plataforma": "Steam",
     "genero": "Steam Normal",
     "idioma": "Español / Multilenguaje",
@@ -1505,17 +1513,13 @@
     "tags": [
       "Steam",
       "Normal",
-      "2000",
-      "VIP",
-      "Estreno",
-      "8000"
+      "2000"
     ],
     "isGreenTier": true,
     "stock": "1000",
     "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1285190/header.jpg",
     "app_id": "1285190",
-    "image": "https://cdn.akamai.steamstatic.com/steam/apps/1285190/header.jpg",
-    "isDenuvoActivation": true
+    "image": "https://cdn.akamai.steamstatic.com/steam/apps/1285190/header.jpg"
   },
   {
     "name": "Among the Sleep - Enhanced Edition",
@@ -1666,6 +1670,31 @@
     "image": "https://cdn.akamai.steamstatic.com/steam/apps/1551360/header.jpg"
   },
   {
+    "name": "Forza Horizon 6 Premium Edition",
+    "priceCLP": "4990",
+    "priceUSD": "5.54",
+    "pricePrimariaCLP": "4990",
+    "pricePrimariaUSD": "5.54",
+    "priceSecundariaCLP": "4990",
+    "priceSecundariaUSD": "5.54",
+    "plataforma": "Steam",
+    "genero": "Steam Premium",
+    "idioma": "Español / Multilenguaje",
+    "anio": "2026",
+    "comentario": "JUEGO DESTACADO / DESCARGA DIRECTA TORRENT (.990)",
+    "tags": [
+      "Steam",
+      "Premium",
+      "4990",
+      "Torrent"
+    ],
+    "isGreenTier": true,
+    "stock": "1000",
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1551360/header.jpg",
+    "app_id": "forza_horizon_6",
+    "image": "https://cdn.akamai.steamstatic.com/steam/apps/1551360/header.jpg"
+  },
+  {
     "name": "Prince of Persia: The Sands of Time",
     "priceCLP": "4990",
     "priceUSD": "5.54",
@@ -1718,7 +1747,7 @@
     "isDenuvoActivation": true
   },
   {
-    "name": "Call of Duty 4: Modern Warfare",
+    "name": "Call of Duty 4: Modern Warfare (2007)",
     "priceCLP": "2000",
     "priceUSD": "2.22",
     "pricePrimariaCLP": "2000",
@@ -1737,9 +1766,9 @@
     ],
     "isGreenTier": false,
     "stock": "1000",
-    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/7950/header.jpg",
-    "app_id": "7950",
-    "image": "https://cdn.akamai.steamstatic.com/steam/apps/7950/header.jpg"
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/7940/header.jpg",
+    "app_id": "7940",
+    "image": "https://cdn.akamai.steamstatic.com/steam/apps/7940/header.jpg"
   },
   {
     "name": "Animal Shelter",
@@ -1918,7 +1947,7 @@
     "isDenuvoActivation": true
   },
   {
-    "name": "Call of Duty: Modern Warfare Remastered",
+    "name": "Call of Duty: Modern Warfare Remastered (2017)",
     "priceCLP": "2000",
     "priceUSD": "2.22",
     "pricePrimariaCLP": "2000",
@@ -1937,9 +1966,9 @@
     ],
     "isGreenTier": false,
     "stock": "1000",
-    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/2000950/header.jpg",
-    "app_id": "2000950",
-    "image": "https://cdn.akamai.steamstatic.com/steam/apps/2000950/header.jpg"
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/393080/header.jpg",
+    "app_id": "393080",
+    "image": "https://cdn.akamai.steamstatic.com/steam/apps/393080/header.jpg"
   },
   {
     "name": "Like a Dragon: Pirate Yakuza in Hawaii Deluxe Edition",
@@ -2569,21 +2598,23 @@
   },
   {
     "name": "Need For Speed Unbound",
-    "priceCLP": "4990",
-    "priceUSD": "5.54",
-    "pricePrimariaCLP": "4990",
-    "pricePrimariaUSD": "5.54",
-    "priceSecundariaCLP": "4990",
-    "priceSecundariaUSD": "5.54",
+    "priceCLP": "15000",
+    "priceUSD": "16.67",
+    "pricePrimariaCLP": "15000",
+    "pricePrimariaUSD": "16.67",
+    "priceSecundariaCLP": "15000",
+    "priceSecundariaUSD": "16.67",
     "plataforma": "Steam",
     "genero": "Steam Premium",
     "idioma": "Español / Multilenguaje",
     "anio": "2026",
-    "comentario": "JUEGO DESTACADO / SE VENDEN APARTE ($4.990)",
+    "comentario": "JUEGO STEAM PREMIUM ($15.000)",
     "tags": [
       "Steam",
       "Premium",
-      "4990"
+      "15000",
+      "VIP",
+      "Estreno"
     ],
     "isGreenTier": true,
     "stock": "1000",
@@ -3887,21 +3918,23 @@
   },
   {
     "name": "Star Wars Outlaws",
-    "priceCLP": "4990",
-    "priceUSD": "5.54",
-    "pricePrimariaCLP": "4990",
-    "pricePrimariaUSD": "5.54",
-    "priceSecundariaCLP": "4990",
-    "priceSecundariaUSD": "5.54",
+    "priceCLP": "12000",
+    "priceUSD": "13.33",
+    "pricePrimariaCLP": "12000",
+    "pricePrimariaUSD": "13.33",
+    "priceSecundariaCLP": "12000",
+    "priceSecundariaUSD": "13.33",
     "plataforma": "Steam",
-    "genero": "Steam Premium",
+    "genero": "Steam VIP",
     "idioma": "Español / Multilenguaje",
     "anio": "2026",
-    "comentario": "JUEGO DESTACADO / SE VENDEN APARTE ($4.990)",
+    "comentario": "JUEGO STEAM VIP ($12.000)",
     "tags": [
       "Steam",
-      "Premium",
-      "4990"
+      "VIP",
+      "12000",
+      "VIP",
+      "Estreno"
     ],
     "isGreenTier": true,
     "stock": "1000",
@@ -3910,7 +3943,7 @@
     "image": "https://cdn.akamai.steamstatic.com/steam/apps/2842040/header.jpg"
   },
   {
-    "name": "Call of Duty 2",
+    "name": "Call of Duty 2 (2005)",
     "priceCLP": "2000",
     "priceUSD": "2.22",
     "pricePrimariaCLP": "2000",
@@ -3957,7 +3990,6 @@
     "app_id": "1909950",
     "image": "https://cdn.akamai.steamstatic.com/steam/apps/1909950/header.jpg"
   },
-
   {
     "name": "The Bus",
     "priceCLP": "8000",
@@ -3986,7 +4018,6 @@
     "image": "https://cdn.akamai.steamstatic.com/steam/apps/491540/header.jpg",
     "isDenuvoActivation": true
   },
-
   {
     "name": "The First Berserker: Khazan",
     "priceCLP": "4990",
@@ -4060,7 +4091,7 @@
     "image": "https://cdn.akamai.steamstatic.com/steam/apps/1649080/header.jpg"
   },
   {
-    "name": "Call of Duty: United Offensive",
+    "name": "Call of Duty: United Offensive (2004)",
     "priceCLP": "2000",
     "priceUSD": "2.22",
     "pricePrimariaCLP": "2000",
@@ -4112,7 +4143,7 @@
     "isDenuvoActivation": true
   },
   {
-    "name": "Call of Duty: Modern Warfare 2",
+    "name": "Call of Duty: Modern Warfare 2 (2009)",
     "priceCLP": "4990",
     "priceUSD": "5.54",
     "pricePrimariaCLP": "4990",
@@ -4187,9 +4218,8 @@
     "app_id": "209160",
     "image": "https://cdn.akamai.steamstatic.com/steam/apps/209160/header.jpg"
   },
-
   {
-    "name": "Call of Duty: World at War",
+    "name": "Call of Duty: World at War (2008)",
     "priceCLP": "2000",
     "priceUSD": "2.22",
     "pricePrimariaCLP": "2000",
@@ -4362,21 +4392,23 @@
   },
   {
     "name": "Wild Hearts",
-    "priceCLP": "4990",
-    "priceUSD": "5.54",
-    "pricePrimariaCLP": "4990",
-    "pricePrimariaUSD": "5.54",
-    "priceSecundariaCLP": "4990",
-    "priceSecundariaUSD": "5.54",
+    "priceCLP": "15000",
+    "priceUSD": "16.67",
+    "pricePrimariaCLP": "15000",
+    "pricePrimariaUSD": "16.67",
+    "priceSecundariaCLP": "15000",
+    "priceSecundariaUSD": "16.67",
     "plataforma": "Steam",
     "genero": "Steam Premium",
     "idioma": "Español / Multilenguaje",
     "anio": "2026",
-    "comentario": "JUEGO DESTACADO / SE VENDEN APARTE ($4.990)",
+    "comentario": "JUEGO STEAM PREMIUM ($15.000)",
     "tags": [
       "Steam",
       "Premium",
-      "4990"
+      "15000",
+      "VIP",
+      "Estreno"
     ],
     "isGreenTier": true,
     "stock": "1000",

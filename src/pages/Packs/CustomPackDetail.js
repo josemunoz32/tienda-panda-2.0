@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { db, auth } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useMoneda } from "../../context/MonedaContext";
 import "./CustomPackDetail.css";

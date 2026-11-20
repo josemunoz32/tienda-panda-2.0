@@ -1,7 +1,8 @@
 import { Helmet } from 'react-helmet-async';
 
 import React, { useEffect, useState } from "react";
-import { db, auth } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc } from "firebase/firestore";
 import { Link, useNavigate } from "react-router-dom";

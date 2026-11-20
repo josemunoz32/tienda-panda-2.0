@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { auth, db } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
 import { collection, getDocs, deleteDoc, doc, getDoc } from "firebase/firestore";
 import confirmadoImg from "../../assets/estadopedido/confimado.png";
 import {

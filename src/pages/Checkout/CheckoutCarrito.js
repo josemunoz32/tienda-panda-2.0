@@ -3,7 +3,9 @@ import { createPortal } from "react-dom";
 import { PayPalButtonWrapper } from "../Pagos/PayPalButtonWrapper";
 import UpsellRecs from "../../components/UpsellRecs";
 import DlcUpsellBanner from "../../components/DlcUpsellBanner/DlcUpsellBanner";
-import { db, auth, storage } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
+import { storage } from "../../firebaseServices";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import {
   collection,
@@ -28,6 +30,7 @@ import { hasResellerBenefits, hasB2BAccess } from "../../utils/userRoles";
 import { DEFAULT_PAYMENT_SETTINGS, normalizePaymentSettings, PAYMENT_SETTINGS_DOC, validatePaymentProofFile, visibleBankAccounts, visibleForUser } from "../../utils/paymentMethods";
 import Loader from "../../components/Loader";
 import steamImportData from "../../assets/steam_import_data.json";
+import { getSteamRealPrice } from "../../utils/vipGames";
 import "./PandaCheckoutCards.css";
 
 // Para monedas distintas de USD, retorna el precio CLP como base para conversión posterior.
@@ -51,6 +54,24 @@ export function getMinPriceByMoneda(prod, moneda) {
   }
   const min = precios.length > 0 ? Math.min(...precios.filter((x) => x > 0)) : null;
   return min;
+}
+
+// Red de seguridad de precios: un juego de Steam nunca se cobra bajo su precio real (lista VIP:
+// VIP $8.000, Ubisoft $12.000, EA $15.000…). Corrige carritos con precios antiguos o equivocados.
+// Nunca baja un precio (los DLC agregados suben el total y se respetan).
+function withRealSteamPrices(items) {
+  return (items || []).map((item) => {
+    // Revendedores: su precio ya viene calculado sobre el precio de lista; no se toca
+    if (!item || item.isPromo || item.isSaga || item.isResellerPrice || !isSteamCartProduct(item)) return item;
+    const appId = item.app_id || item.appId || (String(item.productId || item.id || "").match(/(?:steam_|ryuu_)?(\d+)/) || [])[1];
+    // Precio de lista: el guardado al agregar, o el precio del ítem si es un carrito antiguo (sin promoción)
+    const list = Number(item.steamListPriceCLP) || Number(item.priceCLP) || undefined;
+    const real = getSteamRealPrice({ app_id: appId, name: item.name, steamListPriceCLP: list });
+    const hasDlcs = (Array.isArray(item.selectedDlcs) && item.selectedDlcs.length > 0) || Number(item.dlcsCount) > 0;
+    // Sin DLC: siempre el precio real con promoción. Con DLC: el total nunca queda bajo el precio real del juego.
+    if (!hasDlcs) return Number(item.priceCLP) === real ? item : { ...item, priceCLP: real, steamListPriceCLP: list };
+    return Number(item.priceCLP) < real ? { ...item, priceCLP: real } : item;
+  });
 }
 
 // Los DLC son una venta exclusiva de Steam. Algunos productos PS antiguos
@@ -618,6 +639,7 @@ export default function CheckoutCarrito({ user: propUser }) {
           const c = localStorage.getItem('guestCart');
           if (c) lCart = JSON.parse(c);
         } catch(e) {}
+        lCart = withRealSteamPrices(lCart);
         setCart(lCart);
         if (lCart.length > 0) {
           const tCLP = lCart.reduce((s, i) => s + (Number(i.priceCLP) || 0), 0);
@@ -648,7 +670,7 @@ export default function CheckoutCarrito({ user: propUser }) {
 
     const cartRef = collection(db, `users/${user.uid}/cart`);
     const unsubscribe = onSnapshot(cartRef, async (snap) => {
-      const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const items = withRealSteamPrices(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       setCart(items);
       if (items.length > 0) {
         const tCLP = items.reduce((s, i) => s + (Number(i.priceCLP) || 0), 0);

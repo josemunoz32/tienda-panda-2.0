@@ -6,11 +6,13 @@
  * - El crédito se acumula en users/{uid}.referralCredits
  */
 
-import { db } from '../firebase';
+// Lecturas y escrituras puntuales vía Firestore Lite (REST): sin canales persistentes y fuera del
+// SDK completo, que no forma parte del bundle inicial.
+import { dbLite as db } from '../firebase';
 import {
   doc, getDoc, setDoc, updateDoc, addDoc,
   collection, query, where, getDocs
-} from 'firebase/firestore';
+} from 'firebase/firestore/lite';
 
 const BASE_URL = window.location.origin; // e.g. http://localhost:3000 or https://pandastoregaming.cl
 

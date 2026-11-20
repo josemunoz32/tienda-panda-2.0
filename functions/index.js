@@ -7,7 +7,9 @@ const nodemailer = require("nodemailer");
 const paypal = require("@paypal/checkout-server-sdk");
 const admin = require("firebase-admin");
 const allowedOrigins = (process.env.ALLOWED_ORIGINS ||
-  "https://pandastoreupdate.web.app,https://pandastoreupdate.firebaseapp.com,http://localhost:3000")
+  "https://pandastoregaming.cl,https://www.pandastoregaming.cl," +
+  "https://pandastoreupdate.web.app,https://pandastoreupdate.firebaseapp.com," +
+  "http://localhost:3000")
     .split(",").map((origin) => origin.trim()).filter(Boolean);
 const cors = require("cors")({origin: allowedOrigins});
 const templates = require("./emailTemplates");
@@ -1253,7 +1255,59 @@ async function generatePandaLicenseAndSendEmail(pedido, orderId, options = {}) {
  * @param {object} pendingOrder - El objeto de pedido guardado previamente.
  * @param {string} orderId - El external_reference ID.
  */
-async function processApprovedOrder(pendingOrder, orderId) {
+/**
+ * Acredita en users/{uid}.wallet_balance las recargas de billetera pagadas.
+ * Idempotente: walletCredits/{orderId} evita abonar dos veces si el webhook
+ * de Mercado Pago llega repetido.
+ * @param {object} pendingOrder - Pedido pendiente.
+ * @param {string} orderId - external_reference.
+ * @param {number|null} paidAmount - Monto realmente pagado según MP.
+ * @return {Promise<number>} Monto acreditado.
+ */
+async function creditWalletRecharges(pendingOrder, orderId, paidAmount) {
+  const {cart, uid} = pendingOrder;
+  if (!uid || uid === "guest" || !Array.isArray(cart)) return 0;
+  // Solo MP cobra en CLP; otros métodos se acreditan desde el panel admin.
+  const metodo = pendingOrder.metodoPago || "mercadopago";
+  if (metodo !== "mercadopago") return 0;
+
+  const isRecharge = (p) => {
+    const id = String(p.id || p.productId || "");
+    return id.startsWith("wallet_recharge_") ||
+      id.startsWith("dist_recharge_") ||
+      p.category_id === "wallet";
+  };
+  let monto = cart.filter(isRecharge).reduce((acc, p) =>
+    acc + (Number(p.precio) || 0) * (Number(p.quantity || p.cantidad) || 1), 0);
+  if (Number(paidAmount) > 0) monto = Math.min(monto, Number(paidAmount));
+  monto = Math.round(monto);
+  if (monto <= 0) return 0;
+
+  const creditRef = db.collection("walletCredits").doc(orderId);
+  const userRef = db.collection("users").doc(uid);
+  const credited = await db.runTransaction(async (tx) => {
+    const prev = await tx.get(creditRef);
+    if (prev.exists) return 0;
+    tx.set(creditRef, {
+      uid,
+      email: pendingOrder.email || null,
+      monto,
+      origen: "mercadopago",
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    tx.set(userRef, {
+      wallet_balance: admin.firestore.FieldValue.increment(monto),
+    }, {merge: true});
+    return monto;
+  });
+  if (credited > 0) {
+    console.log(`[wallet] +${credited} CLP acreditados a ${uid} (pedido ${orderId})`);
+  }
+  return credited;
+}
+
+async function processApprovedOrder(pendingOrder, orderId, paidAmount = null) {
+  await creditWalletRecharges(pendingOrder, orderId, paidAmount);
   const {
     cart,
     email,
@@ -1435,7 +1489,8 @@ exports.mercadoPagoWebhook = functions.https.onRequest(async (req, res) => {
 
         if (pendingOrderDoc.exists) {
           const pendingOrder = pendingOrderDoc.data();
-          await processApprovedOrder(pendingOrder, orderId);
+          await processApprovedOrder(
+              pendingOrder, orderId, payment.transaction_amount);
           console.log(
               `Pedido ${orderId} confirmado y procesado exitosamente.`,
           );
@@ -1937,7 +1992,7 @@ exports.enviarCorreoPromocional = functions.https.onRequest(
                     </a>
                   </td>
                   <td style="padding: 0 6px;">
-                    <a href="https://t.me/NintendoChile2" target="_blank" rel="noopener noreferrer" style="text-decoration: none; display: inline-block; padding: 8px 14px; background-color: #1e293b; border-radius: 8px; border: 1px solid #334155;">
+                    <a href="https://t.me/juegosNintendoSwitchChile2" target="_blank" rel="noopener noreferrer" style="text-decoration: none; display: inline-block; padding: 8px 14px; background-color: #1e293b; border-radius: 8px; border: 1px solid #334155;">
                       <table cellpadding="0" cellspacing="0" border="0">
                         <tr>
                           <td valign="middle" style="padding-right: 6px;">
@@ -2012,7 +2067,7 @@ exports.enviarCorreoPromocional = functions.https.onRequest(
                 .replace(/{{nombre}}/gi, nombre)
                 .replace(/{{name}}/gi, nombre)
                 .replace(/{{UNSUB_URL}}/g, unsubUrl);
-            const plainText = `${finalSubject}\n\nHola ${nombre},\n\n¡Muchas gracias por tu preferencia en PandaStore!\n\nPor favor déjanos tu opinión o reseña aquí:\nhttps://pandastoreupdate.web.app/testimonios\n\nExplora nuestro catálogo oficial:\nhttps://pandastoreupdate.web.app/home\n\nWhatsApp: https://wa.me/56974751810\nTelegram: https://t.me/NintendoChile2\n\nPara cancelar tu suscripción a correos promocionales:\n${unsubUrl}\n\n© ${year} PandaStore Oficial`;
+            const plainText = `${finalSubject}\n\nHola ${nombre},\n\n¡Muchas gracias por tu preferencia en PandaStore!\n\nPor favor déjanos tu opinión o reseña aquí:\nhttps://pandastoreupdate.web.app/testimonios\n\nExplora nuestro catálogo oficial:\nhttps://pandastoreupdate.web.app/home\n\nWhatsApp: https://wa.me/56974751810\nTelegram: https://t.me/juegosNintendoSwitchChile2\n\nPara cancelar tu suscripción a correos promocionales:\n${unsubUrl}\n\n© ${year} PandaStore Oficial`;
 
             try {
               await transporter.sendMail({
@@ -2250,9 +2305,67 @@ exports.borrarCatalogosDiarios = functionsV1.pubsub
       return null;
     });
 
+// ── Panel Admin: Publicar / Programar Posts en Canal de Telegram ──
+exports.adminTelegramPostHttp = functions.https.onRequest((req, res) => {
+  cors(req, res, async () => {
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+    if (req.method !== "POST") {
+      res.status(405).json({ok: false, error: "Método no permitido"});
+      return;
+    }
+
+    const adminUser = await requireRequestUser(req, res, true);
+    if (!adminUser) return;
+
+    try {
+      const result = await telegramBotModule.handleAdminTelegramPostAction(req.body || {}, adminUser);
+      res.status(result.status).json(result.data);
+    } catch (error) {
+      console.error("Error en adminTelegramPostHttp:", error);
+      res.status(500).json({ok: false, error: error.message || "Error interno del servidor"});
+    }
+  });
+});
+
+// ── Cron cada 15 min: Ejecutar Posts Programados en Canal de Telegram (Chile) ──
+exports.ejecutarPostsProgramadosTelegram = functionsV1.pubsub
+    .schedule("*/15 * * * *")
+    .timeZone("America/Santiago")
+    .onRun(async () => {
+      await telegramBotModule.ejecutarPostsProgramadosTelegram();
+      return null;
+    });
+
 // ── API Pública Catálogo Steam (Juegos, VIPs, Ubisoft, EA Sports, Sagas y Promos) ──
 const steamCatalogModule = require("./steamCatalogApi");
 exports.apiSteamCatalog = functions.https.onRequest((req, res) => {
   return steamCatalogModule.handleSteamCatalog(req, res);
 });
 
+
+// ── Proxy catálogo Ryuu (evita el CORS duplicado "*, *" de generator.ryuu.lol) ──
+const ryuuProxyModule = require("./ryuuProxy");
+exports.apiRyuuCatalog = functions.https.onRequest(
+    {memory: "1GiB", timeoutSeconds: 300},
+    (req, res) => ryuuProxyModule.handleRyuuCatalog(req, res),
+);
+
+// ── Ranking público "Lo más comprado" para el home (cada 6 horas) ──
+const topSellersModule = require("./topSellers");
+exports.actualizarTopVentas = functionsV1.pubsub
+    .schedule("0 */6 * * *")
+    .timeZone("America/Santiago")
+    .onRun(async () => {
+      await topSellersModule.computeTopSellers();
+      return null;
+    });
+
+// ── Fotos de productos livianas (WebP redimensionado y cacheado en el CDN de Hosting) ──
+const imageResizeModule = require("./imageResize");
+exports.img = functions.https.onRequest(
+    {memory: "1GiB", timeoutSeconds: 60, concurrency: 20},
+    (req, res) => imageResizeModule.handleImage(req, res),
+);

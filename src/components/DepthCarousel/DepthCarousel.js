@@ -45,6 +45,7 @@ const DepthCarousel = ({
   showIndicators = true,
   onChange,
   onItemClick,
+  priority = false,
   className = ''
 }) => {
   const data = useMemo(() => (Array.isArray(items) ? items : []).map(normalizeItem), [items]);
@@ -395,9 +396,12 @@ const DepthCarousel = ({
             <img
               className="depth-carousel__img"
               src={getOptimizedCarouselImage(item.image, cardWidth)}
+              srcSet={item.srcSet}
+              sizes={item.srcSet ? `${cardWidth}px` : undefined}
               alt={item.alt || item.title || 'Juego digital PandaStore'}
               draggable={false}
-              loading="lazy"
+              loading={priority && i === 0 ? 'eager' : 'lazy'}
+              fetchPriority={priority && i === 0 ? 'high' : undefined}
               decoding="async"
               width={cardWidth}
               height={cardHeight}

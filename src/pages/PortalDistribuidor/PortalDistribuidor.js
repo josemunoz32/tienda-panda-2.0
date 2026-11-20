@@ -1,6 +1,8 @@
 import { notifyNewDistributorRequest } from "../../utils/telegramNotifications";
 import React, { useState, useEffect, useMemo } from "react";
-import { auth, db, storage } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
+import { storage } from "../../firebaseServices";
 import {
   collection,
   getDocs,

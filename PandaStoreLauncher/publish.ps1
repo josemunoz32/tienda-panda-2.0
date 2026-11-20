@@ -61,6 +61,17 @@ if ($catalogSrc) {
     Copy-Item $catalogSrc -Destination "$scriptDir\Publish\cache_games_ryuu_v4.json" -Force
     Write-Host " Catalogo de juegos (cache_games_ryuu_v4.json) copiado a Publish para arranque ultra rapido." -ForegroundColor Green
 }
+
+# Copiar archivos .torrent a Publish y a la web publica
+$torrentsSrc = "$scriptDir\..\juegos_torrent"
+if (Test-Path $torrentsSrc) {
+    Copy-Item $torrentsSrc -Destination "$scriptDir\Publish\juegos_torrent" -Recurse -Force
+    if (-not (Test-Path "$scriptDir\..\public\torrents")) { New-Item -ItemType Directory -Path "$scriptDir\..\public\torrents" | Out-Null }
+    if (-not (Test-Path "$scriptDir\..\build\torrents")) { New-Item -ItemType Directory -Path "$scriptDir\..\build\torrents" | Out-Null }
+    Copy-Item "$torrentsSrc\*" -Destination "$scriptDir\..\public\torrents" -Force
+    Copy-Item "$torrentsSrc\*" -Destination "$scriptDir\..\build\torrents" -Force
+    Write-Host " Archivos .torrent copiados a Publish, public/torrents y build/torrents." -ForegroundColor Green
+}
 Write-Host "[1/4] Aplicando Firma Digital de Seguridad (Authenticode Code Signing)..." -ForegroundColor Cyan
 
 $cert = Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert | Where-Object { $_.Subject -like "*PandaStore*" } | Select-Object -First 1

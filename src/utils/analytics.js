@@ -2,8 +2,9 @@
  * analytics.js — Servicio central de analítica
  * Guarda eventos en Firestore + dispara Firebase Analytics + Meta Pixel
  */
-import { db, analytics, logEvent } from "../firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { dbLite, logAnalyticsEvent } from "../firebase";
+// Escritura vía Firestore Lite (REST): no abre el canal Write persistente del SDK completo.
+import { collection, addDoc, serverTimestamp } from "firebase/firestore/lite";
 import { recordViewedProduct } from "./abandonedCart";
 import { getVisitorId } from "./visitorIdentity";
 
@@ -24,11 +25,11 @@ function getBaseProps() {
 // ── Guarda evento en Firestore de forma no bloqueante (diferido) ──
 async function saveEvent(eventName, props = {}) {
   try {
-    if (typeof navigator !== 'undefined' && /Lighthouse|HeadlessChrome|Chrome-Lighthouse|bot/i.test(navigator.userAgent)) {
+    if (typeof navigator !== 'undefined' && (navigator.webdriver || /bot|crawl|spider|slurp|headless|lighthouse|pagespeed|gtmetrix|pingdom|uptime|monitor|preview|facebookexternalhit|whatsapp|telegram|discord|embedly|python|curl|wget|axios|node-fetch|go-http|java\/|okhttp|puppeteer|playwright|selenium|phantom|prerender|scrapy|semrush|ahrefs|mj12|bingpreview|yandex|baidu|duckduck|applebot|petal/i.test(navigator.userAgent || ''))) {
       return;
     }
     const run = () => {
-      addDoc(collection(db, "analyticsEvents"), {
+      addDoc(collection(dbLite, "analyticsEvents"), {
         event: eventName,
         ...getBaseProps(),
         ...props,
@@ -55,7 +56,7 @@ function fbq(eventType, eventName, params = {}) {
 
 export function trackPageView(page, userId = null) {
   const props = { userId };
-  logEvent(analytics, "page_view", { page_path: page });
+  logAnalyticsEvent("page_view", { page_path: page });
   fbq("track", "PageView");
   saveEvent("page_view", props);
 }
@@ -67,7 +68,7 @@ export function trackViewItem(product, userId = null) {
     price: product.priceCLP || 0,
     currency: "CLP",
   };
-  logEvent(analytics, "view_item", params);
+  logAnalyticsEvent("view_item", params);
   fbq("track", "ViewContent", { content_ids: [product.id], content_name: product.name, value: product.priceCLP || 0, currency: "CLP" });
   saveEvent("view_item", { productId: product.id, productName: product.name, value: product.priceCLP || 0, userId });
   recordViewedProduct(product);
@@ -80,49 +81,50 @@ export function trackAddToCart(product, userId = null) {
     price: product.priceCLP || 0,
     currency: "CLP",
   };
-  logEvent(analytics, "add_to_cart", params);
+  logAnalyticsEvent("add_to_cart", params);
   fbq("track", "AddToCart", { content_ids: [product.id], content_name: product.name, value: product.priceCLP || 0, currency: "CLP" });
   saveEvent("add_to_cart", { productId: product.id, productName: product.name, value: product.priceCLP || 0, userId });
 }
 
 export function trackRemoveFromCart(product, userId = null) {
-  logEvent(analytics, "remove_from_cart", { item_id: product.id, item_name: product.name });
+  logAnalyticsEvent("remove_from_cart", { item_id: product.id, item_name: product.name });
   saveEvent("remove_from_cart", { productId: product.id, productName: product.name, userId });
 }
 
 export function trackBeginCheckout(items = [], total = 0, currency = "CLP", userId = null) {
-  logEvent(analytics, "begin_checkout", { value: total, currency, items: items.length });
+  logAnalyticsEvent("begin_checkout", { value: total, currency, items: items.length });
   fbq("track", "InitiateCheckout", { value: total, currency, num_items: items.length });
   saveEvent("begin_checkout", { value: total, currency, itemCount: items.length, userId });
 }
 
 export function trackPurchase(orderId, items = [], total = 0, currency = "CLP", userId = null) {
-  logEvent(analytics, "purchase", { transaction_id: orderId, value: total, currency, items: items.length });
+  logAnalyticsEvent("purchase", { transaction_id: orderId, value: total, currency, items: items.length });
   fbq("track", "Purchase", { value: total, currency, content_ids: items.map(i => i.id || i.productId) });
   saveEvent("purchase", { orderId, value: total, currency, itemCount: items.length, userId });
 }
 
 export function trackSearch(query, resultsCount = 0, userId = null) {
-  logEvent(analytics, "search", { search_term: query });
+  logAnalyticsEvent("search", { search_term: query });
   saveEvent("search", { query, searchTerm: query, resultsCount, userId });
 }
 
 export function trackLogin(method = "email", userId = null) {
-  logEvent(analytics, "login", { method });
+  logAnalyticsEvent("login", { method });
   saveEvent("login", { method, userId });
 }
 
 export function trackSignUp(method = "email", userId = null) {
-  logEvent(analytics, "sign_up", { method });
+  logAnalyticsEvent("sign_up", { method });
   saveEvent("sign_up", { method, userId });
 }
 
 export function trackClickWhatsapp(context = "", userId = null) {
-  logEvent(analytics, "click_whatsapp", { context });
+  logAnalyticsEvent("click_whatsapp", { context });
   saveEvent("click_whatsapp", { context, userId });
 }
 
-export function trackClickInstagram(context = "", userId = null) {
-  logEvent(analytics, "click_instagram", { context });
-  saveEvent("click_instagram", { context, userId });
+
+export function trackClickTelegram(context = "", userId = null) {
+  logAnalyticsEvent("click_telegram", { context });
+  saveEvent("click_telegram", { context, userId });
 }

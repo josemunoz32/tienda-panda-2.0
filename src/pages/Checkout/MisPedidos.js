@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
-import { db, auth } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
 import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, setDoc, arrayUnion } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { STEAM_SAGAS } from "../../utils/sagasData";

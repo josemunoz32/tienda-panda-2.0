@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import DataTable6 from "../../components/DataTable6/DataTable6";
 import { useNavigate, Link } from "react-router-dom";
 import { collection, collectionGroup, getDocs, deleteDoc, updateDoc } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../../firebaseDb";
 import pandaGamerAvatar from "../../assets/logos/miicono.png";
 import "./AdminResenas.css";
 

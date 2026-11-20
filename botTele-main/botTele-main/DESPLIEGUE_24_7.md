@@ -20,7 +20,6 @@ En la pestaña **Environment** de tu servicio en Render, agrega las siguientes v
 | :--- | :--- |
 | `TELEGRAM_TOKEN` | Tu token del bot de Telegram (`123456789:ABC...`) |
 | `CANAL_PUBLICO_ID` | `-1001553070593` (o el canal definitivo cuando termines pruebas) |
-| `CANAL_REVENDEDORES_ID` | `0` (o el ID del canal de revendedores) |
 | `ADMIN_ID` | `5158777962` |
 | `TELEGRAM_CONTACT` | `NintendoChile2` |
 | `INSTAGRAM_URL` | `https://www.instagram.com/juegos_nintendo_switch_chile` |

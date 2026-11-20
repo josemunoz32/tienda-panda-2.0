@@ -27,15 +27,6 @@
     "platform": "Steam"
   },
   {
-    "id": "vip-borderlands-4",
-    "name": "Borderlands® 4",
-    "priceCLP": 8000,
-    "isTopTier": false,
-    "app_id": "1285190",
-    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1285190/header.jpg",
-    "platform": "Steam"
-  },
-  {
     "id": "vip-construction-simulator",
     "name": "Construction Simulator",
     "priceCLP": 8000,
@@ -87,24 +78,6 @@
     "isTopTier": false,
     "app_id": "1038250",
     "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1038250/header.jpg",
-    "platform": "Steam"
-  },
-  {
-    "id": "vip-dragon-ball-sparking-zero",
-    "name": "DRAGON BALL: Sparking! ZERO",
-    "priceCLP": 8000,
-    "isTopTier": false,
-    "app_id": "1790600",
-    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1790600/header.jpg",
-    "platform": "Steam"
-  },
-  {
-    "id": "vip-dragons-dogma-2",
-    "name": "Dragon's Dogma 2",
-    "priceCLP": 8000,
-    "isTopTier": false,
-    "app_id": "2054970",
-    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/2054970/header.jpg",
     "platform": "Steam"
   },
   {
@@ -222,15 +195,6 @@
     "isTopTier": false,
     "app_id": "2215200",
     "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/2215200/header.jpg",
-    "platform": "Steam"
-  },
-  {
-    "id": "vip-lies-of-p",
-    "name": "Lies of P",
-    "priceCLP": 8000,
-    "isTopTier": false,
-    "app_id": "1627720",
-    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1627720/header.jpg",
     "platform": "Steam"
   },
   {
@@ -531,15 +495,6 @@
     "platform": "Steam"
   },
   {
-    "id": "vip-silent-hill-2",
-    "name": "SILENT HILL 2",
-    "priceCLP": 8000,
-    "isTopTier": false,
-    "app_id": "2124490",
-    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/2124490/header.jpg",
-    "platform": "Steam"
-  },
-  {
     "id": "vip-sniper-elite-4",
     "name": "Sniper Elite 4",
     "priceCLP": 8000,
@@ -627,15 +582,6 @@
     "isTopTier": false,
     "app_id": "1777620",
     "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1777620/header.jpg",
-    "platform": "Steam"
-  },
-  {
-    "id": "vip-star-wars-jedi-survivor",
-    "name": "STAR WARS Jedi: Survivor™",
-    "priceCLP": 8000,
-    "isTopTier": false,
-    "app_id": "1774580",
-    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/1774580/header.jpg",
     "platform": "Steam"
   },
   {
@@ -882,15 +828,6 @@
     "platform": "EA"
   },
   {
-    "id": "vip-ea-sports-fc-27",
-    "name": "EA SPORTS FC 27 (FIFA 27)",
-    "priceCLP": 17000,
-    "isTopTier": true,
-    "app_id": "16425884",
-    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/16425884/header.jpg",
-    "platform": "EA"
-  },
-  {
     "id": "vip-ea-sports-madden-nfl-26",
     "name": "EA SPORTS™ Madden NFL 26",
     "priceCLP": 15000,
@@ -952,5 +889,41 @@
     "app_id": "16425769",
     "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/2074920/header.jpg",
     "platform": "EA"
+  },
+  {
+    "id": "vip-finalfantasyresonance",
+    "name": "FINAL FANTASY RESONANCE",
+    "priceCLP": 8000,
+    "isTopTier": false,
+    "app_id": "3259780",
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/3259780/header.jpg",
+    "platform": "Steam"
+  },
+  {
+    "id": "vip-phantombladezero",
+    "name": "Phantom Blade Zero",
+    "priceCLP": 8000,
+    "isTopTier": false,
+    "app_id": "4115450",
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/4115450/header.jpg",
+    "platform": "Steam"
+  },
+  {
+    "id": "vip-footballmanager27",
+    "name": "Football Manager 27",
+    "priceCLP": 8000,
+    "isTopTier": false,
+    "app_id": "4530370",
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/4530370/header.jpg",
+    "platform": "Steam"
+  },
+  {
+    "id": "vip-crimsondesertdlcchartingtheunknown",
+    "name": "Crimson Desert + DLC (Charting the Unknown)",
+    "priceCLP": 8000,
+    "isTopTier": false,
+    "app_id": "5001840",
+    "imageUrl": "https://cdn.akamai.steamstatic.com/steam/apps/5001840/header.jpg",
+    "platform": "Steam"
   }
 ]

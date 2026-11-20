@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { collection, getDocs, onSnapshot, orderBy, query } from "firebase/firestore";
+import { collection, getDocs, limit, onSnapshot, orderBy, query } from "firebase/firestore";
 import { onValue, ref } from "firebase/database";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { auth, db, database } from "../../firebase";
+import { auth, loadDatabase } from "../../firebase";
+import { db } from "../../firebaseDb";
 import "./AdminDashboard.css";
 import { useMoneda } from "../../context/MonedaContext";
 import { slugify } from "../../utils/slugify";
@@ -40,6 +41,9 @@ const numberValue = (value) => {
 };
 const money = (amount, currency = "CLP") => new Intl.NumberFormat(currency === "USD" ? "en-US" : "es-CL", { style: "currency", currency, maximumFractionDigits: currency === "CLP" ? 0 : 2 }).format(numberValue(amount));
 const displayName = (item) => item?.name || item?.nombre || item?.title || item?.productName || "Producto sin nombre";
+// Sólo personas reales: se descartan bots, rastreadores, herramientas de prueba y eventos sin navegador.
+const BOT_UA = /bot|crawl|spider|slurp|headless|lighthouse|pagespeed|gtmetrix|pingdom|uptime|monitor|preview|facebookexternalhit|whatsapp|telegram|discord|embedly|python|curl|wget|axios|node-fetch|go-http|java\/|okhttp|puppeteer|playwright|selenium|phantom|prerender|scrapy|semrush|ahrefs|mj12|bingpreview|yandex|baidu|duckduck|applebot|petal/i;
+const isHumanEvent = (event) => Boolean(event.userAgent) && !BOT_UA.test(String(event.userAgent)) && !String(event.page || "").startsWith("/admin");
 const eventDate = (event) => dateOf(event.timestamp || event.createdAt);
 
 const formatSlug = (slug) => {
@@ -151,7 +155,7 @@ const eventSummary = (event, products = []) => {
   if (event.event === "purchase") return "Registró una compra";
   if (event.event === "search") return `Buscó: ${event.searchTerm || event.query || "sin término"}`;
   if (event.event === "click_whatsapp") return "Abrió WhatsApp";
-  if (event.event === "click_instagram") return "Abrió Instagram";
+  if (event.event === "click_telegram") return "Abrió el canal de Telegram";
   if (event.event === "login") return "Inició sesión";
   if (event.event === "sign_up") return "Creó una cuenta";
   return event.event || "Actividad registrada";
@@ -160,16 +164,35 @@ const eventTime = (event) => {
   const date = eventDate(event);
   return date ? date.toLocaleString("es-CL", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "Pendiente";
 };
+// Ningún pedido real de la tienda supera US$ 1.000: un "USD" mayor es un monto CLP mal etiquetado.
+const MAX_REAL_USD = 1000;
+const looksLikeCLP = (order) => numberValue(order.totalUSD ?? order.totalUsd ?? order.total ?? order.amount ?? order.monto) > MAX_REAL_USD && !numberValue(order.totalCLP ?? order.totalClp);
 const orderCurrency = (order) => {
+  if (looksLikeCLP(order)) return "CLP";
   const raw = String(order.moneda || order.currency || order.monedaLocal || "").trim().toUpperCase();
   if (raw.includes("USD") || raw.includes("US$") || raw.includes("DOLAR")) return "USD";
   // Algunos registros antiguos sólo tenían el total USD, sin el campo moneda.
   if (!raw && order.totalUSD !== undefined && order.totalUSD !== null && (order.totalCLP === undefined || order.totalCLP === null)) return "USD";
   return "CLP";
 };
-const orderAmount = (order, currency = orderCurrency(order)) => numberValue(currency === "USD"
-  ? order.totalUSD ?? order.totalUsd ?? order.total ?? order.amount ?? order.monto
-  : order.totalCLP ?? order.totalClp ?? order.total ?? order.totalPrice ?? order.amount ?? order.monto);
+// Monto CLP real del pedido: todos los checkouts guardan totalCLP como base.
+const orderCLP = (order) => {
+  const clp = numberValue(order.totalCLP ?? order.totalClp ?? order.subtotalCLP ?? order.cotizacion?.baseCLP);
+  if (clp) return clp;
+  const raw = numberValue(order.total ?? order.totalPrice ?? order.amount ?? order.monto ?? order.totalUSD ?? order.totalUsd);
+  if (orderCurrency(order) === "USD") return Math.round(raw * numberValue(order.cotizacion?.valorDolar || 900));
+  return raw;
+};
+// Monto USD sólo para pedidos pagados en dólares. Si el valor guardado es en realidad
+// un monto CLP mal etiquetado (registros antiguos), se deriva desde totalCLP.
+const orderUSD = (order) => {
+  const clp = numberValue(order.totalCLP ?? order.totalClp ?? order.cotizacion?.baseCLP);
+  const rate = numberValue(order.cotizacion?.valorDolar || 900) || 900;
+  const usd = numberValue(order.cotizacion?.totalUSD ?? order.totalUSD ?? order.totalUsd ?? order.total ?? order.amount ?? order.monto);
+  if (clp && (!usd || usd > clp / 100 || usd > MAX_REAL_USD)) return Math.round((clp / rate) * 100) / 100;
+  return usd;
+};
+const orderAmount = (order, currency = orderCurrency(order)) => (currency === "USD" ? orderUSD(order) : orderCLP(order));
 
 function cutOff(period) {
   if (period === "todo") return null;
@@ -204,11 +227,21 @@ export default function AdminDashboard() {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = onSnapshot(query(collection(db, "analyticsEvents"), orderBy("timestamp", "desc"), limit(10000)),
+      (snapshot) => setEvents(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })).filter(isHumanEvent)),
+      (error) => setLoadError(`No fue posible cargar los eventos de visitas (analyticsEvents): ${error?.code || error?.message || "error"}`));
+    return () => unsubscribe();
+  }, []);
+
   // No limit here: the daily totals and peak/low days must use all recorded
   // events, not an arbitrary sample of the latest records.
   useEffect(() => {
-    if (!database) return;
-    return onValue(ref(database, "presence"), (snapshot) => {
+    let active = true;
+    let unsubscribe = null;
+    loadDatabase().then((rtdb) => {
+    if (!active || !rtdb) return;
+    unsubscribe = onValue(ref(rtdb.database, "presence"), (snapshot) => {
     const cutoff = Date.now() - 90000;
     const visitors = [];
     Object.entries(snapshot.val() || {}).forEach(([identity, entry]) => {
@@ -241,7 +274,32 @@ export default function AdminDashboard() {
       checkedAt: new Date(),
     });
   });
+    }).catch(() => {});
+    return () => {
+      active = false;
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
+
+  // Respaldo: si Realtime Database no está configurada o no reporta, se calcula
+  // "en línea" con los eventos reales registrados en los últimos 5 minutos.
+  const [nowTick, setNowTick] = useState(Date.now());
+  useEffect(() => { const t = setInterval(() => setNowTick(Date.now()), 30000); return () => clearInterval(t); }, []);
+  const liveOnline = useMemo(() => {
+    if (online.total > 0) return { ...online, windowLabel: "activo ≤ 90 s" };
+    const cutoff = nowTick - 5 * 60 * 1000;
+    const byVisitor = new Map();
+    events.forEach((event) => {
+      const date = eventDate(event);
+      if (!date || date.getTime() < cutoff) return;
+      const id = event.userId ? `user:${event.userId}` : `guest:${event.visitorId || event.sessionId || event.id}`;
+      const prev = byVisitor.get(id);
+      if (prev && prev.lastSeen >= date.getTime()) { prev.sessions.add(event.sessionId); return; }
+      byVisitor.set(id, { id, kind: event.userId ? "Cuenta" : "Invitado", isSelf: event.userId && event.userId === auth.currentUser?.uid, page: pageLabel(event.page, store?.products), path: event.page || "/", lastSeen: date.getTime(), sessions: new Set([...(prev?.sessions || []), event.sessionId]) });
+    });
+    const visitors = [...byVisitor.values()].map((v) => ({ ...v, tabs: v.sessions.size || 1 })).sort((a, b) => b.lastSeen - a.lastSeen);
+    return { total: visitors.length, guests: visitors.filter((v) => v.kind === "Invitado").length, users: visitors.filter((v) => v.kind === "Cuenta").length, visitors, checkedAt: new Date(nowTick), windowLabel: "actividad ≤ 5 min" };
+  }, [online, events, nowTick, store]);
 
   const model = useMemo(() => {
     if (!store) return null;
@@ -260,12 +318,14 @@ export default function AdminDashboard() {
     paidOrders.forEach((order) => {
       const currency = orderCurrency(order);
       const total = orderAmount(order, currency);
-      if (currency === "USD") revenueUSD += total; else revenueCLP += total;
+      if (currency === "USD") revenueUSD += total;
+      revenueCLP += orderCLP(order);
       const date = orderDate(order);
       if (date) {
         const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
         const bucket = monthly.get(key) || { key, name: date.toLocaleDateString("es-CL", { month: "short", year: "2-digit" }), ingresosCLP: 0, ingresosUSD: 0, ganancia: 0, pedidosConCosto: 0 };
-        if (currency === "USD") bucket.ingresosUSD += total; else bucket.ingresosCLP += total;
+        if (currency === "USD") bucket.ingresosUSD += total;
+        bucket.ingresosCLP += orderCLP(order);
         monthly.set(key, bucket);
       }
       const items = itemsOf(order);
@@ -381,7 +441,7 @@ export default function AdminDashboard() {
     <header className="adm-dash-header"><div><h1 className="adm-dash-title">Tablero <span>Analítico</span></h1><p className="adm-dash-subtitle">Datos registrados por PandaStore · período: {label}. Sin proyecciones ni cifras inventadas.</p></div><div className="adm-time-filter">{PERIODS.map(([key, name]) => <button key={key} className={`adm-time-btn${period === key ? " active" : ""}`} onClick={() => setPeriod(key)}>{name}</button>)}</div></header>
     {loadError && <div className="adm-event-empty" style={{ marginBottom: 16 }}>{loadError}</div>}
     <section className="adm-kpi-grid">
-      <Metric icon="●" label="En línea ahora" value={online.total} detail={`${online.users} con cuenta · ${online.guests} invitados · activo ≤ 90 s`} color="#4ade80" />
+      <Metric icon="●" label="En línea ahora" value={liveOnline.total} detail={`${liveOnline.users} con cuenta · ${liveOnline.guests} invitados · ${liveOnline.windowLabel}`} color="#4ade80" />
       <Metric icon="◉" label="Visitantes únicos" value={model.visitors} detail={`${model.signedUsers} con cuenta · ${model.guests} invitados`} color="#c084fc" />
       <Metric icon="✓" label="Pedidos confirmados" value={model.paidOrders.length} color="#60a5fa" />
       <Metric icon="$" label="Ingresos cobrados CLP" value={money(model.revenueCLP)} detail="Sólo pedidos confirmados" color="#38bdf8" />
@@ -390,7 +450,7 @@ export default function AdminDashboard() {
       <Metric icon="💵" label="Dólar Web Fijado" value={`$${(valorDolar || 900).toLocaleString("es-CL")} CLP`} color="#10b981" />
     </section>
     <section className="adm-live-visitors-section">
-      <Panel title="Visitantes en línea ahora" source="Un visitante único por navegador o cuenta · actividad ≤ 90 s"><LiveVisitors visitors={online.visitors} /></Panel>
+      <Panel title="Visitantes en línea ahora" source={`Un visitante único por navegador o cuenta · ${liveOnline.windowLabel}`}><LiveVisitors visitors={liveOnline.visitors} /></Panel>
     </section>
     <section className="adm-visitor-analysis-section">
       <Panel title="Recorrido de cada visitante" source={`Actividad individual del período: ${label} · selecciona una persona para ver todo su recorrido`}><VisitorJourney visitors={model.visitorActivity} selected={selectedVisitor} onSelect={setSelectedVisitorKey} products={store?.products} /></Panel>
@@ -419,5 +479,5 @@ export default function AdminDashboard() {
 function Metric({ icon, label, value, detail, color }) { return <div className="adm-kpi-card" style={{ "--kpi-color": color }}><div className="adm-kpi-top"><div className="adm-kpi-icon" style={{ color, background: `${color}1f` }}>{icon}</div></div><div className="adm-kpi-value">{value}</div><div className="adm-kpi-label">{label}</div>{detail && <small className="adm-kpi-detail">{detail}</small>}</div>; }
 function Panel({ title, source, children }) { return <div className="adm-table-card"><div className="adm-table-header"><div><h3 className="adm-table-title">{title}</h3><small style={{ color: "#94a3b8" }}>{source}</small></div></div>{children}</div>; }
 function DailyTraffic({ rows }) { return rows.length ? <div className="adm-daily-traffic"><div className="adm-daily-head"><span>Día</span><span>Visitas</span><span>Inv.</span><span>Usuario</span></div>{rows.slice(0, 14).map((row) => <div className="adm-daily-row" key={row.key}><span>{row.label}</span><b>{row.visitors}</b><span>{row.guests}</span><span>{row.users}</span></div>)}</div> : <Empty>No hay visitas registradas para este período.</Empty>; }
-function LiveVisitors({ visitors }) { return visitors.length ? <div className="adm-live-visitors">{visitors.map((visitor) => <div className="adm-live-visitor" key={visitor.id}><span className={`adm-live-kind ${visitor.kind === "Cuenta" ? "is-user" : "is-guest"}`}>{visitor.isSelf ? "Tu cuenta" : visitor.kind}</span><span className="adm-live-page" title={visitor.path}>Viendo: <b>{visitor.page}</b></span><span className="adm-live-tabs">{visitor.tabs > 1 ? `${visitor.tabs} pestañas` : "1 pestaña"}</span></div>)}</div> : <Empty>No hay visitantes activos en los últimos 90 segundos.</Empty>; }
+function LiveVisitors({ visitors }) { return visitors.length ? <div className="adm-live-visitors">{visitors.map((visitor) => <div className="adm-live-visitor" key={visitor.id}><span className={`adm-live-kind ${visitor.kind === "Cuenta" ? "is-user" : "is-guest"}`}>{visitor.isSelf ? "Tu cuenta" : visitor.kind}</span><span className="adm-live-page" title={visitor.path}>Viendo: <b>{visitor.page}</b></span><span className="adm-live-tabs">{visitor.tabs > 1 ? `${visitor.tabs} pestañas` : "1 pestaña"}</span></div>)}</div> : <Empty>No hay visitantes activos en este momento.</Empty>; }
 function VisitorJourney({ visitors, selected, onSelect, products = [] }) { return visitors.length ? <div className="adm-journey"><div className="adm-journey-list">{visitors.map((visitor) => <button type="button" className={`adm-journey-person${selected?.key === visitor.key ? " active" : ""}`} key={visitor.key} onClick={() => onSelect(visitor.key)}><span className={`adm-live-kind ${visitor.kind === "Cliente" ? "is-user" : "is-guest"}`}>{visitor.kind}</span><span className="adm-journey-name">{visitor.label}</span><small>{visitor.pageViews} páginas · {visitor.productsSeen.length} juegos</small></button>)}</div>{selected && <div className="adm-journey-detail"><div className="adm-journey-summary"><div><span className={`adm-live-kind ${selected.kind === "Cliente" ? "is-user" : "is-guest"}`}>{selected.kind}</span><h4>{selected.label}</h4><p>Última actividad: {selected.lastDate ? selected.lastDate.toLocaleString("es-CL") : "sin fecha"}</p></div><div className="adm-journey-stats"><b>{selected.pageViews}</b><span>páginas vistas</span><b>{selected.events.length}</b><span>acciones</span></div></div><div className="adm-journey-interest"><b>Vio:</b> {selected.pagesSeen.slice(0, 5).map(([page, count]) => <span key={page}>{page} · {count}</span>) || "Sin páginas"}</div>{selected.productsSeen.length > 0 && <div className="adm-journey-interest"><b>Juegos revisados:</b> {selected.productsSeen.slice(0, 5).map(([product, count]) => <span key={product}>{product} · {count}</span>)}</div>}<div className="adm-journey-timeline">{selected.timeline.map((event) => <div className="adm-journey-event" key={event.id}><time>{eventTime(event)}</time><span>{eventSummary(event, products)}</span></div>)}</div></div>}</div> : <Empty>Aún no hay actividad individual para este período.</Empty>; }

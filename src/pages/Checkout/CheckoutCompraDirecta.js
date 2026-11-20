@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useMoneda, roundUpUSD } from "../../context/MonedaContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import UpsellRecs from "../../components/UpsellRecs";
 import DlcUpsellBanner from "../../components/DlcUpsellBanner/DlcUpsellBanner";
-import { db, auth, storage } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
+import { storage } from "../../firebaseServices";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { addDoc, setDoc, collection, doc, getDoc, getDocs, updateDoc, increment, onSnapshot } from "firebase/firestore";
 import { PayPalButtonWrapper } from "../Pagos/PayPalButtonWrapper";
@@ -16,6 +18,7 @@ import { hasB2BAccess, hasResellerBenefits } from "../../utils/userRoles";
 import { DEFAULT_PAYMENT_SETTINGS, normalizePaymentSettings, PAYMENT_SETTINGS_DOC, validatePaymentProofFile, visibleBankAccounts, visibleForUser } from "../../utils/paymentMethods";
 import Loader from "../../components/Loader";
 import steamImportData from "../../assets/steam_import_data.json";
+import { getSteamRealPrice } from "../../utils/vipGames";
 import "./PandaCheckoutCards.css";
 
 // app_id puede existir como referencia interna en productos de PlayStation.
@@ -43,7 +46,23 @@ export default function CheckoutCompraDirecta({ user: propUser }) {
   const { moneda, infoPais, convertirDesdeCLP, formatearPrecio, tasas, valorDolar } = useMoneda();
   const navigate = useNavigate();
   const location = useLocation();
-  const producto = location.state?.producto;
+  // Red de seguridad: un juego de Steam nunca se cobra bajo su precio real (lista VIP manda)
+  const productoRaw = location.state?.producto;
+  const producto = useMemo(() => {
+    const p = productoRaw;
+    if (!p || p.isPromo || p.isSaga || (Array.isArray(p.preciosPorMes) && p.preciosPorMes.length)) return p;
+    const txt = `${p.plataforma || p.platform || ""} ${p.categoria || p.categoryName || ""}`.toLowerCase();
+    const isPS = /ps4|ps5|playstation/.test(txt) || Boolean(p.pricePrimariaCLP || p.priceSecundariaCLP);
+    const isSteam = !isPS && (txt.includes("steam") || Boolean(p.isSteam) || /^(steam_|ryuu_)/.test(String(p.id || "")));
+    if (!isSteam) return p;
+    if (p.isResellerPrice) return p;
+    const appId = p.app_id || p.appId || (String(p.id || "").match(/(\d+)$/) || [])[1];
+    const list = Number(p.steamListPriceCLP) || Number(p.priceCLP) || undefined;
+    const real = getSteamRealPrice({ app_id: appId, name: p.name, steamListPriceCLP: list });
+    const hasDlcs = (Array.isArray(p.selectedDlcs) && p.selectedDlcs.length > 0) || Number(p.dlcsCount) > 0;
+    if (!hasDlcs) return Number(p.priceCLP) === real ? p : { ...p, priceCLP: real, steamListPriceCLP: list };
+    return Number(p.priceCLP) < real ? { ...p, priceCLP: real } : p;
+  }, [productoRaw]);
   const [cantidad, setCantidad] = useState(1);
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [transferenciaRealizada, setTransferenciaRealizada] = useState(false);

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import DataTable6 from "../../components/DataTable6/DataTable6";
 import { collection, getDocs, deleteDoc, doc, updateDoc, increment, addDoc } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../../firebaseDb";
 import { useNavigate } from "react-router-dom";
 import { getUserRoleLabels, hasMultipleBusinessRoles, hasResellerBenefits, hasSteamDistributorAccess, isSuperAdmin } from "../../utils/userRoles";
 import "./AdminUsuarios.css";

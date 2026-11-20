@@ -1,6 +1,6 @@
 // Devuelve un array de productos reales con imagen y nombre
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "../firebaseDb";
 
 export async function getAllProductsWithImage() {
   const snap = await getDocs(collection(db, "products"));

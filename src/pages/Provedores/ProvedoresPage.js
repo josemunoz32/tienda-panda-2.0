@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useMoneda } from "../../context/MonedaContext";
-import { auth, db } from "../../firebase";
+import { auth } from "../../firebase";
+import { db } from "../../firebaseDb";
 import { doc, setDoc } from "firebase/firestore";
 import provedoresImg from "../../assets/gana dinero/provedores.jpg";
 import wspLogo from "../../assets/logos/logowsp.png";
@@ -201,6 +202,7 @@ export default function ProvedoresPage() {
       cantidad: 1,
       priceCLP: pack.priceCLP,
       priceUSD: pack.priceUSD,
+      isFixedPrice: true,
     };
 
     const currentUser = auth.currentUser;
@@ -236,6 +238,7 @@ export default function ProvedoresPage() {
       name: `Proveedores: ${pack.title}`,
       priceCLP: pack.priceCLP,
       priceUSD: pack.priceUSD,
+      isFixedPrice: true,
       imageUrl: provedoresImg,
       desc: pack.subtitle,
     };
@@ -334,11 +337,11 @@ export default function ProvedoresPage() {
       {/* ── SECCIÓN DESARROLLO DE WEBS & E-COMMERCE ── */}
       <section className="prov-custom-section">
         <div className="custom-section-header">
-          <span className="prov-clean-badge">DESARROLLO DE WEBS & E-COMMERCE</span>
-          <h2>Desarrollo de Webs y Tiendas Online</h2>
+          <span className="prov-clean-badge">DESARROLLO WEB POR SUSCRIPCIÓN MENSUAL</span>
+          <h2>Páginas Web y Tiendas Online con Planes Mensuales</h2>
           <p>
-            ¿Buscas una Landing Page de alto impacto o tu propia tienda virtual con pagos WebPay Plus?
-            Conoce nuestros proyectos profesionales de desarrollo web y comercio electrónico en Chile.
+            ¿Buscas una Landing Page profesional o tu propia tienda virtual con pagos WebPay Plus sin pagar cientos de miles de pesos de una sola vez?
+            Conoce nuestros planes mensuales todo incluido desde $14.990/mes con hosting, mantenimiento y soporte técnico continuo.
           </p>
         </div>
 
@@ -348,10 +351,10 @@ export default function ProvedoresPage() {
               <span className="material-icons">laptop_mac</span>
             </div>
             <div>
-              <h3>Landing Pages One Page & Tiendas Online E-Commerce</h3>
+              <h3>Planes Mensuales de Landing Page & E-Commerce</h3>
               <p>
-                Diseño moderno optimizado para celulares, venta directa por WhatsApp, catálogo autoadministrable
-                y pasarelas de pago automáticas sin comisiones sorpresa.
+                Sin grandes inversiones iniciales: diseño moderno optimizado para celulares, venta por WhatsApp o WebPay Plus,
+                hosting de alta velocidad y soporte técnico incluido durante toda tu suscripción.
               </p>
             </div>
           </div>
@@ -360,7 +363,7 @@ export default function ProvedoresPage() {
             className="btn-prov-dev-redirect"
             onClick={() => navigate("/desarrollo-web")}
           >
-            <span>Ingresa aquí para ver proyectos de landing y e-commerce</span>
+            <span>Ver planes mensuales de Desarrollo Web</span>
             <span className="material-icons">arrow_forward</span>
           </button>
         </div>

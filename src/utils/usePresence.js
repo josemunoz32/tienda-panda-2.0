@@ -1,20 +1,23 @@
 import { useEffect } from "react";
-import { database, auth } from "../firebase";
-import { ref, set, onDisconnect, serverTimestamp, onValue } from "firebase/database";
+import { loadDatabase, auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { getPresenceTabId, getVisitorId } from "./visitorIdentity";
 
 export default function usePresence(page = "/") {
   useEffect(() => {
-    if (!database) return;
-
+    let cancelled = false;
+    let set = null;
     let unsub = null;
     let removeConnectionListener = null;
     let heartbeat = null;
     let currentRef = null;
     let onVisibilityChange = null;
 
-    const timer = setTimeout(() => {
+    // El SDK de Realtime Database (~130 KB) se descarga recién aquí, fuera del bundle inicial.
+    const timer = setTimeout(() => loadDatabase().then((rtdb) => {
+      if (cancelled || !rtdb) return;
+      const { database, ref, onDisconnect, serverTimestamp, onValue } = rtdb;
+      set = rtdb.set;
       const connectedRef = ref(database, ".info/connected");
       let disconnectRef = null;
 
@@ -59,15 +62,16 @@ export default function usePresence(page = "/") {
       heartbeat = window.setInterval(touch, 30000);
       onVisibilityChange = () => { if (!document.hidden) touch(); };
       document.addEventListener("visibilitychange", onVisibilityChange);
-    }, 4000);
+    }).catch(() => {}), 4000);
 
     return () => {
+      cancelled = true;
       clearTimeout(timer);
       if (unsub) unsub();
       if (removeConnectionListener) removeConnectionListener();
       if (heartbeat) window.clearInterval(heartbeat);
       if (onVisibilityChange) document.removeEventListener("visibilitychange", onVisibilityChange);
-      if (currentRef) set(currentRef, null);
+      if (currentRef && set) set(currentRef, null);
     };
   }, [page]);
 }

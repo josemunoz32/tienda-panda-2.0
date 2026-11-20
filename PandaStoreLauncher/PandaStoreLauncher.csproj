@@ -44,6 +44,7 @@
 
   <ItemGroup>
     <!-- WMI Support for HWID extraction -->
+    <PackageReference Include="MonoTorrent" Version="3.0.2" />
     <PackageReference Include="System.Management" Version="8.0.0" />
   </ItemGroup>
 
