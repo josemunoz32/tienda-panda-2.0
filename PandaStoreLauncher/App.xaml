@@ -1,8 +1,11 @@
-<Application x:Class="PandaStoreLauncher.App"
+﻿<Application x:Class="PandaStoreLauncher.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:h="clr-namespace:PandaStoreLauncher.Helpers">
     <Application.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <h:CachedImageConverter x:Key="PosterImg" DecodeWidth="400"/>
+        <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
         <!-- Modern Glassmorphism Color Palette -->
         <SolidColorBrush x:Key="BgDarkBrush" Color="#09070F" />
         <SolidColorBrush x:Key="BgCardBrush" Color="#E6151024" />
@@ -156,6 +159,188 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!-- ===== Rediseño 2026: navegación lateral y tarjetas ===== -->
+        <SolidColorBrush x:Key="SideBgBrush" Color="#F20B0816" />
+        <SolidColorBrush x:Key="PanelBgBrush" Color="#E6100C1E" />
+        <SolidColorBrush x:Key="LineBrush" Color="#221B3A" />
+
+        <Style x:Key="NavItemStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#A9A3C4" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="FontSize" Value="13.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="Margin" Value="0,0,0,3" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock x:Name="navIcon" Text="{TemplateBinding Tag}" FontFamily="{StaticResource IconFont}" FontSize="16" Width="22"
+                                               Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                    <ContentPresenter VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Width="3" CornerRadius="2" Background="{TemplateBinding BorderBrush}" HorizontalAlignment="Left" Margin="0,9"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Tag" Value="{x:Null}">
+                                <Setter TargetName="navIcon" Property="Visibility" Value="Collapsed" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#161229" />
+                                <Setter Property="Foreground" Value="#FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
+        <Style x:Key="NavActiveStyle" TargetType="Button" BasedOn="{StaticResource NavItemStyle}">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#33FFD700" Offset="0"/>
+                        <GradientStop Color="#0AFFD700" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="BorderBrush" Value="#FFD700" />
+            <Setter Property="Foreground" Value="#FFE680" />
+        </Style>
+
+        <Style x:Key="GhostButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#14102A" />
+            <Setter Property="Foreground" Value="#E5E1F5" />
+            <Setter Property="BorderBrush" Value="#2A2248" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="9" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#FFD700" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="GameCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="#E60F0B1D" />
+            <Setter Property="BorderBrush" Value="#1F1936" />
+            <Setter Property="BorderThickness" Value="1.5" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="#FFD700" />
+                    <Setter Property="Effect">
+                        <Setter.Value>
+                            <DropShadowEffect Color="#FFC400" BlurRadius="22" ShadowDepth="0" Opacity="0.35"/>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- ScrollBar fina y moderna -->
+        <Style x:Key="ScrollThumbStyle" TargetType="Thumb">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border x:Name="t" Background="#3A3160" CornerRadius="4"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="t" Property="Background" Value="#8B5CF6"/>
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="t" Property="Background" Value="#FFD700"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ScrollPageStyle" TargetType="RepeatButton">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border Background="Transparent"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="MinWidth" Value="8"/>
+            <Setter Property="Margin" Value="2,4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Border Background="#10FFFFFF" CornerRadius="4">
+                            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Style="{StaticResource ScrollPageStyle}" Command="ScrollBar.PageUpCommand"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Style="{StaticResource ScrollPageStyle}" Command="ScrollBar.PageDownCommand"/>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource ScrollThumbStyle}" MinHeight="40"/>
+                                </Track.Thumb>
+                            </Track>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Width" Value="Auto"/>
+                    <Setter Property="MinWidth" Value="0"/>
+                    <Setter Property="Height" Value="8"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ScrollBar">
+                                <Border Background="#10FFFFFF" CornerRadius="4">
+                                    <Track x:Name="PART_Track">
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton Style="{StaticResource ScrollPageStyle}" Command="ScrollBar.PageLeftCommand"/>
+                                        </Track.DecreaseRepeatButton>
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton Style="{StaticResource ScrollPageStyle}" Command="ScrollBar.PageRightCommand"/>
+                                        </Track.IncreaseRepeatButton>
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource ScrollThumbStyle}" MinWidth="40"/>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <!-- Custom Dark ComboBox Style -->
         <Style TargetType="ComboBox">
             <Setter Property="Background" Value="#1E1836" />

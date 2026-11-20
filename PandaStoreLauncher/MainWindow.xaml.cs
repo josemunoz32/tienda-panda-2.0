@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -37,6 +37,7 @@ namespace PandaStoreLauncher
 
             // Set title dynamically so it always reflects the real compiled version
             this.Title = $"PandaStore Launcher v{CurrentVersion}";
+            if (lblLauncherVersion != null) lblLauncherVersion.Text = $"v{CurrentVersion}";
 
             try
             {
@@ -76,18 +77,23 @@ namespace PandaStoreLauncher
         private void UpdateCardWidth(double availableWidth)
         {
             if (availableWidth <= 0) return;
-            double netWidth = availableWidth - 24;
-            if (netWidth >= 860)
-            {
-                CardWidth = Math.Max(380, Math.Floor((netWidth - 16) / 2));
-            }
-            else
-            {
-                CardWidth = Math.Max(340, Math.Floor(netWidth - 8));
-            }
+            // Grilla tipo póster: columnas de ~210px mínimo (cada tarjeta tiene Margin 8 => +16)
+            double netWidth = availableWidth - 4;
+            int columns = Math.Max(1, (int)Math.Floor(netWidth / 226));
+            CardWidth = Math.Max(190, Math.Floor(netWidth / columns) - 16);
+            PosterHeight = Math.Floor(CardWidth * 1.5);
         }
 
-        private const string CurrentVersion = "2.4.41"; // Current client executable version
+        public static readonly DependencyProperty PosterHeightProperty =
+            DependencyProperty.Register(nameof(PosterHeight), typeof(double), typeof(MainWindow), new PropertyMetadata(300.0));
+
+        public double PosterHeight
+        {
+            get => (double)GetValue(PosterHeightProperty);
+            set => SetValue(PosterHeightProperty, value);
+        }
+
+        private const string CurrentVersion = "2.4.42"; // Current client executable version
 
         private readonly HashSet<string> _prereqQueued = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -449,7 +455,7 @@ namespace PandaStoreLauncher
 
                 // Switch View to Dashboard
                 lblClientEmail.Text = _activeLicense.ClientEmail;
-                btnTabAuthorized.Style = (Style)FindResource("GoldButtonStyle");
+                btnTabAuthorized.Style = (Style)FindResource("NavActiveStyle");
                 ApplyGameFilter();
 
                 // Setup Trial / Demo Banner & Timers if applicable
@@ -716,11 +722,10 @@ namespace PandaStoreLauncher
                     var installed = SteamManager.GetInstalledAppIds();
                     var installedFolders = SteamManager.GetInstalledCommonFolderNames();
 
-                    bool IsGameInstalled(GameModel g)
-                    {
-                        return installed.Contains(g.AppId) ||
-                               SteamManager.IsFolderInInstalledCommonFolders(installedFolders, g.SteamFolderName, g.Name);
-                    }
+                    var manifestStates = SteamManager.GetManifestInstallStates();
+
+                    // Solo juegos REALMENTE instalados (Steam los marca completos, no carpetas vacías/restos)
+                    bool IsGameInstalled(GameModel g) => SteamManager.IsReallyInstalled(g, manifestStates, installedFolders);
 
                     IEnumerable<GameModel> baseList;
                     switch (currentMode)
@@ -773,12 +778,26 @@ namespace PandaStoreLauncher
 
                 var visibleGames = matches.Take(displayLimit).ToList();
 
-                foreach (var game in visibleGames)
+                // Accesos a disco fuera del hilo de UI para que cambiar de pestaña sea instantáneo
+                var diskStates = await Task.Run(() =>
                 {
-                    bool isInst = installedSet.Contains(game.AppId) ||
-                                  SteamManager.IsFolderInInstalledCommonFolders(installedFoldersSet, game.SteamFolderName, game.Name);
+                    var states = SteamManager.GetManifestInstallStates();
+                    return visibleGames.Select(g =>
+                    {
+                        bool inst = SteamManager.IsReallyInstalled(g, states, installedFoldersSet);
+                        bool custom = inst && SteamManager.HasCustomFixLauncher(g.SteamFolderName, g.Name, g.AppId);
+                        return (inst, custom);
+                    }).ToList();
+                });
+
+                if (token.IsCancellationRequested) return;
+
+                for (int i = 0; i < visibleGames.Count; i++)
+                {
+                    var game = visibleGames[i];
+                    bool isInst = diskStates[i].inst;
                     game.IsInstalled = isInst;
-                    game.HasCustomLauncher = isInst && SteamManager.HasCustomFixLauncher(game.SteamFolderName, game.Name, game.AppId);
+                    game.HasCustomLauncher = diskStates[i].custom;
                     if (!game.IsInstalled && !game.IsProcessing)
                     {
                         game.StatusMessage = game.IsAuthorizedForClient ? "Listo para activar / instalar" : "Disponible en catálogo PandaStore";
@@ -891,7 +910,7 @@ namespace PandaStoreLauncher
         private async void BtnOpenManualActivator_Click(object sender, RoutedEventArgs e)
         {
             btnStaticManualActivator.IsEnabled = false;
-            btnStaticManualActivator.Content = "⏳ Abriendo...";
+            btnStaticManualActivator.Content = "Abriendo...";
 
             try
             {
@@ -917,7 +936,7 @@ namespace PandaStoreLauncher
             }
             finally
             {
-                btnStaticManualActivator.Content = "🔑 Activar";
+                btnStaticManualActivator.Content = "Activar por AppID";
                 btnStaticManualActivator.IsEnabled = true;
             }
         }
@@ -2057,40 +2076,40 @@ namespace PandaStoreLauncher
         private void BtnTabAuthorized_Click(object sender, RoutedEventArgs e)
         {
             _currentFilterMode = FilterMode.Authorized;
-            btnTabAuthorized.Style = (Style)FindResource("GoldButtonStyle");
-            btnTabInstalled.Style = (Style)FindResource("PurpleButtonStyle");
-            btnTabNeedsFix.Style = (Style)FindResource("PurpleButtonStyle");
-            btnTabAllCatalog.Style = (Style)FindResource("PurpleButtonStyle");
+            btnTabAuthorized.Style = (Style)FindResource("NavActiveStyle");
+            btnTabInstalled.Style = (Style)FindResource("NavItemStyle");
+            btnTabNeedsFix.Style = (Style)FindResource("NavItemStyle");
+            btnTabAllCatalog.Style = (Style)FindResource("NavItemStyle");
             ApplyGameFilter();
         }
 
         private void BtnTabInstalled_Click(object sender, RoutedEventArgs e)
         {
             _currentFilterMode = FilterMode.Installed;
-            btnTabAuthorized.Style = (Style)FindResource("PurpleButtonStyle");
-            btnTabInstalled.Style = (Style)FindResource("GoldButtonStyle");
-            btnTabNeedsFix.Style = (Style)FindResource("PurpleButtonStyle");
-            btnTabAllCatalog.Style = (Style)FindResource("PurpleButtonStyle");
+            btnTabAuthorized.Style = (Style)FindResource("NavItemStyle");
+            btnTabInstalled.Style = (Style)FindResource("NavActiveStyle");
+            btnTabNeedsFix.Style = (Style)FindResource("NavItemStyle");
+            btnTabAllCatalog.Style = (Style)FindResource("NavItemStyle");
             ApplyGameFilter();
         }
 
         private void BtnTabNeedsFix_Click(object sender, RoutedEventArgs e)
         {
             _currentFilterMode = FilterMode.NeedsFix;
-            btnTabAuthorized.Style = (Style)FindResource("PurpleButtonStyle");
-            btnTabInstalled.Style = (Style)FindResource("PurpleButtonStyle");
-            btnTabNeedsFix.Style = (Style)FindResource("GoldButtonStyle");
-            btnTabAllCatalog.Style = (Style)FindResource("PurpleButtonStyle");
+            btnTabAuthorized.Style = (Style)FindResource("NavItemStyle");
+            btnTabInstalled.Style = (Style)FindResource("NavItemStyle");
+            btnTabNeedsFix.Style = (Style)FindResource("NavActiveStyle");
+            btnTabAllCatalog.Style = (Style)FindResource("NavItemStyle");
             ApplyGameFilter();
         }
 
         private void BtnTabAllCatalog_Click(object sender, RoutedEventArgs e)
         {
             _currentFilterMode = FilterMode.AllCatalog;
-            btnTabAuthorized.Style = (Style)FindResource("PurpleButtonStyle");
-            btnTabInstalled.Style = (Style)FindResource("PurpleButtonStyle");
-            btnTabNeedsFix.Style = (Style)FindResource("PurpleButtonStyle");
-            btnTabAllCatalog.Style = (Style)FindResource("GoldButtonStyle");
+            btnTabAuthorized.Style = (Style)FindResource("NavItemStyle");
+            btnTabInstalled.Style = (Style)FindResource("NavItemStyle");
+            btnTabNeedsFix.Style = (Style)FindResource("NavItemStyle");
+            btnTabAllCatalog.Style = (Style)FindResource("NavActiveStyle");
             ApplyGameFilter();
         }
 
@@ -2163,7 +2182,7 @@ namespace PandaStoreLauncher
             if (confirm != MessageBoxResult.Yes) return;
 
             btnRepararSteam.IsEnabled = false;
-            btnRepararSteam.Content = "⏳ Reparando...";
+            btnRepararSteam.Content = "Reparando...";
 
             try
             {
@@ -2176,7 +2195,7 @@ namespace PandaStoreLauncher
             }
             finally
             {
-                btnRepararSteam.Content = "🩺 Reparar Steam";
+                btnRepararSteam.Content = "Reparar Steam";
                 btnRepararSteam.IsEnabled = true;
             }
         }
@@ -2310,6 +2329,16 @@ namespace PandaStoreLauncher
             try
             {
                 Process.Start(new ProcessStartInfo("https://www.instagram.com/pandastoregaming.cl/") { UseShellExecute = true });
+            }
+            catch { }
+        }
+
+        private void BtnTelegram_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Canal oficial de Telegram (mismo que la página web)
+                Process.Start(new ProcessStartInfo("https://t.me/juegosNintendoSwitchChile2") { UseShellExecute = true });
             }
             catch { }
         }

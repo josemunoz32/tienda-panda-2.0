@@ -227,6 +227,12 @@ namespace PandaStoreLauncher.Models
             ? $"https://cdn.cloudflare.steamstatic.com/steam/apps/{AppId}/header.jpg"
             : "pack://application:,,,/Assets/miicono.png";
 
+        // Carátula vertical (600x900) para la grilla tipo póster; si no existe, se ve el header.jpg debajo
+        [JsonIgnore]
+        public string PosterImageUrl => !string.IsNullOrEmpty(AppId)
+            ? $"https://cdn.cloudflare.steamstatic.com/steam/apps/{AppId}/library_600x900.jpg"
+            : "pack://application:,,,/Assets/miicono.png";
+
         [JsonIgnore]
         public Visibility CoverFallbackVisibility => string.IsNullOrEmpty(AppId) ? Visibility.Visible : Visibility.Collapsed;
 

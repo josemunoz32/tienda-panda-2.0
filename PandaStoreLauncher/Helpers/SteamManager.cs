@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -2112,6 +2112,7 @@ namespace PandaStoreLauncher.Helpers
             {
                 _installedAppIdsCache = null;
                 _installedFolderNamesCache = null;
+                InvalidateInstallCaches();
             }
 
             // Evita volver a recorrer todos los appmanifest de Steam al cambiar
@@ -2220,6 +2221,97 @@ namespace PandaStoreLauncher.Helpers
             }
 
             return false;
+        }
+
+        // ===== Detección estricta de instalación real =====
+        private static Dictionary<string, bool>? _manifestStateCache;
+        private static DateTime _manifestStateCacheTime = DateTime.MinValue;
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> _folderExeCache =
+            new System.Collections.Concurrent.ConcurrentDictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// AppID -> true si Steam lo marca como completamente instalado (StateFlags & 4) y su carpeta
+        /// de instalación existe con archivos. false si hay manifiesto pero el juego no está completo.
+        /// </summary>
+        public static Dictionary<string, bool> GetManifestInstallStates(bool forceRefresh = false)
+        {
+            if (!forceRefresh && _manifestStateCache != null && (DateTime.Now - _manifestStateCacheTime).TotalSeconds < 30)
+                return _manifestStateCache;
+
+            var dict = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                foreach (var lib in GetSteamLibraryFolders())
+                {
+                    DirectoryInfo? steamappsDir = Directory.GetParent(lib);
+                    if (steamappsDir == null || !steamappsDir.Exists) continue;
+                    foreach (var acf in Directory.GetFiles(steamappsDir.FullName, "appmanifest_*.acf"))
+                    {
+                        string id = Path.GetFileName(acf).Replace("appmanifest_", "").Replace(".acf", "");
+                        if (string.IsNullOrEmpty(id)) continue;
+                        bool full = false;
+                        try
+                        {
+                            string text = File.ReadAllText(acf);
+                            var mFlags = Regex.Match(text, "\"StateFlags\"\\s+\"(\\d+)\"", RegexOptions.IgnoreCase);
+                            var mDir = Regex.Match(text, "\"installdir\"\\s+\"([^\"]+)\"", RegexOptions.IgnoreCase);
+                            long flags = mFlags.Success && long.TryParse(mFlags.Groups[1].Value, out var f) ? f : 0;
+                            if ((flags & 4) != 0 && mDir.Success)
+                            {
+                                string gameDir = Path.Combine(lib, mDir.Groups[1].Value);
+                                full = Directory.Exists(gameDir) && Directory.EnumerateFiles(gameDir, "*", SearchOption.AllDirectories).Any();
+                            }
+                        }
+                        catch { }
+                        // Si el juego aparece en varias bibliotecas, basta con una instalación completa
+                        dict[id] = (dict.TryGetValue(id, out var prev) && prev) || full;
+                    }
+                }
+            }
+            catch { }
+
+            _manifestStateCache = dict;
+            _manifestStateCacheTime = DateTime.Now;
+            return dict;
+        }
+
+        private static bool CommonFolderHasExecutable(string? name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return false;
+            return _folderExeCache.GetOrAdd(name, n =>
+            {
+                try
+                {
+                    foreach (var lib in GetSteamLibraryFolders())
+                    {
+                        string dir = Path.Combine(lib, n);
+                        if (Directory.Exists(dir) &&
+                            Directory.EnumerateFiles(dir, "*.exe", SearchOption.AllDirectories).Any())
+                            return true;
+                    }
+                }
+                catch { }
+                return false;
+            });
+        }
+
+        /// <summary>
+        /// Instalación REAL: si Steam tiene manifiesto, manda su estado (completo o no).
+        /// Sin manifiesto, solo cuenta una carpeta en common que contenga ejecutables (no carpetas vacías o con restos).
+        /// </summary>
+        public static bool IsReallyInstalled(GameModel g, Dictionary<string, bool> manifestStates, HashSet<string> installedFolders)
+        {
+            if (g == null) return false;
+            if (!string.IsNullOrWhiteSpace(g.AppId) && manifestStates.TryGetValue(g.AppId, out bool full))
+                return full;
+            if (!IsFolderInInstalledCommonFolders(installedFolders, g.SteamFolderName, g.Name)) return false;
+            return CommonFolderHasExecutable(g.SteamFolderName) || CommonFolderHasExecutable(g.Name);
+        }
+
+        public static void InvalidateInstallCaches()
+        {
+            _manifestStateCache = null;
+            _folderExeCache.Clear();
         }
 
         public static bool IsGameInstalledFast(string appId, string steamFolderName, string gameName = "")
