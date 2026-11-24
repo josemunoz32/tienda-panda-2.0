@@ -259,20 +259,7 @@
                             <TextBlock Text="Telegram" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                    <Button Click="BtnInstagram_Click" Style="{StaticResource SocialBtn}" ToolTip="@pandastoregaming.cl">
-                        <Button.Background>
-                            <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
-                                <GradientStop Color="#F58529" Offset="0"/>
-                                <GradientStop Color="#DD2A7B" Offset="0.5"/>
-                                <GradientStop Color="#8134AF" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Button.Background>
-                        <StackPanel Orientation="Horizontal">
-                            <Image Source="pack://application:,,,/Assets/logoig.png" Width="18" Height="18" Margin="0,0,8,0"/>
-                            <TextBlock Text="Instagram" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
+                    </StackPanel>
             </StackPanel>
             </ScrollViewer>
         </Grid>
@@ -334,12 +321,6 @@
                                 <StackPanel Orientation="Horizontal">
                                     <Image Source="pack://application:,,,/Assets/logowsp.png" Width="20" Height="20" Margin="0,0,12,0"/>
                                     <TextBlock Text="Soporte WhatsApp" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Style="{StaticResource NavItemStyle}" Foreground="#C9C4DA" ToolTip="@pandastoregaming.cl" Click="BtnInstagram_Click">
-                                <StackPanel Orientation="Horizontal">
-                                    <Image Source="pack://application:,,,/Assets/logoig.png" Width="20" Height="20" Margin="0,0,12,0"/>
-                                    <TextBlock Text="Instagram" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                             <Button Style="{StaticResource NavItemStyle}" Tag="&#xE897;" Content="Guía y FAQ" Click="BtnOpenHelp_Click"/>

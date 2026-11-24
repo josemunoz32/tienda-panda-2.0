@@ -7,7 +7,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Header from './components/Header';
 import Footer from './pages/Footer/Footer';
 import WhatsappButton from './components/WhatsappButton';
-import InstagramFloatingBadge from './components/InstagramFloatingBadge/InstagramFloatingBadge';
 import CookieBanner from './components/CookieBanner/CookieBanner';
 import { auth } from './firebase';
 import { loadFirestore } from './firestoreLazy';
@@ -472,7 +471,6 @@ function App() {
                       </Routes>
                     </Suspense>
                     <Footer />
-                    <InstagramFloatingBadge />
                     <WhatsappButton />
                     <CookieBanner />
                   </div>

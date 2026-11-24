@@ -2415,15 +2415,6 @@ namespace PandaStoreLauncher
             catch { }
         }
 
-        private void BtnInstagram_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                Process.Start(new ProcessStartInfo("https://www.instagram.com/pandastoregaming.cl/") { UseShellExecute = true });
-            }
-            catch { }
-        }
-
         private void BtnTelegram_Click(object sender, RoutedEventArgs e)
         {
             try

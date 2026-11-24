@@ -22,7 +22,6 @@ const footerLinks = [
 
 const socialLinks = [
   { href: "https://wa.me/56974751810?text=Hola%20PandaStore!%20Vengo%20desde%20la%20p%C3%A1gina%20web", label: "WhatsApp", icon: logoWsp },
-  { href: "https://www.instagram.com/panda_storegamingcl/", label: "Instagram", icon: logoIg },
 ];
 
 export default function Footer() {

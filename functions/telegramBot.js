@@ -10,7 +10,6 @@ const CANAL_PUBLICO_ID = process.env.CANAL_PUBLICO_ID || "-1002444204789";
 const ADMIN_ID = process.env.ADMIN_ID || "5158777962";
 const TELEGRAM_CONTACT = process.env.TELEGRAM_CONTACT || "NintendoChile2";
 const WEBSITE_URL = process.env.WEBSITE_URL || "https://pandastoregaming.cl";
-const INSTAGRAM_URL = "https://www.instagram.com/panda_storegamingcl/";
 const TESTIMONIOS_URL = `${WEBSITE_URL}/testimonios`;
 const PROMOS_URL = `${WEBSITE_URL}/promos`;
 const GUIA_NINTENDO_URL = `${WEBSITE_URL}/instalacion-nintendo`;

@@ -8,13 +8,6 @@ const icons = {
       <path d="M4 4h16v16H4V4zm0 0l8 8 8-8" stroke="#a084e8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   ),
-  instagram: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <rect x="2" y="2" width="20" height="20" rx="5" stroke="#e1306c" strokeWidth="2" />
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke="#e1306c" strokeWidth="2" />
-      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke="#e1306c" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  ),
 };
 
 // Componente principal
@@ -84,17 +77,6 @@ function SobreNosotros() {
         <h2>Contacto</h2>
         <ul className="sobre-contacto-list">
           <li>{icons.email} <span>Email:</span> pandastore2.0soporte@gmail.com</li>
-          <li>
-            {icons.instagram} <span>Instagram Oficial:</span>{" "}
-            <a
-              href="https://www.instagram.com/panda_storegamingcl/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "#ff70a6", fontWeight: "bold", textDecoration: "none" }}
-            >
-              @panda_storegamingcl
-            </a>
-          </li>
         </ul>
         <p>Puedes escribirnos por cualquiera de estos medios y te responderemos a la brevedad.</p>
       </section>

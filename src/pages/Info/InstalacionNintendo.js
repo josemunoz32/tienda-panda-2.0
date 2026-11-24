@@ -88,15 +88,6 @@ export default function InstalacionNintendo() {
             WhatsApp
           </a>
           <a
-            href="https://www.instagram.com/panda_storegamingcl/"
-            className="install-btn install-btn--instagram"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img src={igLogo} alt="" style={{ width: 18, height: 18, objectFit: "contain", borderRadius: 4 }} />
-            Instagram
-          </a>
-          <a
             href="https://t.me/juegosNintendoSwitchChile2"
             className="install-btn install-btn--telegram"
             target="_blank"
@@ -107,7 +98,7 @@ export default function InstalacionNintendo() {
           </a>
         </div>
         <div className="install-channel-note">
-          ⚠️ Por favor contáctanos <strong>solo por un canal</strong> — WhatsApp, Instagram o Telegram. Así te atendemos más rápido y sin confusiones.
+          ⚠️ Por favor contáctanos <strong>solo por un canal</strong> — WhatsApp o Telegram. Así te atendemos más rápido y sin confusiones.
         </div>
       </div>
 
@@ -192,28 +183,7 @@ export default function InstalacionNintendo() {
             <img src={wspLogo} alt="WhatsApp" style={{ width: 26, height: 26, objectFit: "contain" }} />
             <span>WhatsApp (+56 9 7475 1810)</span>
           </a>
-          <a
-            href="https://www.instagram.com/panda_storegamingcl/"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 10,
-              background: "linear-gradient(135deg, #E1306C, #C13584, #833AB4)",
-              color: "#fff",
-              padding: "10px 22px",
-              borderRadius: 12,
-              fontWeight: 700,
-              textDecoration: "none",
-              boxShadow: "0 4px 15px rgba(225, 48, 108, 0.35)",
-              transition: "transform 0.2s"
-            }}
-          >
-            <img src={igLogo} alt="Instagram" style={{ width: 26, height: 26, objectFit: "contain", borderRadius: 6 }} />
-            <span>Instagram (@panda_storegamingcl)</span>
-          </a>
-        </div>
+          </div>
       </footer>
 
       {/* ── MODAL DE ZOOM Y ARRASTRE LIBRE ── */}

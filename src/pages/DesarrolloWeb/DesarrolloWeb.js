@@ -1998,16 +1998,6 @@ export default function DesarrolloWeb() {
             </a>
 
             <a
-              href="https://www.instagram.com/panda_storegamingcl/"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="PandaStore en Instagram"
-            >
-              <img src={logoIg} alt="" />
-              <span>Instagram</span>
-            </a>
-
-            <a
               href="https://t.me/juegosNintendoSwitchChile2"
               target="_blank"
               rel="noopener noreferrer"

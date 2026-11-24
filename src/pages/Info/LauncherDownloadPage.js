@@ -241,7 +241,7 @@ export default function LauncherDownloadPage() {
                 <div>
                   <strong>Launcher totalmente rediseñado:</strong>
                   <span>
-                    Nuevo login, menú lateral y grilla de carátulas verticales estilo tienda profesional. Tarjetas siempre ordenadas, íconos nuevos, buscador arriba y botón Refrescar con tu versión siempre visible. Accesos directos a WhatsApp, Telegram e Instagram.
+                    Nuevo login, menú lateral y grilla de carátulas verticales estilo tienda profesional. Tarjetas siempre ordenadas, íconos nuevos, buscador arriba y botón Refrescar con tu versión siempre visible. Accesos directos a WhatsApp y Telegram.
                   </span>
                 </div>
               </li>
