@@ -259,15 +259,33 @@ namespace PandaStoreLauncher.Services
                         if (!Directory.Exists(localTorrentDir)) Directory.CreateDirectory(localTorrentDir);
                         string downloadedTarget = Path.Combine(localTorrentDir, fileName);
 
-                        if (!File.Exists(downloadedTarget))
+                        if (!File.Exists(downloadedTarget) || new FileInfo(downloadedTarget).Length < 100)
                         {
                             using var http = new HttpClient();
-                            http.Timeout = TimeSpan.FromSeconds(15);
-                            string onlineUrl = $"https://pandastoreupdate.web.app/torrents/{fileName}";
-                            var bytes = await http.GetByteArrayAsync(onlineUrl);
-                            if (bytes != null && bytes.Length > 0)
+                            http.Timeout = TimeSpan.FromSeconds(20);
+                            
+                            string[] urlsToTry = new[]
                             {
-                                await File.WriteAllBytesAsync(downloadedTarget, bytes);
+                                $"https://pandastoreupdate.web.app/torrents/{fileName}",
+                                $"https://raw.githubusercontent.com/josemunoz32/tienda-panda-2.0/main/public/torrents/{fileName}"
+                            };
+
+                            foreach (var url in urlsToTry)
+                            {
+                                try
+                                {
+                                    var bytes = await http.GetByteArrayAsync(url);
+                                    // Validar que sea un archivo bencode torrent valido (empieza con 'd') y no un HTML
+                                    if (bytes != null && bytes.Length > 100 && bytes[0] == (byte)'d')
+                                    {
+                                        await File.WriteAllBytesAsync(downloadedTarget, bytes);
+                                        break;
+                                    }
+                                }
+                                catch
+                                {
+                                    // Continuar con el siguiente origen
+                                }
                             }
                         }
 

@@ -16,7 +16,15 @@
       "**/.*",
       "**/node_modules/**",
       "downloads/**",
-      "**/*.exe"
+      "launcher/**",
+      "**/*.exe",
+      "**/*.pdb",
+      "**/*.mp4",
+      "**/*.zip",
+      "**/*.rar",
+      "**/*.7z",
+      "**/*.msi",
+      "batch_import_data.json"
     ],
     "headers": [
       {

@@ -1,10 +1,12 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import "./InstalacionActivador.css";
-import activacionVideo from "../../assets/activacion.mp4";
 import pandaLogo from "../../assets/logos/miicono.png";
 import wspLogo from "../../assets/logos/logowsp.png";
 import igLogo from "../../assets/logos/logoig.png";
+
+// Video alojado en GitHub Releases (no gasta transferencia de Firebase Hosting)
+const activacionVideo = "https://github.com/josemunoz32/tienda-panda-2.0/releases/download/media-videos/tutorial-activacion.mp4";
 
 export default function InstalacionActivador() {
   const ACTIVATOR_GOFILE_URL = "https://gofile.io/d/M3OCMCv3";

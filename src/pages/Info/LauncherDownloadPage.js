@@ -1,11 +1,12 @@
 import React, { useState, useRef } from "react";
 import { Helmet } from "react-helmet-async";
-import MagicBento from "../../components/MagicBento/MagicBento";
 import "./LauncherDownloadPage.css";
 
-import tutorialVideo from "../../assets/video tutorial exe/importante.mp4";
-import activacionVideo from "../../assets/activacion.mp4";
 import winLogo from "../../assets/logos/window.logo.png";
+
+// Videos alojados en GitHub Releases (no gastan transferencia de Firebase Hosting)
+const tutorialVideo = "https://github.com/josemunoz32/tienda-panda-2.0/releases/download/media-videos/tutorial-launcher.mp4";
+const activacionVideo = "https://github.com/josemunoz32/tienda-panda-2.0/releases/download/media-videos/tutorial-activacion.mp4";
 
 function TutorialVideoCard({ title, subtitle, badge, badgeColor, videoSrc, icon }) {
   const videoRef = useRef(null);
@@ -153,7 +154,7 @@ export default function LauncherDownloadPage() {
         <title>Descargar Panda Launcher Steam + Activador Oficial | PandaStore PC</title>
         <meta
           name="description"
-          content="Descarga el instalador oficial todo en 1 de Panda Launcher Steam + Activador v2.4.42 para Windows 10/11. Gestiona tu biblioteca, añade DLCs y activa cualquier juego de Steam en 1 click."
+          content="Descarga Panda Launcher para Windows 10/11: tus juegos quedan directamente en tu biblioteca de Steam. Incluye videotutoriales y guía de instalación paso a paso."
         />
         <meta
           name="keywords"
@@ -173,10 +174,10 @@ export default function LauncherDownloadPage() {
       </Helmet>
 
       <div className="launcher-download-card">
-        {/* Header Hero Section */}
+        {/* Título + descarga */}
         <div className="launcher-hero-section">
           <div className="launcher-badge">
-            <span className="badge-rocket">🚀</span> INSTALADOR TODO EN 1 OFICIAL
+            <img src={winLogo} alt="" className="launcher-badge-win" /> SOLO PARA WINDOWS 10 / 11
           </div>
 
           <div className="launcher-hero-logo-row">
@@ -186,268 +187,63 @@ export default function LauncherDownloadPage() {
               className="launcher-hero-logo"
             />
             <h1 className="launcher-title">
-              Panda Launcher Steam <br />
-              <span className="title-purple">+ Activador</span>{" "}
-              <span className="title-version">v2.4.42</span>
+              Panda Launcher <span className="title-purple">Steam</span>
             </h1>
           </div>
 
           <p className="launcher-subtitle">
-            Todo en un solo instalador: Panda Launcher oficial y Activador Steam integrado.
-            Sincroniza tus juegos autorizados, añade DLCs, compatibilidad universal con
-            ejecutables modificados y activa cualquier juego VIP en 1 solo click.
+            Instala el launcher oficial de PandaStore y tus juegos quedan{" "}
+            <strong>directamente en tu biblioteca de Steam</strong>, en tu propia cuenta.
           </p>
 
-          {/* Download Button Component (Solo Windows) */}
-          <div
-            className="launcher-actions"
-            style={{ display: "flex", justifyContent: "center" }}
-          >
-            <button
-              onClick={handleDownload}
-              className="btn-download-hero"
-              style={{ minWidth: 320 }}
-            >
-              <div
-                className="btn-download-icon-wrap"
-                style={{ background: "#00adef" }}
-              >
-                <img
-                  src={winLogo}
-                  alt="Windows"
-                  style={{ width: 26, height: 26, objectFit: "contain" }}
-                />
+          <div className="launcher-highlights">
+            <span className="launcher-highlight">
+              <span className="material-icons">sports_esports</span> Juegos directo a tu biblioteca
+            </span>
+            <span className="launcher-highlight">
+              <span className="material-icons">desktop_windows</span> Windows 10 / 11
+            </span>
+            <span className="launcher-highlight">
+              <span className="material-icons">autorenew</span> Se actualiza solo
+            </span>
+          </div>
+
+          <div className="launcher-actions">
+            <button onClick={handleDownload} className="btn-download-hero">
+              <div className="btn-download-icon-wrap" style={{ background: "#00adef" }}>
+                <img src={winLogo} alt="Windows" style={{ width: 26, height: 26, objectFit: "contain" }} />
               </div>
               <div className="btn-download-text-wrap">
-                <span className="btn-download-title">
-                  Descargar Panda Launcher + Activador (112 MB)
-                </span>
-                <span className="btn-download-sub">
-                  Versión v2.4.42 oficial • Todo en 1 (Launcher + Activador) • Windows 10/11
-                </span>
+                <span className="btn-download-title">Descargar para Windows</span>
+                <span className="btn-download-sub">PandaStoreSetup.exe • 112 MB • Windows 10 / 11</span>
               </div>
+              <span className="material-icons btn-download-arrow">download</span>
             </button>
           </div>
-
-          {/* Release Notes Banner v2.4.42 */}
-          <div className="launcher-release-notes-banner">
-            <div className="release-notes-header">
-              <span className="release-badge">✨ NOVEDADES DE LA VERSIÓN v2.4.42</span>
-              <span className="release-date">Última actualización oficial</span>
-            </div>
-            <ul className="release-notes-list">
-              <li>
-                <span className="note-icon">🎨</span>
-                <div>
-                  <strong>Launcher totalmente rediseñado:</strong>
-                  <span>
-                    Nuevo login, menú lateral y grilla de carátulas verticales estilo tienda profesional. Tarjetas siempre ordenadas, íconos nuevos, buscador arriba y botón Refrescar con tu versión siempre visible. Accesos directos a WhatsApp y Telegram.
-                  </span>
-                </div>
-              </li>
-              <li>
-                <span className="note-icon">✅</span>
-                <div>
-                  <strong>"Instalados" muestra solo juegos 100% instalados:</strong>
-                  <span>
-                    Ya no aparecen juegos con carpetas vacías o descargas a medias. Además, cambiar de pestaña es más rápido y las carátulas cargan sin volver a descargarse.
-                  </span>
-                </div>
-              </li>
-              <li>
-                <span className="note-icon">🛠️</span>
-                <div>
-                  <strong>Fix automático con +1.600 juegos nuevos (Peron Depot):</strong>
-                  <span>
-                    Aprieta "Fix" y el Launcher descarga el parche y lo copia solo en la carpeta del juego, sin pasos manuales. Ahora incluye fixes para juegos como Dragon Ball Sparking Zero, Forza Horizon 6, Elden Ring Nightreign y muchos más. Solo se aplica cuando Steam terminó de instalar el juego al 100%, para no dañar instalaciones a medias.
-                  </span>
-                </div>
-              </li>
-              <li>
-                <span className="note-icon">🧩</span>
-                <div>
-                  <strong>Componentes instalados automáticamente:</strong>
-                  <span>
-                    El Launcher instala solo Visual C++ y DirectX la primera vez, y por cada juego los componentes que necesita (Unreal Engine, .NET, PhysX, EasyAntiCheat y más). Adiós a errores como el código 54 de Steam: solo acepta el aviso de Windows una vez.
-                  </span>
-                </div>
-              </li>
-              <li>
-                <span className="note-icon">🔑</span>
-                <div>
-                  <strong>Botón Estático "Activar" Directo (PandaStoreActivator):</strong>
-                  <span>
-                    Acceso fijo en la barra superior que abre directamente PandaStoreActivator.exe sin congelar el Launcher, permitiéndote ingresar manualmente el AppID de cualquier juego.
-                  </span>
-                </div>
-              </li>
-              <li>
-                <span className="note-icon">🎮</span>
-                <div>
-                  <strong>Soporte Universal de Launchers y Fixes:</strong>
-                  <span>
-                    Compatibilidad directa con juegos que tienen ejecutables propios o modificados
-                    como Red Dead Redemption 2, saga GTA, Online Fixes (Spacewar) y parches Ryuu.
-                  </span>
-                </div>
-              </li>
-              <li>
-                <span className="note-icon">⚡</span>
-                <div>
-                  <strong>Botón "Jugar" Directo y Anti-Bloqueos:</strong>
-                  <span>
-                    Ejecuta el juego directamente reconociendo el lanzador correcto e inyectando
-                    steam_appid.txt para evitar bloqueos o cierres de Steam.
-                  </span>
-                </div>
-              </li>
-              <li>
-                <span className="note-icon">📂</span>
-                <div>
-                  <strong>Reconocimiento de Carpetas Locales:</strong>
-                  <span>
-                    Detecta juegos descargados en cualquier biblioteca de Steam (steamapps/common/) al
-                    instante, incluso sin archivos de manifiesto .acf.
-                  </span>
-                </div>
-              </li>
-              <li>
-                <span className="note-icon">🛡️</span>
-                <div>
-                  <strong>Respaldo Automático de Partidas:</strong>
-                  <span>
-                    Guarda copias de seguridad de tu progreso localmente en tu PC antes de cada inicio
-                    de juego para que nunca pierdas tu partida.
-                  </span>
-                </div>
-              </li>
-              <li>
-                <span className="note-icon">🔑</span>
-                <div>
-                  <strong>Activador Steam VIP Integrado:</strong>
-                  <span>
-                    Incluye el activador oficial para juegos con DRM y activación en 1 solo clic.
-                  </span>
-                </div>
-              </li>
-            </ul>
-          </div>
         </div>
 
-        {/* Section 1: Pasos de Proceso y Funcionamiento en Windows (Grid 1-6) */}
-        <div className="launcher-steps-section">
-          <div className="section-header-title">
-            <span className="material-icons section-title-icon">settings</span>
-            <h2>¿CÓMO INSTALAR EN WINDOWS?</h2>
-          </div>
-
-          <div className="steps-six-grid">
-            <div className="step-item-card">
-              <div className="step-number-circle">1</div>
-              <div className="step-icon-wrap">
-                <span className="material-icons">download</span>
-              </div>
-              <div className="step-text-content">
-                <h4>Descarga el Launcher</h4>
-                <p>Descarga el instalador oficial todo en 1 de PandaStore para Windows.</p>
-              </div>
-            </div>
-
-            <div className="step-item-card">
-              <div className="step-number-circle">2</div>
-              <div className="step-icon-wrap">
-                <span className="material-icons">settings</span>
-              </div>
-              <div className="step-text-content">
-                <h4>Abre el Instalador</h4>
-                <p>Ejecuta PandaStoreSetup.exe y se instalará automáticamente en tu PC.</p>
-              </div>
-            </div>
-
-            <div className="step-item-card">
-              <div className="step-number-circle">3</div>
-              <div className="step-icon-wrap">
-                <span className="material-icons">verified_user</span>
-              </div>
-              <div className="step-text-content">
-                <h4>Preparación del entorno</h4>
-                <p>Se optimiza el sistema y se registran los componentes requeridos.</p>
-              </div>
-            </div>
-
-            <div className="step-item-card">
-              <div className="step-number-circle">4</div>
-              <div className="step-icon-wrap">
-                <span className="material-icons">person</span>
-              </div>
-              <div className="step-text-content">
-                <h4>Inicia sesión</h4>
-                <p>Ingresa con tu clave de licencia y accede a tus juegos autorizados.</p>
-              </div>
-            </div>
-
-            <div className="step-item-card">
-              <div className="step-number-circle">5</div>
-              <div className="step-icon-wrap">
-                <span className="material-icons">sports_esports</span>
-              </div>
-              <div className="step-text-content">
-                <h4>Selecciona y descarga</h4>
-                <p>Elige tus juegos favoritos y comienza la descarga directamente en Steam.</p>
-              </div>
-            </div>
-
-            <div className="step-item-card">
-              <div className="step-number-circle">6</div>
-              <div className="step-icon-wrap">
-                <span className="material-icons">check_circle</span>
-              </div>
-              <div className="step-text-content">
-                <h4>¡Listo para jugar!</h4>
-                <p>Disfruta de tus juegos de Steam con guardado en nube y sin complicaciones.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Section 2: Dual Video Tutorials Section */}
+        {/* Videos */}
         <div className="launcher-video-tutorial-section" id="tutorial-player-anchor">
-          <div
-            className="section-header-title"
-            style={{ justifyContent: "center", marginBottom: 24 }}
-          >
-            <span
-              className="material-icons section-title-icon"
-              style={{ color: "#a259ff" }}
-            >
+          <div className="section-header-title launcher-section-center">
+            <span className="material-icons section-title-icon" style={{ color: "#a259ff" }}>
               ondemand_video
             </span>
-            <h2>VIDEOTUTORIALES: LAUNCHER Y ACTIVADOR</h2>
+            <h2>VIDEOTUTORIALES</h2>
           </div>
 
-          <div
-            className="dual-videos-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
-              gap: 24
-            }}
-          >
-            {/* Video 1: Launcher & Instalación */}
+          <div className="dual-videos-grid">
             <TutorialVideoCard
-              title="1. Descarga e Instalación del Launcher"
-              subtitle="Aprende cómo descargar, instalar y sincronizar tu biblioteca de juegos autorizados y DLCs adquiridos."
-              badge="Panda Launcher v2.4.36 Oficial"
+              title="1. Descarga e instalación del Launcher"
+              subtitle="Cómo descargar, instalar e iniciar sesión para que tus juegos queden en tu biblioteca de Steam."
+              badge="Panda Launcher"
               badgeColor="#ffd700"
               icon="rocket_launch"
               videoSrc={tutorialVideo}
             />
-
-            {/* Video 2: Activación de Juegos VIP con Activador */}
             <TutorialVideoCard
-              title="2. Activación con Activador Steam"
-              subtitle="Paso a paso para generar tu código con PandaStoreActivator y activar cualquier juego VIP en Steam en segundos."
-              badge="Generar Código y Activación 1-Click"
+              title="2. Activación con el Activador Steam"
+              subtitle="Paso a paso para activar tus juegos VIP en Steam en segundos."
+              badge="Activación en 1 clic"
               badgeColor="#00f5d4"
               icon="bolt"
               videoSrc={activacionVideo}
@@ -455,66 +251,34 @@ export default function LauncherDownloadPage() {
           </div>
         </div>
 
-        {/* Section 3: Magic Bento Features */}
-        <div className="magic-bento-section-wrapper">
-          <div className="section-header-title">
-            <span className="star-icon">⭐</span>
-            <h2>Características exclusivas del Launcher</h2>
+        {/* Cómo instalar */}
+        <div className="launcher-steps-section">
+          <div className="section-header-title launcher-section-center">
+            <span className="material-icons section-title-icon">settings</span>
+            <h2>¿CÓMO INSTALAR EN WINDOWS?</h2>
           </div>
-          <MagicBento
-            textAutoHide={false}
-            enableStars={true}
-            enableSpotlight={true}
-            enableBorderGlow={true}
-            enableTilt={true}
-            enableMagnetism={true}
-            clickEffect={true}
-            spotlightRadius={320}
-            particleCount={14}
-            glowColor="162, 89, 255"
-            cards={[
-              {
-                color: "rgba(18, 14, 34, 0.9)",
-                title: "Compatibilidad Universal v2.4.36",
-                description:
-                  "Soporte inteligente para launchers modificados (RDR2, GTA, Online Fixes), inyección directa de AppID y ejecución 100% optimizada sin bloqueos de Steam.",
-                label: "NUEVO v2.4.36",
-                icon: "⚡"
-              },
-              {
-                color: "rgba(18, 14, 34, 0.9)",
-                title: "Seguridad Avanzada",
-                description:
-                  "Token de acceso oculto en memoria. Nadie puede robar tus credenciales aunque descompilen el programa.",
-                label: "SEGURIDAD",
-                icon: "🔐"
-              },
-              {
-                color: "rgba(18, 14, 34, 0.9)",
-                title: "Anti-Crasheos",
-                description:
-                  "Sistema de captura global de errores. Si algo falla, el Launcher lo registra y sigue funcionando.",
-                label: "ESTABILIDAD",
-                icon: "🛡️"
-              },
-              {
-                color: "rgba(18, 14, 34, 0.9)",
-                title: "Auto-Actualización",
-                description:
-                  "Se actualiza solo al abrirse. Sin descargar nada manualmente, siempre tienes la última versión.",
-                label: "AUTO-UPDATE",
-                icon: "🚀"
-              },
-              {
-                color: "rgba(18, 14, 34, 0.9)",
-                title: "Soporte 24/7",
-                description:
-                  "Estamos para ayudarte en todo momento con asistencia remota y directa vía WhatsApp.",
-                label: "ASISTENCIA",
-                icon: "💬"
-              }
-            ]}
-          />
+
+          <div className="steps-six-grid">
+            {[
+              ["download", "Descarga el Launcher", "Presiona el botón de descarga y guarda el instalador oficial para Windows."],
+              ["settings", "Abre el instalador", "Ejecuta PandaStoreSetup.exe y se instalará automáticamente en tu PC."],
+              ["verified_user", "Preparación automática", "El launcher instala por sí solo los componentes que necesitan tus juegos."],
+              ["person", "Inicia sesión", "Ingresa tu código de acceso y verás tus juegos autorizados."],
+              ["sports_esports", "Agrega tus juegos", "Tus juegos quedan directamente en tu biblioteca de Steam, listos para descargar."],
+              ["check_circle", "¡Listo para jugar!", "Abre Steam, descarga el juego y a disfrutar."],
+            ].map(([icon, title, text], i) => (
+              <div className="step-item-card" key={title}>
+                <div className="step-number-circle">{i + 1}</div>
+                <div className="step-icon-wrap">
+                  <span className="material-icons">{icon}</span>
+                </div>
+                <div className="step-text-content">
+                  <h4>{title}</h4>
+                  <p>{text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

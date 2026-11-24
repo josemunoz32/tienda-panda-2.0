@@ -490,3 +490,73 @@
   margin-bottom: 24px;
 }
 
+
+/* ===== Rediseño simple: título, descarga, videos y cómo instalar ===== */
+.launcher-badge-win {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  margin-right: 6px;
+  vertical-align: -3px;
+}
+.launcher-subtitle strong {
+  color: #ffd700;
+  font-weight: 800;
+}
+.launcher-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 4px 0 26px;
+}
+.launcher-highlight {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(162, 89, 255, 0.12);
+  border: 1px solid rgba(162, 89, 255, 0.35);
+  color: #e9e3ff;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.launcher-highlight .material-icons {
+  font-size: 18px;
+  color: #00f5d4;
+}
+.launcher-actions {
+  display: flex;
+  justify-content: center;
+}
+.btn-download-hero {
+  min-width: 340px;
+  animation: launcherGlow 2.6s ease-in-out infinite;
+}
+.btn-download-arrow {
+  margin-left: auto;
+  font-size: 26px;
+  opacity: 0.9;
+}
+@keyframes launcherGlow {
+  0%, 100% { box-shadow: 0 12px 35px rgba(108, 44, 245, 0.45); }
+  50% { box-shadow: 0 12px 48px rgba(162, 89, 255, 0.8); }
+}
+.launcher-section-center {
+  justify-content: center;
+  margin-bottom: 24px;
+}
+.dual-videos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+@media (max-width: 480px) {
+  .btn-download-hero { min-width: 0; width: 100%; }
+  .dual-videos-grid { grid-template-columns: 1fr; }
+  .launcher-highlight { font-size: 0.78rem; padding: 7px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-download-hero { animation: none; }
+}
