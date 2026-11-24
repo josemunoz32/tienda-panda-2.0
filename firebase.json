@@ -17,13 +17,16 @@
       "**/node_modules/**",
       "downloads/**",
       "launcher/**",
+      "torrents/**",
       "**/*.exe",
       "**/*.pdb",
+      "**/*.torrent",
       "**/*.mp4",
       "**/*.zip",
       "**/*.rar",
       "**/*.7z",
       "**/*.msi",
+      "**/*.iso",
       "batch_import_data.json"
     ],
     "headers": [
@@ -122,6 +125,48 @@
           { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
           { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" }
         ]
+      }
+    ],
+    "redirects": [
+      {
+        "source": "/downloads/PandaStoreSetup.exe",
+        "destination": "https://github.com/josemunoz32/tienda-panda-2.0/releases/latest/download/PandaStoreSetup.exe",
+        "type": 302
+      },
+      {
+        "source": "/downloads/PandaStoreDeckSetup.exe",
+        "destination": "https://github.com/josemunoz32/tienda-panda-2.0/releases/latest/download/PandaStoreSetup.exe",
+        "type": 302
+      },
+      {
+        "source": "/downloads/PandaStoreLauncher.exe",
+        "destination": "https://github.com/josemunoz32/tienda-panda-2.0/releases/latest/download/PandaStoreSetup.exe",
+        "type": 302
+      },
+      {
+        "source": "/downloads/PandaStoreActivator.exe",
+        "destination": "https://github.com/josemunoz32/tienda-panda-2.0/releases/latest/download/PandaStoreActivator.exe",
+        "type": 302
+      },
+      {
+        "source": "/PandaStoreSetup.exe",
+        "destination": "https://github.com/josemunoz32/tienda-panda-2.0/releases/latest/download/PandaStoreSetup.exe",
+        "type": 302
+      },
+      {
+        "source": "/PandaStoreActivator.exe",
+        "destination": "https://github.com/josemunoz32/tienda-panda-2.0/releases/latest/download/PandaStoreActivator.exe",
+        "type": 302
+      },
+      {
+        "source": "/launcher/**",
+        "destination": "https://github.com/josemunoz32/tienda-panda-2.0/releases/latest/download/PandaStoreSetup.exe",
+        "type": 302
+      },
+      {
+        "source": "/torrents/:file",
+        "destination": "https://raw.githubusercontent.com/josemunoz32/tienda-panda-2.0/main/public/torrents/:file",
+        "type": 302
       }
     ],
     "rewrites": [

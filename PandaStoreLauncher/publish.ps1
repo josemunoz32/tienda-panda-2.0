@@ -94,20 +94,10 @@ if (Test-Path $activatorPublishPath) {
 }
 Write-Host "      Firma digital aplicada exitosamente a PandaStoreLauncher.exe, PandaChecker.exe y PandaStoreActivator.exe." -ForegroundColor Green
 
-$publicSrcDir = "$scriptDir\..\public\downloads"
-$publicBuildDir = "$scriptDir\..\build\downloads"
-
-if (-not (Test-Path $publicSrcDir)) { New-Item -ItemType Directory -Path $publicSrcDir | Out-Null }
-if (-not (Test-Path $publicBuildDir)) { New-Item -ItemType Directory -Path $publicBuildDir | Out-Null }
-
-Copy-Item $exePath -Destination "$publicSrcDir\PandaStoreLauncher.exe" -Force
-Copy-Item $exePath -Destination "$publicBuildDir\PandaStoreLauncher.exe" -Force
-if (Test-Path $activatorPublishPath) {
-    Copy-Item $activatorPublishPath -Destination "$publicSrcDir\PandaStoreActivator.exe" -Force
-    Copy-Item $activatorPublishPath -Destination "$publicBuildDir\PandaStoreActivator.exe" -Force
-}
+# Los binarios .exe NO se copian a public/ ni build/ para proteger el ancho de banda del hosting (0 GB cobrados).
+# Se suben exclusivamente a GitHub Releases oficial.
 Write-Host ""
-Write-Host "[2/4] Copiado EXE a carpeta publica de la Web: $publicSrcDir\PandaStoreLauncher.exe" -ForegroundColor Green
+Write-Host "[2/4] Binarios listos en Publish\ (exclusivos para GitHub Releases, 0 gasto en hosting)." -ForegroundColor Green
 
 Write-Host ""
 Write-Host "[3/4] Generando instalador Setup con Inno Setup..." -ForegroundColor Cyan
@@ -131,11 +121,7 @@ if (Test-Path $setupPath) {
     Write-Host "[4/4] Copiando y firmando el Setup Instalador..." -ForegroundColor Cyan
 
     Set-AuthenticodeSignature -FilePath $setupPath -Certificate $cert | Out-Null
-    Copy-Item $setupPath -Destination "$publicSrcDir\PandaStoreSetup.exe" -Force
-    Copy-Item $setupPath -Destination "$publicBuildDir\PandaStoreSetup.exe" -Force
-    Copy-Item $setupPath -Destination "$publicSrcDir\PandaStoreDeckSetup.exe" -Force
-    Copy-Item $setupPath -Destination "$publicBuildDir\PandaStoreDeckSetup.exe" -Force
-    Write-Host "      Setup copiado a public y build: $publicSrcDir\PandaStoreSetup.exe y PandaStoreDeckSetup.exe" -ForegroundColor Green
+    Write-Host "      PandaStoreSetup.exe generado y firmado en Publish (listo para GitHub Releases)." -ForegroundColor Green
 
     # Sincronizar directorio de instalacion local del PC (para que el desarrollador siempre tenga la ultima version)
     $localInstalledDir86 = "C:\Program Files (x86)\PandaStore"

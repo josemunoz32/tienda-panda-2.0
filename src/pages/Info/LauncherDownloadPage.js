@@ -142,7 +142,7 @@ function TutorialVideoCard({ title, subtitle, badge, badgeColor, videoSrc, icon 
 
 export default function LauncherDownloadPage() {
   const WIN_DOWNLOAD_URL =
-    "https://github.com/josemunoz32/tienda-panda-2.0/releases/download/v2.4.42/PandaStoreSetup.exe";
+    "https://github.com/josemunoz32/tienda-panda-2.0/releases/latest/download/PandaStoreSetup.exe";
 
   const handleDownload = () => {
     window.open(WIN_DOWNLOAD_URL, "_blank");

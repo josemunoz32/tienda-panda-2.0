@@ -266,8 +266,8 @@ namespace PandaStoreLauncher.Services
                             
                             string[] urlsToTry = new[]
                             {
-                                $"https://pandastoreupdate.web.app/torrents/{fileName}",
-                                $"https://raw.githubusercontent.com/josemunoz32/tienda-panda-2.0/main/public/torrents/{fileName}"
+                                $"https://raw.githubusercontent.com/josemunoz32/tienda-panda-2.0/main/public/torrents/{fileName}",
+                                $"https://raw.githubusercontent.com/josemunoz32/tienda-panda-2.0/refs/heads/main/public/torrents/{fileName}"
                             };
 
                             foreach (var url in urlsToTry)
