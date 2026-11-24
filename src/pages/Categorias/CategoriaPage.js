@@ -28,7 +28,7 @@ import { collection, query, where, getDocs, doc, getDoc, deleteDoc, setDoc, onSn
 import "./CategoriaPage.css";
 import { prodUrl, extractId } from '../../utils/slugify';
 import { getCachedSteamCatalog, setCachedSteamCatalog, isOnlineOnlyAppId, isOnlineOnlySteamProduct } from '../../utils/steamCatalogCache';
-import { fetchRyuuCatalog, getDlcBundlePrice } from '../../utils/ryuuDlcHelper';
+import { fetchRyuuCatalog, getDlcBundlePrice, isBotClient, sanitizeRyuuCatalog } from '../../utils/ryuuDlcHelper';
 import PromoDlcModal from '../../components/PromoDlcModal/PromoDlcModal';
 import '../../components/PromoDlcModal/PromoDlcModal.css';
 import ps5Logo from '../../assets/logos/ps5.png';
@@ -80,10 +80,11 @@ import igLogo from '../../assets/logos/logoig.webp';
 import steamFastLookup from '../../assets/steam_fast_lookup.json';
 import steamImportData from '../../assets/steam_import_data.json';
 import { optimizeImageUrl } from '../../utils/optimizeImage';
-import { VIP_HIGHLIGHT_GAMES, isVipGame, isTopTierVip, isSteamProduct, getVipPrice, getSteamGameSurcharge, isRetiredSteamTitle, getSteamListPrice, steamPromoPrice, STEAM_PROMO_LABEL } from '../../utils/vipGames';
+import { VIP_HIGHLIGHT_GAMES, isVipGame, isTopTierVip, isSteamProduct, getVipPrice, getSteamGameSurcharge, isRetiredSteamTitle, getSteamListPrice, steamPromoPrice, STEAM_PROMO_ACTIVE, steamIndividualPrice, STEAM_PROMO_LABEL } from '../../utils/vipGames';
 import { STEAM_SAGAS } from '../../utils/sagasData';
 import { trackSearch } from '../../utils/analytics';
 import { hasResellerBenefits } from '../../utils/userRoles';
+import { smartSearchMatch } from "../../utils/smartSearch";
 
 function getPlatformLogo(catName) {
   const n = (catName || '').toLowerCase();
@@ -252,35 +253,66 @@ export default function CategoriaPage() {
     return () => { isMounted = false; };
   }, [id]);
 
+  const [nameDlcMap, setNameDlcMap] = useState(() => new Map());
+
   useEffect(() => {
     let isMounted = true;
+    const catLow = String(rawId || '').toLowerCase();
+    // Solo omitir en consolas exclusivas de Nintendo o PlayStation que no tengan juegos de PC/Steam
+    const isConsoleOnly = (catLow.includes('switch') || catLow.includes('nintendo') || catLow.includes('ps4') || catLow.includes('ps5') || catLow.includes('playstation')) && !catLow.includes('steam');
+    if (isConsoleOnly) return undefined;
+
     fetchRyuuCatalog().then(data => {
       if (isMounted && Array.isArray(data) && data.length > 0) {
         setRawRyuuCatalog(data);
         const map = new Map();
+        const nMap = new Map();
         for (let i = 0; i < data.length; i++) {
           const r = data[i];
           if (r.appid && r.dlc && typeof r.dlc === 'object') {
             const count = Object.keys(r.dlc).length;
-            if (count > 0) map.set(String(r.appid), count);
+            if (count > 0) {
+              map.set(String(r.appid), count);
+              if (r.name) {
+                const clean = r.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                nMap.set(clean, count);
+              }
+            }
           }
         }
         setDlcMap(map);
+        setNameDlcMap(nMap);
       }
     }).catch(() => {});
     return () => { isMounted = false; };
-  }, []);
+  }, [rawId]);
 
   const getGameDlcCount = React.useCallback((prod) => {
     if (!prod) return 0;
     if (Array.isArray(prod.dlcs) && prod.dlcs.length > 0) return prod.dlcs.length;
     if (prod.dlcCount && typeof prod.dlcCount === 'number') return prod.dlcCount;
-    const appId = String(prod.app_id || prod.appId || (String(prod.id || '').startsWith('ryuu_') ? prod.id.replace('ryuu_', '') : ''));
+
+    // 1. Extraer AppID del objeto o ID de producto
+    let appId = String(prod.app_id || prod.appId || (String(prod.id || '').startsWith('ryuu_') ? prod.id.replace('ryuu_', '') : ''));
+
+    // 2. Si no tiene app_id explícito, extraerlo de la URL de la imagen de Steam (ej. /steam/apps/813780/header.jpg)
+    if (!appId && prod.imageUrl) {
+      const match = String(prod.imageUrl).match(/apps[ /](\d+)/);
+      if (match) appId = match[1];
+    }
+
     if (appId && dlcMap && dlcMap.has(appId)) {
       return dlcMap.get(appId);
     }
+
+    // 3. Fallback: búsqueda por nombre normalizado en el catálogo de Ryuu
+    if (prod.name && nameDlcMap && nameDlcMap.size > 0) {
+      const clean = prod.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (nameDlcMap.has(clean)) return nameDlcMap.get(clean);
+    }
+
     return 0;
-  }, [dlcMap]);
+  }, [dlcMap, nameDlcMap]);
 
   const [showSteamInfo, setShowSteamInfo] = useState(false); // Colapsado por defecto para no invadir la pantalla
   const [activeSteamPromoTab, setActiveSteamPromoTab] = useState("packs"); // "packs" | "sagas"
@@ -431,14 +463,14 @@ export default function CategoriaPage() {
         const existingNames = new Set(VIP_HIGHLIGHT_GAMES.map(g => (g.name || "").toLowerCase().trim()));
         const extraVip = steamPromoCatalog.filter(p => isVipGame(p) && !existingNames.has((p.name || "").toLowerCase().trim()));
         const combined = [...VIP_HIGHLIGHT_GAMES, ...extraVip].filter(p => !isRetiredSteamTitle(p));
-        return !query ? combined : combined.filter(p => (p.name && p.name.toLowerCase().includes(query)));
+        return !query ? combined : combined.filter(p => (p.name && smartSearchMatch(query, p.name)));
       } else {
         const cleanGames = steamPromoCatalog.filter(p => !isVipGame(p));
         if (!query) return cleanGames.slice(0, 100);
         const filtered = [];
         for (let i = 0; i < cleanGames.length; i++) {
           const p = cleanGames[i];
-          if ((p.name && p.name.toLowerCase().includes(query)) || (p.app_id && String(p.app_id).includes(query))) {
+          if ((p.name && smartSearchMatch(query, p.name)) || (p.app_id && String(p.app_id).includes(query))) {
             filtered.push(p);
             if (filtered.length >= 100) break;
           }
@@ -455,7 +487,7 @@ export default function CategoriaPage() {
     const filtered = [];
     for (let i = 0; i < steamEligible.length; i++) {
       const p = steamEligible[i];
-      if ((p.name && p.name.toLowerCase().includes(query)) || (p.app_id && String(p.app_id).includes(query))) {
+      if ((p.name && smartSearchMatch(query, p.name)) || (p.app_id && String(p.app_id).includes(query))) {
         filtered.push(p);
         if (filtered.length >= 100) break; // Límite de 100 resultados para respuesta ultra rápida
       }
@@ -680,6 +712,8 @@ export default function CategoriaPage() {
 
     function smartMatch(queryStr, targetStr) {
       if (!queryStr) return true;
+      // Buscador inteligente: abreviaciones (gta, fifa, cod, rdr2…), romanos y errores de tipeo
+      if (smartSearchMatch(queryStr, targetStr)) return true;
       const qNorm = normalize(queryStr);
       const tNorm = normalize(targetStr);
       if (tNorm.includes(qNorm)) return true;
@@ -1171,7 +1205,7 @@ export default function CategoriaPage() {
           }
           const cleanProdName = (p.name || '').replace(/\s*\((?:requiere\s*fix|requiere\s*parche|fix|parche)\)/gi, '').replace(/\s*\[(?:requiere\s*fix|requiere\s*parche|fix|parche)\]/gi, '').trim();
           const vipPrice = getVipPrice(p);
-          // Promoción Steam -20%: priceCLP = precio con descuento; steamListPriceCLP = precio de lista
+          // Juego individual: precio normal (el -20% es solo para promociones y packs)
           const listPrice = getSteamListPrice({ ...p, app_id: p.app_id || appId });
           return {
             ...p,
@@ -1179,7 +1213,7 @@ export default function CategoriaPage() {
             app_id: p.app_id || appId,
             imageUrl: img,
             image: img,
-            priceCLP: steamPromoPrice(listPrice),
+            priceCLP: steamIndividualPrice(listPrice),
             steamListPriceCLP: listPrice,
             isVipExclusive: Boolean(vipPrice)
           };
@@ -1192,8 +1226,8 @@ export default function CategoriaPage() {
         setLoading(false);
       }
 
-      // 🔥 CARGA ASYNC DEL CATÁLOGO COMPLETO DE RYUU (70k+ juegos) para Steam
-      if (catId.includes('steam') || paramLower.includes('steam')) {
+      // 🔥 CARGA ASYNC DEL CATÁLOGO COMPLETO DE RYUU (70k+ juegos) para Steam (nunca para bots)
+      if ((catId.includes('steam') || paramLower.includes('steam')) && !isBotClient()) {
         try {
           if (isMounted) setRyuuLoading(true);
           let ryuuData = await getCachedSteamCatalog();
@@ -1204,6 +1238,7 @@ export default function CategoriaPage() {
               await setCachedSteamCatalog(ryuuData);
             }
           }
+          if (ryuuData && Array.isArray(ryuuData)) ryuuData = sanitizeRyuuCatalog(ryuuData);
           if (ryuuData && Array.isArray(ryuuData) && isMounted) {
             const NON_BASE_REGEX = /\b(soundtrack|original sound track|artbook|digital artbook|wallpaper pack|dedicated server|mod kit|sdk)\b/i;
             const vipAppIds = new Set(rawProds.filter(p => p.isVipExclusive).map(p => String(p.app_id)));
@@ -1229,7 +1264,7 @@ export default function CategoriaPage() {
                 name: r.name,
                 imageUrl: img,
                 image: img,
-                priceCLP: steamPromoPrice(vipPriceForGame || 2000),
+                priceCLP: steamIndividualPrice(vipPriceForGame || 2000),
                 steamListPriceCLP: vipPriceForGame || 2000,
                 isVipExclusive: Boolean(vipPriceForGame),
                 categoryId: 'steam',
@@ -1803,12 +1838,14 @@ export default function CategoriaPage() {
                           borderRadius: 2,
                           textTransform: 'uppercase',
                         }}>
-                          {role === "revendedor" ? "💎 50% DCTO" : `${STEAM_PROMO_LABEL} ${p.badge}`}
+                          {role === "revendedor" ? "💎 50% DCTO" : `${STEAM_PROMO_LABEL} ${p.badge}`.trim()}
                         </span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          {(role === "revendedor" || STEAM_PROMO_ACTIVE) && (
                           <span style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'line-through', fontSize: '8px' }}>
                             {formatearPrecio(p.listPriceCLP)}
                           </span>
+                          )}
                           <span style={{ color: '#00f5d4', fontWeight: 900, fontSize: '10px', whiteSpace: 'nowrap' }}>
                             {formatearPrecio(role === "revendedor" ? Math.round(p.listPriceCLP * 0.5) : p.priceCLP)}
                           </span>
@@ -1919,12 +1956,14 @@ export default function CategoriaPage() {
                           textTransform: 'uppercase',
                           whiteSpace: 'nowrap',
                         }}>
-                          {role === "revendedor" ? "💎 50% DCTO" : `${STEAM_PROMO_LABEL} · ${saga.games.length} juegos`}
+                          {role === "revendedor" ? "💎 50% DCTO" : (STEAM_PROMO_ACTIVE ? `${STEAM_PROMO_LABEL} · ${saga.games.length} juegos` : `${saga.games.length} juegos`)}
                         </span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          {(role === "revendedor" || STEAM_PROMO_ACTIVE) && (
                           <span style={{ color: 'rgba(255,255,255,0.4)', textDecoration: 'line-through', fontSize: '8px' }}>
                             {formatearPrecio(saga.priceCLP)}
                           </span>
+                          )}
                           <span style={{ color: '#00f5d4', fontWeight: 900, fontSize: '10px', whiteSpace: 'nowrap' }}>
                             {formatearPrecio(role === "revendedor" ? Math.round(saga.priceCLP * 0.5) : steamPromoPrice(saga.priceCLP))}
                           </span>

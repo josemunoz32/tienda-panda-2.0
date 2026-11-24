@@ -8,6 +8,7 @@ import { collection, getDocs, deleteDoc, doc, getDoc, updateDoc, addDoc } from "
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Link, useNavigate } from "react-router-dom";
 import "./ProductosList.css";
+import { smartSearchMatch } from "../../utils/smartSearch";
 
 export default function ProductosList() {
   const [productos, setProductos] = useState([]);
@@ -376,7 +377,7 @@ export default function ProductosList() {
       (catName && catName.toLowerCase() === filterCat.toLowerCase());
 
     const matchesSearch = !search || 
-      prod.name?.toLowerCase().includes(search.toLowerCase()) || 
+      (prod.name && smartSearchMatch(search, prod.name)) || 
       prod.plataforma?.toLowerCase().includes(search.toLowerCase()) ||
       catName.toLowerCase().includes(search.toLowerCase()) ||
       (isDenuvo(prod) && search.toLowerCase().includes("denuvo"));

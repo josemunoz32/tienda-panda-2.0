@@ -2,6 +2,8 @@
 # PandaStore Gaming Chile - Optimizado para Buscadores y Agentes IA (100% Crawlability)
 
 User-agent: *
+Disallow: /api/
+Disallow: /*.mp4$
 Allow: /
 Disallow: /admin/
 Disallow: /perfil
@@ -20,28 +22,42 @@ Disallow: /pandafit
 
 # Agentes de Inteligencia Artificial (LLM & Web Agents)
 User-agent: GPTBot
+Disallow: /api/
+Disallow: /*.mp4$
 Allow: /
 Disallow: /admin/
 Disallow: /perfil
 Disallow: /checkoutcarrito
 
 User-agent: ChatGPT-User
+Disallow: /api/
+Disallow: /*.mp4$
 Allow: /
 
 User-agent: ClaudeBot
+Disallow: /api/
+Disallow: /*.mp4$
 Allow: /
 Disallow: /admin/
 
 User-agent: Claude-Web
+Disallow: /api/
+Disallow: /*.mp4$
 Allow: /
 
 User-agent: PerplexityBot
+Disallow: /api/
+Disallow: /*.mp4$
 Allow: /
 
 User-agent: Google-Extended
+Disallow: /api/
+Disallow: /*.mp4$
 Allow: /
 
 User-agent: Applebot-Extended
+Disallow: /api/
+Disallow: /*.mp4$
 Allow: /
 
 # Mapas de navegación y manifiesto para LLM

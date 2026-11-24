@@ -7,7 +7,7 @@ import { auth } from '../../firebase';
 import { db } from '../../firebaseDb';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { STEAM_SAGAS } from '../../utils/sagasData';
-import { steamPromoPrice, STEAM_PROMO_LABEL } from '../../utils/vipGames';
+import { steamPromoPrice, STEAM_PROMO_LABEL, STEAM_PROMO_ACTIVE } from '../../utils/vipGames';
 import { hasResellerBenefits } from '../../utils/userRoles';
 import './SagasPage.css';
 
@@ -170,7 +170,7 @@ export default function SagasPage() {
               </div>
 
               <div className="saga-card-footer">
-                <span className="saga-card-price">{!isReseller && <s style={{ opacity: 0.55, fontSize: '0.8em', marginRight: 6 }}>{formatearPrecio(saga.priceCLP)}</s>}{formatearPrecio(isReseller ? Math.round(saga.priceCLP * 0.5) : steamPromoPrice(saga.priceCLP))}{!isReseller && <span className="saga-promo-badge">{STEAM_PROMO_LABEL}</span>}</span>
+                <span className="saga-card-price">{!isReseller && STEAM_PROMO_ACTIVE && <s style={{ opacity: 0.55, fontSize: '0.8em', marginRight: 6 }}>{formatearPrecio(saga.priceCLP)}</s>}{formatearPrecio(isReseller ? Math.round(saga.priceCLP * 0.5) : steamPromoPrice(saga.priceCLP))}{!isReseller && STEAM_PROMO_ACTIVE && <span className="saga-promo-badge">{STEAM_PROMO_LABEL}</span>}</span>
                 <button
                   type="button"
                   className="saga-card-action-btn"

@@ -74,6 +74,11 @@ export default function PromoDlcModal({
         ? game.id.replace("ryuu_", "")
         : null);
 
+    if (!appId && game.imageUrl) {
+      const m = String(game.imageUrl).match(/apps[ /](\d+)/);
+      if (m) appId = m[1];
+    }
+
     // Si no tiene appId numérico, intentar buscar en catálogo por nombre
     if ((!appId || !/^\d+$/.test(String(appId).trim())) && game.name && catalog.length > 0) {
       const cleanName = game.name.toLowerCase().replace(/[^a-z0-9]/g, "");

@@ -16,7 +16,7 @@ import { trackViewItem } from "../../utils/analytics";
 import ProductDlcs from "../../components/ProductDlcs/ProductDlcs";
 import { RelatedLandings } from "../Seo/SeoPages";
 import { fetchRyuuCatalog } from "../../utils/ryuuDlcHelper";
-import { getSteamListPrice, steamPromoPrice, STEAM_PROMO_LABEL } from "../../utils/vipGames";
+import { getSteamListPrice, steamIndividualPrice, STEAM_PROMO_LABEL } from "../../utils/vipGames";
 import Masonry from "../../components/Masonry/Masonry";
 import Loader from "../../components/Loader";
 import { getProductPricing, formatCLP, parseNumberCLP } from "../../utils/priceHelper";
@@ -822,9 +822,9 @@ export default function ProductDetail() {
           // Precio real de Steam (lista VIP manda): el mismo que muestran las tarjetas y que se cobra.
           // Antes la ficha usaba el precio de catálogo ($2.000) aunque el juego fuera VIP ($8.000).
           if (isSteamProduct(p) && !(Array.isArray(p.preciosPorMes) && p.preciosPorMes.length)) {
-            // Promoción Steam -20%: priceCLP = precio con descuento; steamListPriceCLP = precio de lista
+            // Juego individual: precio normal (el -20% es solo para promociones y packs)
             const listPrice = getSteamListPrice(p);
-            const realPrice = steamPromoPrice(listPrice);
+            const realPrice = steamIndividualPrice(listPrice);
             if (listPrice !== Number(p.priceCLP) && typeof p.description === "string") {
               p.description = p.description
                 .replace(/\(\$[\d.]+\)/, `($${listPrice.toLocaleString("es-CL")})`)
@@ -1649,6 +1649,19 @@ export default function ProductDetail() {
 function isSteamProduct(producto) {
   const rawPlat = (producto?.plataforma || producto?.platform || "").toLowerCase();
   const category = (producto?.categoria || producto?.categoryName || producto?.consoleName || "").toLowerCase();
+
+  // Si explícitamente es Steam o tiene ID/imagen de Steam, ES STEAM prioritariamente
+  if (
+    rawPlat.includes("steam") ||
+    category.includes("steam") ||
+    Boolean(producto?.isSteam) ||
+    String(producto?.id || "").startsWith("ryuu_") ||
+    String(producto?.id || "").startsWith("vip-") ||
+    (producto?.imageUrl && (producto.imageUrl.includes("steamstatic") || producto.imageUrl.includes("akamai.steamstatic")))
+  ) {
+    return true;
+  }
+
   const isPlayStation = rawPlat.includes("ps4") || rawPlat.includes("ps5") || rawPlat.includes("playstation") ||
     rawPlat.includes("play 4") || rawPlat.includes("play 5") ||
     category.includes("ps4") || category.includes("ps5") || category.includes("playstation") ||
@@ -1665,9 +1678,7 @@ function isSteamProduct(producto) {
     category.includes("switch") || category.includes("nintendo");
   if (isSwitch) return false;
 
-  return rawPlat.includes("steam") || category.includes("steam") ||
-    Boolean(producto?.isSteam) || String(producto?.id || "").startsWith("ryuu_") ||
-    String(producto?.id || "").startsWith("vip-");
+  return false;
 }
 
 function getMonthlyPlans(producto, moneda) {

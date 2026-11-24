@@ -23,8 +23,10 @@ export const isRetiredSteamTitle = (p) => {
   ) {
     return true;
   }
-  const match = name.match(/(?:ea\s*sports\s*)?fc\s*(\d{1,2})/);
-  return Boolean(match && Number(match[1]) <= 25);
+  const norm = name.replace(/[^a-z0-9]+/g, ' ');
+  const match = norm.match(/\bfc\s*(\d{1,2})\b/);
+  // FC 24/25 retirados y FC 27 (incluye Lite/Beta) fuera del catálogo de Steam
+  return Boolean(match && (Number(match[1]) <= 25 || Number(match[1]) === 27));
 };
 
 // Comprueba si un producto pertenece ESTRICTAMENTE a la plataforma Steam
@@ -169,15 +171,17 @@ export const getSteamGameSurcharge = (p) => {
 export const STEAM_DEFAULT_PRICE_CLP = 2000;
 
 /**
- * Promoción Steam: 20% de descuento para el público en juegos sueltos y packs de la categoría Steam.
+ * Promoción Steam: 20% de descuento para el público SOLO en promociones, packs y sagas (los juegos sueltos van a precio normal).
  * El precio final siempre termina en "90" y nunca supera el 80% del precio de lista:
  *   $2.000 → $1.590 · $4.990 → $3.990 · $8.000 → $6.390 · $9.990 → $7.990 · $12.000 → $9.590
  *   $15.000 → $11.990 · $17.990 → $14.390
  * Los revendedores NO reciben este descuento: su precio se sigue calculando sobre el precio de lista.
  * Para terminar la promoción basta con poner STEAM_PROMO_DISCOUNT = 0.
  */
-export const STEAM_PROMO_DISCOUNT = 0.2;
-export const STEAM_PROMO_LABEL = "-20%";
+// Promoción terminada: todo a precio normal. Para reactivarla: STEAM_PROMO_DISCOUNT = 0.2 y STEAM_PROMO_LABEL = "-20%".
+export const STEAM_PROMO_DISCOUNT = 0;
+export const STEAM_PROMO_LABEL = "";
+export const STEAM_PROMO_ACTIVE = STEAM_PROMO_DISCOUNT > 0;
 export const steamPromoPrice = (listPrice) => {
   const list = Number(listPrice);
   if (!Number.isFinite(list) || list <= 0 || !STEAM_PROMO_DISCOUNT) return list;
@@ -198,14 +202,23 @@ export const getSteamListPrice = (p) => {
 };
 
 /**
- * Precio REAL que paga el público por un juego de Steam: precio de lista con la promoción aplicada.
+ * Precio de un juego de Steam INDIVIDUAL: siempre el precio normal (de lista), sin descuento.
+ * El -20% (steamPromoPrice) aplica SOLO a promociones, packs y sagas.
+ */
+export const steamIndividualPrice = (listPrice) => {
+  const list = Number(listPrice);
+  return Number.isFinite(list) && list > 0 ? list : STEAM_DEFAULT_PRICE_CLP;
+};
+
+/**
+ * Precio REAL que paga el público por un juego de Steam individual: precio normal de lista.
  * Regla única para tarjetas, ficha, carrito y checkout.
  */
-export const getSteamRealPrice = (p) => steamPromoPrice(getSteamListPrice(p));
+export const getSteamRealPrice = (p) => steamIndividualPrice(getSteamListPrice(p));
 
 /** Devuelve el producto de Steam con el precio de promoción y el de lista guardado aparte (para tachado y revendedores). */
 export const withSteamPromo = (p) => {
   if (!p) return p;
   const list = getSteamListPrice(p);
-  return { ...p, priceCLP: steamPromoPrice(list), steamListPriceCLP: list };
+  return { ...p, priceCLP: steamIndividualPrice(list), steamListPriceCLP: list };
 };

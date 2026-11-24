@@ -9,23 +9,82 @@ export const DLC_PRICE_UNIT = 1000;
 
 let _memCatalog = null;
 
+// Los bots (Googlebot renderiza JS) no necesitan el catálogo de 5 MB: evita gastar transferencia del Hosting
+export const isBotClient = () => {
+  try {
+    return /bot|crawl|spider|slurp|lighthouse|headlesschrome/i.test(navigator.userAgent || "");
+  } catch (e) { return false; }
+};
+
+// ===== DLCs que NO se venden: monedas, pases de batalla, multijugador, suscripciones =====
+// Solo se venden DLCs que funcionan en el juego base / modo historia sin conexión.
+const DLC_CURRENCY = String.raw`(coins?|points?|credits?|gems?|crystals?|bucks|v-?bucks|platinum|gold|diamonds?|cash|currency|money|vc|cp|zen|atoms|crowns?|plex|robux|riot points|jewels|rubies)`;
+const ONLINE_DLC_RE = new RegExp(
+  String.raw`\$\s?\d` +                                                     // Bonus $500,000 (GTA V)
+  String.raw`|\b(?!(?:19|20)\d\d\b)\d[\d,.]*\s*` + DLC_CURRENCY +          // 2400 Platinum, 1100 VC (no años)
+  String.raw`(\s*(pack|bundle|card|chest|pouch|stack|bag|crate|offer))?\s*([-–(]|$)` +
+  String.raw`|\b` + DLC_CURRENCY + String.raw`\s*(pack|bundle|card|chest|pouch|stack|bag|crate)\b` + // Coin Bundle, Gold Pack
+  String.raw`|shark card|cash card|virtual currency|in-?game currency|premium currency` +
+  String.raw`|(?<!local )\bonline\b|(?<!local )(?<!split-screen )multi-?player(?! mode)|\bpvp\b` +
+  String.raw`|battle ?pass|premium pass|ultimate team|\bfut\b|criminal enterprise` +
+  String.raw`|\bxp boost|double xp|loot ?box|battle royale|\bvip (membership|subscription)|membership|subscription`,
+  "i"
+);
+// Juegos cuyo contenido descargable es multijugador/cosmético: solo se permiten zombies, campañas e historia
+const ONLINE_FRANCHISE_RE = /call of duty|battlefield|rainbow six|for honor|the crew|the division|destiny|ea sports fc|fifa|madden|nhl|nba 2k|wwe 2k|pga tour|rocket league/i;
+const OFFLINE_CONTENT_RE = /zombies|campaign|campa[nñ]a|story|historia|expansion|single-?player/i;
+const ONLINE_GAME_TAGS = new Set(["Massively Multiplayer", "Free To Play"]);
+
+const normalizeTitle = (t) => String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+export function isOnlineOnlyDlc(dlcName, gameName = "") {
+  const name = String(dlcName || "");
+  if (!name) return false;
+  if (ONLINE_DLC_RE.test(name)) return true;
+  if (ONLINE_FRANCHISE_RE.test(String(gameName || "")) && !OFFLINE_CONTENT_RE.test(name)) return true;
+  return false;
+}
+
+/** Quita del catálogo los DLCs online/monedas (y todos los de juegos MMO o Free-to-Play). */
+export function sanitizeRyuuCatalog(data) {
+  if (!Array.isArray(data)) return data;
+  return data.map((g) => {
+    if (!g || !g.dlc || typeof g.dlc !== "object") return g;
+    const tags = Array.isArray(g.tags) ? g.tags : [];
+    if (tags.some((t) => ONLINE_GAME_TAGS.has(t))) return { ...g, dlc: {} };
+    const clean = {};
+    let removed = false;
+    const gameKey = normalizeTitle(g.name);
+    for (const [id, info] of Object.entries(g.dlc)) {
+      const dlcName = parseDlcInfo(id, info).name;
+      const dlcKey = normalizeTitle(dlcName);
+      // "DLC" que es el mismo juego base (ej. GTA V Legacy trae un paquete llamado "Grand Theft Auto V")
+      const isBaseGameCopy = dlcKey && (dlcKey === gameKey || gameKey.startsWith(dlcKey + " "));
+      if (isBaseGameCopy || isOnlineOnlyDlc(dlcName, g.name)) { removed = true; continue; }
+      clean[id] = info;
+    }
+    return removed ? { ...g, dlc: clean } : g;
+  });
+}
+
 export async function fetchRyuuCatalog() {
+  if (isBotClient()) return [];
   if (_memCatalog && Array.isArray(_memCatalog) && _memCatalog.length > 0) {
     return _memCatalog;
   }
   try {
     const cached = await getCachedSteamCatalog();
     if (cached && Array.isArray(cached) && cached.length > 10000) {
-      _memCatalog = cached;
-      return cached;
+      _memCatalog = sanitizeRyuuCatalog(cached);
+      return _memCatalog;
     }
     const res = await fetch("/api/ryuu/games.json");
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data)) {
-        _memCatalog = data;
         await setCachedSteamCatalog(data);
-        return data;
+        _memCatalog = sanitizeRyuuCatalog(data);
+        return _memCatalog;
       }
     }
   } catch (err) {

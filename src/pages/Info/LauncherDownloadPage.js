@@ -71,7 +71,7 @@ function TutorialVideoCard({ title, subtitle, badge, badgeColor, videoSrc, icon 
           src={videoSrc}
           controls
           playsInline
-          preload="auto"
+          preload="none"
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
           onEnded={() => setIsPlaying(false)}

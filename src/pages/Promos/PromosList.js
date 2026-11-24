@@ -412,6 +412,7 @@ export default function PromosList() {
   const [activeDlcModalGame, setActiveDlcModalGame] = useState(null);
   const [rawRyuuCatalog, setRawRyuuCatalog] = useState([]);
   const [dlcMap, setDlcMap] = useState(new Map());
+  const [nameDlcMap, setNameDlcMap] = useState(() => new Map());
 
   // Evita recalcular y volver a pintar el selector mientras el usuario escribe.
   // La lista visible se actualiza tras una pausa breve, no en cada pulsación.
@@ -535,14 +536,21 @@ export default function PromosList() {
         if (!isMounted || !Array.isArray(data)) return;
         setRawRyuuCatalog(data);
         const map = new Map();
+        const nMap = new Map();
         for (let i = 0; i < data.length; i++) {
           const r = data[i];
           if (r.appid && r.dlc && typeof r.dlc === 'object') {
             const count = Object.keys(r.dlc).length;
-            if (count > 0) map.set(String(r.appid), count);
+            if (count > 0) {
+              map.set(String(r.appid), count);
+              if (r.name) {
+                nMap.set(r.name.toLowerCase().replace(/[^a-z0-9]/g, ''), count);
+              }
+            }
           }
         }
         setDlcMap(map);
+        setNameDlcMap(nMap);
       })
       .catch(() => {});
 
@@ -677,9 +685,17 @@ export default function PromosList() {
     if (!prod) return 0;
     if (Array.isArray(prod.dlcs) && prod.dlcs.length > 0) return prod.dlcs.length;
     if (prod.dlcCount && typeof prod.dlcCount === 'number') return prod.dlcCount;
-    const appId = String(prod.app_id || prod.appId || (String(prod.id || '').startsWith('ryuu_') ? prod.id.replace('ryuu_', '') : ''));
+    let appId = String(prod.app_id || prod.appId || (String(prod.id || '').startsWith('ryuu_') ? prod.id.replace('ryuu_', '') : ''));
+    if (!appId && prod.imageUrl) {
+      const match = String(prod.imageUrl).match(/apps[ /](\d+)/);
+      if (match) appId = match[1];
+    }
     if (appId && dlcMap && dlcMap.has(appId)) {
       return dlcMap.get(appId);
+    }
+    if (prod.name && nameDlcMap && nameDlcMap.size > 0) {
+      const clean = prod.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (nameDlcMap.has(clean)) return nameDlcMap.get(clean);
     }
     return 0;
   };

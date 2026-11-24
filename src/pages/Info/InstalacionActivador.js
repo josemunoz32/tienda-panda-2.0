@@ -96,7 +96,7 @@ export default function InstalacionActivador() {
           <video
             controls
             playsInline
-            preload="metadata"
+            preload="none"
             src={activacionVideo}
           >
             Tu navegador no soporta la reproducción de video HTML5.

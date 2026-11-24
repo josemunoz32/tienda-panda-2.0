@@ -30,12 +30,18 @@ export default function ProductDlcs({
   const [hoveredDlcId, setHoveredDlcId] = useState(null);
   const user = auth.currentUser;
 
-  const rawAppId =
+  let rawAppId =
     product?.app_id ||
     product?.appId ||
     (String(product?.id || "").startsWith("ryuu_")
       ? product.id.replace("ryuu_", "")
       : null);
+
+  // Extraer AppID de la URL de la imagen de Steam si no vino en el producto
+  if (!rawAppId && product?.imageUrl) {
+    const match = String(product.imageUrl).match(/apps[ /](\d+)/);
+    if (match) rawAppId = match[1];
+  }
   const appId = rawAppId ? String(rawAppId).trim() : null;
 
   // Cargar catálogo de Ryuu

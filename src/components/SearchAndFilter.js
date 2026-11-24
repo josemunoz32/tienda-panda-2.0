@@ -4,6 +4,7 @@ import { prodUrl } from '../utils/slugify';
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebaseDb";
 import { useMoneda } from "../context/MonedaContext";
+import { smartSearchMatch } from "../utils/smartSearch";
 
 export default function SearchAndFilter() {
   const [search, setSearch] = useState("");
@@ -39,7 +40,7 @@ export default function SearchAndFilter() {
       return;
     }
     const results = allProducts
-      .filter((p) => p.name?.toLowerCase().includes(search.toLowerCase()))
+      .filter((p) => p.name && smartSearchMatch(search, p.name))
       .slice(0, 6);
     setSearchResults(results);
   }, [search, allProducts]);

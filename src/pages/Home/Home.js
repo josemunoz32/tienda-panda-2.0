@@ -21,7 +21,7 @@ import suscripcionesLogo from '../../assets/logos/suscripciones.png';
 import ventasHeader from '../../assets/home/ventas.webp';
 import letreroPromos from '../../assets/letreros/promociones.webp';
 import { optimizeImageUrl } from '../../utils/optimizeImage';
-import { getSteamListPrice, steamPromoPrice } from '../../utils/vipGames';
+import { getSteamListPrice, steamIndividualPrice } from '../../utils/vipGames';
 import letreroNintendo from '../../assets/letreros/nintendo switch.webp';
 import letreroPS4 from '../../assets/letreros/play 4.webp';
 import letreroPS5 from '../../assets/letreros/play 5.webp';
@@ -700,9 +700,9 @@ export default function Home() {
     return {
       steam: interleave(steamSold, steamTrending, 20).map((p) => {
         const appId = p.app_id || (String(p.id || "").match(/(\d+)$/) || [])[1];
-        // Mismo precio que la categoría Steam y la ficha: precio de lista con la promoción -20%
+        // Mismo precio que la categoría Steam y la ficha: juego individual a precio normal (sin -20%)
         const listPrice = getSteamListPrice({ ...p, app_id: appId });
-        const priced = { ...p, priceCLP: steamPromoPrice(listPrice), steamListPriceCLP: listPrice };
+        const priced = { ...p, priceCLP: steamIndividualPrice(listPrice), steamListPriceCLP: listPrice };
         if (!appId) return priced;
         return { ...priced, imageUrl: `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`, fallbackImage: p.imageUrl || `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/header.jpg` };
       }),

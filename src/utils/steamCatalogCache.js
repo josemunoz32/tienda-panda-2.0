@@ -347,6 +347,13 @@ export function isOnlineOnlySteamProduct(product) {
   const rawName = (product.name || product.title || '').toLowerCase().trim();
   // Betas, demos y pruebas nunca se venden (no son el juego completo)
   if (isNonSellableSteamTitle(rawName)) return true;
+  // EA SPORTS FC 27 (y sus versiones Lite/Beta) no se vende en Steam
+  const normName = rawName.replace(/[^a-z0-9]+/g, ' ').trim();
+  if (/\bfc\s*27\b/.test(normName)) return true;
+  // GTA V: solo se vende "Grand Theft Auto V Enhanced" (3240220); el antiguo GTA V / Legacy (271590) no
+  if (appId === '271590' || normName === 'gta v' || normName === 'gta 5' || normName === 'grand theft auto v' || normName === 'grand theft auto v legacy') return true;
+  // EA SPORTS FC 26 sí se vende (la palabra clave 'ea sports fc' de la lista online no debe bloquearlo)
+  if (/\bfc\s*26\b/.test(normName) && !/\b(beta|lite|demo|trial)\b/.test(normName)) return false;
   // Call of Duty: solo los antiguos del catálogo propio; ningún CoD nuevo se vende
   if (rawName.includes('call of duty') && !ALLOWED_COD_KEYS.has(rawName.replace(/[^a-z0-9]/g, ''))) return true;
   // Entradas fantasma (no existen en la tienda de Steam ni tienen portada): 7950 = CoD 4 duplicado

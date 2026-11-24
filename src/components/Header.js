@@ -20,6 +20,7 @@ import homeHalloweenIcon from '../assets/halloween/menu-icons/home-halloween.web
 import categoriesHalloweenIcon from '../assets/halloween/menu-icons/categories-halloween.webp';
 import installationHalloweenIcon from '../assets/halloween/menu-icons/installation-halloween.webp';
 import "./Header.css";
+import { smartSearchMatch } from "../utils/smartSearch";
 
 // Retorna el precio base en CLP del producto para que el motor
 // de divisas lo convierta en tiempo real con formatearPrecio según el dólar actual.
@@ -313,7 +314,7 @@ export default function Header({ user, onRoleChange, onSidebarChange }) {
     let results = allProducts;
     // Filtrar por nombre si hay texto
     if (search.trim().length > 0) {
-      results = results.filter(p => p.name && p.name.toLowerCase().includes(search.toLowerCase()));
+      results = results.filter(p => p.name && smartSearchMatch(search, p.name));
     }
     // Filtrar por categoría
     if (selectedCat) {
